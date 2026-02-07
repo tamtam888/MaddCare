@@ -9,6 +9,7 @@ import CarePlansPage from "./pages/CarePlansPage";
 import CalendarTreatmentsPage from "./pages/CalendarTreatmentsPage";
 import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
+import TreatmentPage from "./pages/TreatmentPage";
 import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
@@ -184,6 +185,17 @@ function App() {
     await writeTherapistsIdb(next);
   }, []);
 
+  const handleSaveTranscriptionFromTreatment = useCallback(
+    (payload) => {
+      const patientId = String(payload?.patientId || "").trim();
+      const text = String(payload?.text || "").trim();
+      const audioId = payload?.audioId ?? null;
+      if (!patientId) return;
+      patientsState.handleSaveTranscription(patientId, text, audioId);
+    },
+    [patientsState]
+  );
+
   if (!authReady) {
     return <div className="app-loading">Loading MedicalCare...</div>;
   }
@@ -271,6 +283,20 @@ function App() {
                       handleSaveReportEntry={patientsState.handleSaveReportEntry}
                       handleSyncPatientToMedplum={patientsState.handleSyncPatientToMedplum}
                       handleSaveCarePlanEntry={patientsState.handleSaveCarePlanEntry}
+                    />
+                  }
+                />
+              }
+            />
+
+            <Route
+              path="/treatment"
+              element={
+                <RequireAuth
+                  element={
+                    <TreatmentPage
+                      patients={patientsState.patients}
+                      onSaveTranscription={handleSaveTranscriptionFromTreatment}
                     />
                   }
                 />
