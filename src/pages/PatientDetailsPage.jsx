@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useId, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./PatientDetailsPage.css";
 
-import RecordAudio from "../components/RecordAudio";
 import PatientHistory from "../components/PatientHistory";
 import AttachReports from "../components/AttachReports";
 import CarePlanSection from "../components/CarePlanSection";
@@ -343,6 +342,12 @@ export default function PatientDetailsPage({
     }
   };
 
+  const handleStartTreatment = () => {
+    const pid = String(editablePatient?.idNumber || "").trim();
+    if (!pid) return;
+    navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);
+  };
+
   if (!editablePatient) {
     return (
       <div className="patient-details-page">
@@ -391,10 +396,7 @@ export default function PatientDetailsPage({
               </span>
 
               <span className="meta-chip">
-                <strong>DOB:</strong>{" "}
-                <bdi dir="ltr" style={{ unicodeBidi: "isolate" }}>
-                  {dobFormatted}
-                </bdi>
+                <strong>DOB:</strong> <bdi dir="ltr">{dobFormatted}</bdi>
               </span>
 
               <span className="meta-chip">
@@ -407,6 +409,10 @@ export default function PatientDetailsPage({
         </div>
 
         <div className="patients-page-header-actions">
+          <button type="button" className="patients-toolbar-button" onClick={handleStartTreatment}>
+            <span>Start Treatment</span>
+          </button>
+
           <button type="button" className="patients-toolbar-button" onClick={handleClose}>
             <span className="patients-toolbar-button-icon">
               <X size={16} />
@@ -428,18 +434,17 @@ export default function PatientDetailsPage({
             <span>Export JSON</span>
           </button>
 
-          <label className="patients-toolbar-button" style={{ cursor: "pointer" }}>
+          <label className="patients-toolbar-button">
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
             </span>
             <span>Import</span>
-            <input type="file" accept="application/json" style={{ display: "none" }} onChange={handleImportChange} />
+            <input type="file" accept="application/json" className="pd-hidden-file" onChange={handleImportChange} />
           </label>
         </div>
       </div>
 
       <div className="patient-sections-stack">
-        {/* 1) PatientDetails */}
         <CollapsibleBlock title="Patient details" subtitle={detailsSubtitle} defaultOpen={false}>
           <div className="patient-details-top-row">
             <div className="details-row-inline">
@@ -491,7 +496,6 @@ export default function PatientDetailsPage({
           </div>
         </CollapsibleBlock>
 
-        {/* 2) Appointment */}
         <CollapsibleBlock title="Appointments" subtitle="Upcoming and past visits" defaultOpen={false}>
           <div className="patients-page-header-actions">
             <button type="button" className="patients-toolbar-button" onClick={openAddAppointmentForPatient}>
@@ -507,12 +511,14 @@ export default function PatientDetailsPage({
           />
         </CollapsibleBlock>
 
-        {/* 3) TreatmentTransaction */}
-        <CollapsibleBlock title="Treatment transcription" subtitle="Record and improve visit notes" defaultOpen={true}>
-          <RecordAudio selectedPatient={editablePatient} onSaveTranscription={onSaveTranscriptionLocal} />
+        <CollapsibleBlock title="Treatment session" subtitle="Record, dictate and improve visit notes" defaultOpen={true}>
+          <div className="patients-page-header-actions">
+            <button type="button" className="patients-toolbar-button" onClick={handleStartTreatment}>
+              <span>Open Treatment</span>
+            </button>
+          </div>
         </CollapsibleBlock>
 
-        {/* 4) History */}
         <CollapsibleBlock title="History" subtitle={historySubtitle} defaultOpen={false}>
           <PatientHistory
             patient={editablePatient}
@@ -523,16 +529,10 @@ export default function PatientDetailsPage({
           />
         </CollapsibleBlock>
 
-        {/* 5) CarePlan */}
         <CollapsibleBlock title="Care plan" subtitle="Goals and exercises" defaultOpen={false}>
-          <CarePlanSection
-            patient={editablePatient}
-            onUpdatePatient={updatePatient}
-            onSaveCarePlanEntry={handleSaveCarePlanEntry}
-          />
+          <CarePlanSection patient={editablePatient} onUpdatePatient={updatePatient} onSaveCarePlanEntry={handleSaveCarePlanEntry} />
         </CollapsibleBlock>
 
-        {/* 6) Report */}
         <CollapsibleBlock title="Reports" subtitle={reportsSubtitle} defaultOpen={false}>
           <AttachReports
             patient={editablePatient}

@@ -1,0 +1,217 @@
+/* src/pages/TreatmentPage.css */
+
+.treatment-page {
+  padding: 1.5rem 2rem 2rem;
+}
+
+/* Header - same structure as Patients */
+.treatment-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.treatment-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.treatment-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.treatment-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.treatment-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Search - like Patients */
+.treatment-search-wrapper {
+  margin-top: 1.4rem;
+  position: relative;
+  max-width: 520px;
+}
+
+.treatment-search-input {
+  width: 100%;
+  height: 2.7rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0 1rem 0 3rem;
+  background: #ffffff;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  color: #111827;
+}
+
+.treatment-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.treatment-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+/* List */
+.treatment-list {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 980px;
+}
+
+/* Row - soft like Patients page */
+.treatment-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.treatment-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.treatment-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.treatment-item-name {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.treatment-item-meta {
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.treatment-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* Avatar - gender soft */
+.treatment-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 750;
+  font-size: 0.9rem;
+  border: 2px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.treatment-avatar-female {
+  background: #fdf2f8;
+  color: #be185d;
+  border-color: #fbcfe8;
+}
+
+.treatment-avatar-male {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.treatment-avatar-other {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
+/* Start button - same vibe as toolbar button */
+.treatment-start-btn {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #374151;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.treatment-start-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.treatment-empty {
+  margin-top: 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Safety: hide any accidental patients search icon inside Treatment page */
+.treatment-page .patients-search-icon {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .treatment-page {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .treatment-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
