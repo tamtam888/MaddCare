@@ -22,6 +22,7 @@
     "@fullcalendar/timegrid": "^6.1.20",
     "@hookform/resolvers": "^5.2.2",
     "@medplum/core": "^5.0.7",
+    "@supabase/supabase-js": "^2.95.3",
     "idb-keyval": "^6.2.2",
     "lucide-react": "^0.556.0",
     "pdf-lib": "^1.17.1",
