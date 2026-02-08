@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllTherapists } from "../therapists/therapistsStore";
 import "./LoginPage.css";
+import { supabase } from "../lib/supabase";
+
 
 const LOGGED_IN_KEY = "mc_logged_in";
 const ROLE_KEY = "mc_role";

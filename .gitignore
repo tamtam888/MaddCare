@@ -34,3 +34,8 @@ wip-*.txt
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+scripts/
+therapists-backup-*.json
+patients*.json
+*.csv
+.env
