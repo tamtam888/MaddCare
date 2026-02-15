@@ -1,4 +1,3 @@
-// src/hooks/usePatients.js 
 import { useEffect, useRef, useState } from "react";
 import {
   ensureArray,
@@ -13,6 +12,7 @@ import {
 } from "../utils/fhirPatient.js";
 import { medplum } from "../medplumClient";
 import { loadAudioBlob } from "../utils/audioStorage";
+import { supabase } from "../lib/supabase";
 
 const STORAGE_KEY = "patients";
 
@@ -22,6 +22,9 @@ const STORE_KV = "kv";
 const KV_PATIENTS = "patients_v1";
 
 const APP_IDENTIFIER_SYSTEM = "https://medicalcare.app/identifiers";
+
+const SUPABASE_TABLE = "mc_patients";
+const SUPABASE_UPSERT_DEBOUNCE_MS = 900;
 
 const safeUuid = () => {
   try {
@@ -487,12 +490,122 @@ async function upsertPlayableMedia(subjectRef, mediaKey, contentType, base64Data
   return await medplum.updateResource({ ...nextMedia, id: savedMedia.id });
 }
 
+function createDebouncer(delayMs) {
+  let t = null;
+  return (fn) => {
+    if (t) clearTimeout(t);
+    t = setTimeout(fn, delayMs);
+  };
+}
+
+async function loadPatientsFromSupabase() {
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLE)
+    .select("id_number,data,updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+
+  return ensureArray(data)
+    .map((row) => row?.data)
+    .filter(Boolean)
+    .map((p) => normalizePatientPreserve(p));
+}
+
+async function upsertPatientToSupabase(patient) {
+  const idNumber = trimId(patient?.idNumber);
+  if (!idNumber) return;
+
+  const payload = {
+    id_number: idNumber,
+    data: normalizePatientPreserve({ ...patient, idNumber }),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "id_number" });
+  if (error) throw error;
+}
+
+async function deletePatientFromSupabase(idNumber) {
+  const id = trimId(idNumber);
+  if (!id) return;
+  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("id_number", id);
+  if (error) throw error;
+}
+
 export function usePatients() {
   const [patients, setPatients] = useState([]);
   const [editingPatient, setEditingPatient] = useState(null);
   const [selectedPatientIdNumber, setSelectedPatientIdNumber] = useState(null);
 
   const persistChainRef = useRef(Promise.resolve());
+
+  const cloudQueueRef = useRef(new Map());
+  const cloudDebounceRef = useRef(createDebouncer(SUPABASE_UPSERT_DEBOUNCE_MS));
+  const onlineRef = useRef(typeof navigator !== "undefined" ? navigator.onLine : true);
+
+  const enqueueCloudUpsert = (patient) => {
+    const idNumber = trimId(patient?.idNumber);
+    if (!idNumber) return;
+    cloudQueueRef.current.set(idNumber, normalizePatientPreserve({ ...patient, idNumber }));
+
+    cloudDebounceRef.current(async () => {
+      if (!onlineRef.current) return;
+
+      const batch = Array.from(cloudQueueRef.current.values());
+      if (!batch.length) return;
+      cloudQueueRef.current.clear();
+
+      const payload = batch.map((p) => ({
+        id_number: trimId(p.idNumber),
+        data: p,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "id_number" });
+
+      if (error) {
+        for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
+        console.error("[Supabase upsert] failed:", error);
+      }
+    });
+  };
+
+  useEffect(() => {
+    const onOnline = () => {
+      onlineRef.current = true;
+      cloudDebounceRef.current(async () => {
+        const batch = Array.from(cloudQueueRef.current.values());
+        if (!batch.length) return;
+        cloudQueueRef.current.clear();
+
+        const payload = batch.map((p) => ({
+          id_number: trimId(p.idNumber),
+          data: p,
+          updated_at: new Date().toISOString(),
+        }));
+
+        const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "id_number" });
+
+        if (error) {
+          for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
+          console.error("[Supabase upsert] failed:", error);
+        }
+      });
+    };
+
+    const onOffline = () => {
+      onlineRef.current = false;
+    };
+
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -504,25 +617,42 @@ export function usePatients() {
 
         if (arr && arr.length > 0) {
           if (!cancelled) setPatients(arr.map(normalizePatientPreserve));
-          return;
+        } else {
+          const fromLocal = loadPatientsFromLocalStorage();
+          if (fromLocal.length > 0) {
+            await idbSet(KV_PATIENTS, fromLocal.map(normalizePatientPreserve));
+            safeWriteLocalBackup(fromLocal);
+            if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
+          } else {
+            if (!cancelled) setPatients([]);
+          }
         }
-
-        const fromLocal = loadPatientsFromLocalStorage();
-        if (fromLocal.length > 0) {
-          await idbSet(KV_PATIENTS, fromLocal.map(normalizePatientPreserve));
-          safeWriteLocalBackup(fromLocal);
-          if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
-          return;
-        }
-
-        if (!cancelled) setPatients([]);
       } catch {
         const fromLocal = loadPatientsFromLocalStorage();
         if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
       }
     }
 
-    loadFromIdbOrMigrate();
+    async function loadFromCloudAndMerge() {
+      try {
+        const cloudPatients = await loadPatientsFromSupabase();
+        if (!cloudPatients || cloudPatients.length === 0) return;
+
+        if (cancelled) return;
+
+        setPatients((prev) => {
+          const merged = mergePatients(prev, cloudPatients);
+          persistPatients(merged);
+          return merged;
+        });
+      } catch (e) {
+        console.error("[Supabase load] failed:", e);
+      }
+    }
+
+    loadFromIdbOrMigrate().then(() => {
+      loadFromCloudAndMerge();
+    });
 
     return () => {
       cancelled = true;
@@ -675,6 +805,8 @@ export function usePatients() {
     });
 
     updatePatientsWithSave((prev) => [...prev, newPatient]);
+    enqueueCloudUpsert(newPatient);
+
     setSelectedPatientIdNumber(idNumber);
     setEditingPatient(null);
 
@@ -757,8 +889,18 @@ export function usePatients() {
       })
     );
 
+    if (updatedPatientRef) enqueueCloudUpsert(updatedPatientRef);
+
     if (finalIdNumber) setSelectedPatientIdNumber(finalIdNumber);
     setEditingPatient(null);
+
+    if (oldIdNumber && newIdNumber && oldIdNumber !== newIdNumber) {
+      try {
+        await deletePatientFromSupabase(oldIdNumber);
+      } catch (e) {
+        console.error("[Supabase delete old id] failed:", e);
+      }
+    }
   };
 
   const handleUpdatePatientInline = async (updatedPatient) => {
@@ -784,6 +926,12 @@ export function usePatients() {
 
     if (trimId(selectedPatientIdNumber) === id) setSelectedPatientIdNumber(null);
     if (editingPatient && trimId(editingPatient.idNumber) === id) setEditingPatient(null);
+
+    try {
+      await deletePatientFromSupabase(id);
+    } catch (e) {
+      console.error("[Supabase delete] failed:", e);
+    }
   };
 
   const handleSelectPatient = (idNumber) => {
@@ -841,7 +989,12 @@ export function usePatients() {
             })
           );
 
-          updatePatientsWithSave((prev) => mergePatients(prev, prepared));
+          updatePatientsWithSave((prev) => {
+            const merged = mergePatients(prev, prepared);
+            for (const p of ensureArray(prepared)) enqueueCloudUpsert(p);
+            return merged;
+          });
+
           alert("Patients imported successfully!");
           return;
         }
@@ -918,9 +1071,11 @@ export function usePatients() {
           carePlansByIdNumber.set(idNumber, list);
         });
 
-        updatePatientsWithSave((prev) =>
-          mergePatients(prev, importedPatients, historyByIdNumber, reportsByIdNumber, carePlansByIdNumber)
-        );
+        updatePatientsWithSave((prev) => {
+          const merged = mergePatients(prev, importedPatients, historyByIdNumber, reportsByIdNumber, carePlansByIdNumber);
+          for (const p of ensureArray(importedPatients)) enqueueCloudUpsert(p);
+          return merged;
+        });
 
         alert("Patients imported successfully!");
       } catch (error) {
@@ -967,6 +1122,8 @@ export function usePatients() {
         return updatedPatientRef;
       })
     );
+
+    if (updatedPatientRef) enqueueCloudUpsert(updatedPatientRef);
 
     if (!hasMedplumSession() || !updatedPatientRef || !newHistoryItemRef) return;
 
@@ -1048,6 +1205,8 @@ export function usePatients() {
       })
     );
 
+    if (updatedPatientRef) enqueueCloudUpsert(updatedPatientRef);
+
     if (!hasMedplumSession() || !updatedPatientRef) return;
 
     try {
@@ -1078,6 +1237,8 @@ export function usePatients() {
     const trimmedId = trimId(idNumber);
     if (!trimmedId || !reportId) return;
 
+    let updatedPatientRef = null;
+
     updatePatientsWithSave((prev) =>
       prev.map((p) => {
         if (trimId(p.idNumber) !== trimmedId) return p;
@@ -1085,13 +1246,17 @@ export function usePatients() {
         const nextReports = ensureArray(p.reports).filter((r) => r?.id !== reportId);
         const nextHistory = ensureArray(p.history).filter((h) => h?.id !== reportId);
 
-        return normalizePatientPreserve({
+        updatedPatientRef = normalizePatientPreserve({
           ...p,
           reports: nextReports,
           history: nextHistory,
         });
+
+        return updatedPatientRef;
       })
     );
+
+    if (updatedPatientRef) enqueueCloudUpsert(updatedPatientRef);
   };
 
   const handleSaveCarePlanEntry = async (idNumber, carePlanEntry) => {
@@ -1136,6 +1301,8 @@ export function usePatients() {
         return updatedPatientRef;
       })
     );
+
+    if (updatedPatientRef) enqueueCloudUpsert(updatedPatientRef);
 
     if (!hasMedplumSession() || !updatedPatientRef) return;
 
