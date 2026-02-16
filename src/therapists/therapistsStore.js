@@ -153,14 +153,9 @@ function normalizeFromSupabaseRow(row) {
 
   const name = normalize(row?.full_name) || id;
   const role = normalize(row?.role) || "therapist";
+  const active = row?.active !== false;
 
-  return {
-    id,
-    name,
-    role,
-    active: true,
-    color: makeStableColorFromSeed(id),
-  };
+  return { id, name, role, active, color: makeStableColorFromSeed(id) };
 }
 
 async function readAllRaw() {
@@ -203,11 +198,11 @@ async function loadTherapistsFromSupabaseSafe() {
   try {
     const { data, error } = await supabase
       .from(SUPABASE_TABLE)
-      .select("role, full_name, national_id, created_at")
+      .select("role, full_name, national_id, active, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.warn("[profiles select] blocked or failed:", error);
+      console.warn("[profiles select] failed:", error);
       return [];
     }
 
@@ -220,92 +215,103 @@ async function loadTherapistsFromSupabaseSafe() {
 
 async function upsertTherapistToSupabaseSafe(input) {
   const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
-  if (!isValidTherapistId(id)) return { ok: false, error: "Therapist ID must be 9 digits." };
+  if (!isValidTherapistId(id)) {
+    throw new Error("Therapist ID must be 9 digits.");
+  }
 
   const name =
     normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
 
   const role = normalize(input?.role) || "therapist";
+  const active = input?.active !== false;
 
   const payload = {
     national_id: id,
     full_name: name,
     role,
+    active,
   };
 
-  try {
-    const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, {
-      onConflict: "national_id",
-    });
+  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "national_id" });
+  if (error) throw error;
 
-    if (error) return { ok: false, error: error.message || String(error) };
-
-    return {
-      ok: true,
-      therapist: { id, name, role, active: true, color: makeStableColorFromSeed(id) },
-    };
-  } catch (e) {
-    return { ok: false, error: e?.message || String(e) };
-  }
+  return { id, name, role, active, color: makeStableColorFromSeed(id) };
 }
 
 async function deleteTherapistFromSupabaseSafe(id) {
   const target = digitsOnly(id);
-  if (!target) return { ok: true };
+  if (!target) return true;
 
-  try {
-    const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("national_id", target);
-    if (error) return { ok: false, error: error.message || String(error) };
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e?.message || String(e) };
-  }
+  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("national_id", target);
+  if (error) throw error;
+
+  return true;
 }
+
+// --- Public API (keep compatibility with existing UI) ---
 
 export async function getAllTherapists() {
   const localList = await migrateOrRepairIfNeeded();
 
-  // No network? do not block UI.
   const online = typeof navigator !== "undefined" ? navigator.onLine : true;
   if (!online) return sortByName(localList);
 
   const cloudList = await loadTherapistsFromSupabaseSafe();
+
   const merged = uniqueById([...cloudList, ...localList]);
   await writeAll(merged);
+
   return sortByName(merged);
 }
 
 export async function upsertTherapist(input) {
-  const res = await upsertTherapistToSupabaseSafe(input);
-  if (!res.ok) return res;
-
-  const saved = res.therapist;
-
+  // Always update local immediately even if cloud fails
   const existing = await getAllTherapists();
-  const existingIdx = existing.findIndex((t) => String(t.id) === String(saved.id));
 
-  const existingColor =
-    existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
-  const color = existingColor || saved.color;
+  const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
+  if (!isValidTherapistId(id)) {
+    throw new Error("Therapist ID must be 9 digits.");
+  }
 
-  const next = { ...saved, color };
+  const name = normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
+  const role = normalize(input?.role) || "therapist";
+  const active = input?.active !== false;
+
+  const existingIdx = existing.findIndex((t) => String(t.id) === String(id));
+  const existingColor = existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
+  const color = existingColor || makeStableColorFromSeed(id);
+
+  const next = { id, name, role, active, color };
+
   const updated =
     existingIdx >= 0 ? existing.map((t, i) => (i === existingIdx ? next : t)) : [next, ...existing];
 
   await writeAll(updated);
-  return { ok: true, therapist: next };
+
+  // Best-effort cloud sync
+  try {
+    await upsertTherapistToSupabaseSafe(next);
+  } catch (e) {
+    console.warn("[profiles upsert] failed:", e);
+  }
+
+  return next;
 }
 
 export async function deleteTherapist(id) {
   const target = digitsOnly(id);
-  if (!target) return { ok: true };
-
-  const res = await deleteTherapistFromSupabaseSafe(target);
-  if (!res.ok) return res;
+  if (!target) return true;
 
   const existing = await getAllTherapists();
   const next = existing.filter((t) => digitsOnly(t.id) !== target);
   await writeAll(next);
 
-  return { ok: true };
+  // Best-effort cloud delete
+  try {
+    await deleteTherapistFromSupabaseSafe(target);
+  } catch (e) {
+    console.warn("[profiles delete] failed:", e);
+  }
+
+  return true;
 }
