@@ -4,7 +4,6 @@ import { supabase } from "../lib/supabase";
 
 const THERAPISTS_KEY = "mc_therapists_v1";
 const LEGACY_LOCALSTORAGE_KEY = "mc_therapists";
-
 const SUPABASE_TABLE = "profiles";
 
 function safeArray(value) {
@@ -88,8 +87,8 @@ function normalizeFromLegacyItem(raw) {
     id;
 
   const active = raw?.active !== false;
-
   const colorRaw = normalize(raw?.color);
+
   const color =
     colorRaw && /^#([0-9a-fA-F]{6})$/.test(colorRaw)
       ? colorRaw.toLowerCase()
@@ -110,8 +109,8 @@ function normalizeFromIdbItem(raw) {
     id;
 
   const active = raw?.active !== false;
-
   const colorRaw = normalize(raw?.color);
+
   const color =
     colorRaw && /^#([0-9a-fA-F]{6})$/.test(colorRaw)
       ? colorRaw.toLowerCase()
@@ -127,7 +126,6 @@ function normalizeFromSupabaseRow(row) {
   const name = normalize(row?.full_name) || id;
   const role = normalize(row?.role) || "therapist";
   const active = row?.active !== false;
-
   const color = makeStableColorFromSeed(id);
 
   return { id, name, role, active, color };
@@ -140,17 +138,6 @@ async function readAllRaw() {
 
 async function writeAll(list) {
   await set(THERAPISTS_KEY, list);
-}
-
-function tryReadLegacyFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem(LEGACY_LOCALSTORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
 
 function uniqueById(list) {
@@ -167,65 +154,11 @@ function sortByName(list) {
   return list.slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
 }
 
-function hasExtraFieldsBeyondCalendarShape(item) {
-  if (!item || typeof item !== "object") return false;
-  const allowed = new Set(["id", "name", "active", "color", "role"]);
-  return Object.keys(item).some((k) => !allowed.has(k));
-}
-
-async function migrateOrRepairIfNeeded() {
-  const idbRaw = await readAllRaw();
-  const idbNormalized = uniqueById(idbRaw.map(normalizeFromIdbItem).filter(Boolean));
-
-  const legacyRaw = tryReadLegacyFromLocalStorage();
-  const legacyNormalized = uniqueById(legacyRaw.map(normalizeFromLegacyItem).filter(Boolean));
-
-  const idbHasAny = idbNormalized.length > 0;
-  const legacyHasAny = legacyNormalized.length > 0;
-
-  const idbHasInvalid = safeArray(idbRaw).some((t) => {
-    const id = digitsOnly(t?.id) || digitsOnly(t?.idNumber) || digitsOnly(t?.therapistId);
-    return id && !isValidTherapistId(id);
-  });
-
-  const shouldSeedFromLegacy = (!idbHasAny && legacyHasAny) || (idbHasInvalid && legacyHasAny);
-
-  if (shouldSeedFromLegacy) {
-    await writeAll(legacyNormalized);
-    return legacyNormalized;
-  }
-
-  if (!idbHasAny) {
-    return [];
-  }
-
-  const rawHasExtraFields = safeArray(idbRaw).some(hasExtraFieldsBeyondCalendarShape);
-
-  const changed =
-    idbRaw.length !== idbNormalized.length ||
-    idbRaw.some((t, i) => {
-      const prev = t || {};
-      const next = idbNormalized[i] || {};
-      return (
-        digitsOnly(prev.id) !== digitsOnly(next.id) ||
-        normalize(prev.name) !== normalize(next.name) ||
-        normalize(prev.fullName) !== normalize(next.name) ||
-        (prev.active !== false) !== (next.active !== false) ||
-        normalize(prev.color).toLowerCase() !== normalize(next.color).toLowerCase()
-      );
-    });
-
-  if (changed && !rawHasExtraFields) {
-    await writeAll(idbNormalized);
-  }
-
-  return idbNormalized;
-}
-
 async function loadTherapistsFromSupabase() {
   const { data, error } = await supabase
     .from(SUPABASE_TABLE)
-    .select("role, full_name, national_id, created_at")
+    .select("role, full_name, national_id, created_at, active")
+    .eq("role", "therapist")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -237,7 +170,9 @@ async function upsertTherapistToSupabase(input) {
   const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
   if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
 
-  const name = normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
+  const name =
+    normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
+
   const role = normalize(input?.role) || "therapist";
   const active = input?.active !== false;
 
@@ -248,7 +183,10 @@ async function upsertTherapistToSupabase(input) {
     active,
   };
 
-  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "national_id" });
+  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, {
+    onConflict: "national_id",
+  });
+
   if (error) throw error;
 
   return { id, name, role, active, color: makeStableColorFromSeed(id) };
@@ -258,21 +196,27 @@ async function deleteTherapistFromSupabase(id) {
   const target = digitsOnly(id);
   if (!target) return true;
 
-  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("national_id", target);
+  const { error } = await supabase
+    .from(SUPABASE_TABLE)
+    .delete()
+    .eq("national_id", target);
+
   if (error) throw error;
 
   return true;
 }
 
 export async function getAllTherapists() {
-  const localList = await migrateOrRepairIfNeeded();
+  const localRaw = await readAllRaw();
+  const localList = uniqueById(localRaw.map(normalizeFromIdbItem).filter(Boolean));
 
   try {
     const cloudList = await loadTherapistsFromSupabase();
     const merged = uniqueById([...cloudList, ...localList]);
     await writeAll(merged);
     return sortByName(merged);
-  } catch {
+  } catch (e) {
+    console.error("Supabase load failed:", e);
     return sortByName(localList);
   }
 }
@@ -283,13 +227,17 @@ export async function upsertTherapist(input) {
   const existing = await getAllTherapists();
   const existingIdx = existing.findIndex((t) => String(t.id) === String(saved.id));
 
-  const existingColor = existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
+  const existingColor =
+    existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
+
   const color = existingColor || saved.color;
 
   const next = { ...saved, color };
 
   const updated =
-    existingIdx >= 0 ? existing.map((t, i) => (i === existingIdx ? next : t)) : [next, ...existing];
+    existingIdx >= 0
+      ? existing.map((t, i) => (i === existingIdx ? next : t))
+      : [next, ...existing];
 
   await writeAll(updated);
   return next;
