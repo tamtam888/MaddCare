@@ -1,8 +1,11 @@
 // src/therapists/therapistsStore.js
 import { get, set } from "idb-keyval";
+import { supabase } from "../lib/supabase";
 
 const THERAPISTS_KEY = "mc_therapists_v1";
 const LEGACY_LOCALSTORAGE_KEY = "mc_therapists";
+
+const SUPABASE_TABLE = "profiles";
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -117,6 +120,19 @@ function normalizeFromIdbItem(raw) {
   return { id, name, active, color };
 }
 
+function normalizeFromSupabaseRow(row) {
+  const id = digitsOnly(row?.national_id);
+  if (!isValidTherapistId(id)) return null;
+
+  const name = normalize(row?.full_name) || id;
+  const role = normalize(row?.role) || "therapist";
+  const active = row?.active !== false;
+
+  const color = makeStableColorFromSeed(id);
+
+  return { id, name, role, active, color };
+}
+
 async function readAllRaw() {
   const raw = await get(THERAPISTS_KEY);
   return safeArray(raw);
@@ -153,7 +169,7 @@ function sortByName(list) {
 
 function hasExtraFieldsBeyondCalendarShape(item) {
   if (!item || typeof item !== "object") return false;
-  const allowed = new Set(["id", "name", "active", "color"]);
+  const allowed = new Set(["id", "name", "active", "color", "role"]);
   return Object.keys(item).some((k) => !allowed.has(k));
 }
 
@@ -206,27 +222,71 @@ async function migrateOrRepairIfNeeded() {
   return idbNormalized;
 }
 
+async function loadTherapistsFromSupabase() {
+  const { data, error } = await supabase
+    .from(SUPABASE_TABLE)
+    .select("role, full_name, national_id, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return safeArray(data).map(normalizeFromSupabaseRow).filter(Boolean);
+}
+
+async function upsertTherapistToSupabase(input) {
+  const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
+  if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
+
+  const name = normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
+  const role = normalize(input?.role) || "therapist";
+  const active = input?.active !== false;
+
+  const payload = {
+    national_id: id,
+    full_name: name,
+    role,
+    active,
+  };
+
+  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "national_id" });
+  if (error) throw error;
+
+  return { id, name, role, active, color: makeStableColorFromSeed(id) };
+}
+
+async function deleteTherapistFromSupabase(id) {
+  const target = digitsOnly(id);
+  if (!target) return true;
+
+  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("national_id", target);
+  if (error) throw error;
+
+  return true;
+}
+
 export async function getAllTherapists() {
-  const list = await migrateOrRepairIfNeeded();
-  return sortByName(list);
+  const localList = await migrateOrRepairIfNeeded();
+
+  try {
+    const cloudList = await loadTherapistsFromSupabase();
+    const merged = uniqueById([...cloudList, ...localList]);
+    await writeAll(merged);
+    return sortByName(merged);
+  } catch {
+    return sortByName(localList);
+  }
 }
 
 export async function upsertTherapist(input) {
+  const saved = await upsertTherapistToSupabase(input);
+
   const existing = await getAllTherapists();
+  const existingIdx = existing.findIndex((t) => String(t.id) === String(saved.id));
 
-  const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId);
-  if (!isValidTherapistId(id)) {
-    throw new Error("Therapist ID must be 9 digits.");
-  }
-
-  const name = normalize(input?.name ?? input?.fullName ?? input?.displayName) || id;
-  const active = input?.active !== false;
-
-  const existingIdx = existing.findIndex((t) => String(t.id) === String(id));
   const existingColor = existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
-  const color = existingColor || makeStableColorFromSeed(id);
+  const color = existingColor || saved.color;
 
-  const next = { id, name, active, color };
+  const next = { ...saved, color };
 
   const updated =
     existingIdx >= 0 ? existing.map((t, i) => (i === existingIdx ? next : t)) : [next, ...existing];
@@ -236,11 +296,14 @@ export async function upsertTherapist(input) {
 }
 
 export async function deleteTherapist(id) {
-  const existing = await getAllTherapists();
   const target = digitsOnly(id);
   if (!target) return true;
 
+  await deleteTherapistFromSupabase(target);
+
+  const existing = await getAllTherapists();
   const next = existing.filter((t) => digitsOnly(t.id) !== target);
   await writeAll(next);
+
   return true;
 }
