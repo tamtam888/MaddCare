@@ -195,6 +195,9 @@ async function migrateOrRepairIfNeeded() {
 }
 
 async function loadTherapistsFromSupabaseSafe() {
+  // Debug marker: if you never see this in Vercel console, UI is not calling getAllTherapists()
+  console.log("[therapistsStore] loading from Supabase...");
+
   try {
     const { data, error } = await supabase
       .from(SUPABASE_TABLE)
@@ -215,9 +218,7 @@ async function loadTherapistsFromSupabaseSafe() {
 
 async function upsertTherapistToSupabaseSafe(input) {
   const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
-  if (!isValidTherapistId(id)) {
-    throw new Error("Therapist ID must be 9 digits.");
-  }
+  if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
 
   const name =
     normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
@@ -225,12 +226,7 @@ async function upsertTherapistToSupabaseSafe(input) {
   const role = normalize(input?.role) || "therapist";
   const active = input?.active !== false;
 
-  const payload = {
-    national_id: id,
-    full_name: name,
-    role,
-    active,
-  };
+  const payload = { national_id: id, full_name: name, role, active };
 
   const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "national_id" });
   if (error) throw error;
@@ -248,7 +244,7 @@ async function deleteTherapistFromSupabaseSafe(id) {
   return true;
 }
 
-// --- Public API (keep compatibility with existing UI) ---
+// --- Public API (compatible with existing UI) ---
 
 export async function getAllTherapists() {
   const localList = await migrateOrRepairIfNeeded();
@@ -265,15 +261,14 @@ export async function getAllTherapists() {
 }
 
 export async function upsertTherapist(input) {
-  // Always update local immediately even if cloud fails
+  // Update local immediately
   const existing = await getAllTherapists();
 
   const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
-  if (!isValidTherapistId(id)) {
-    throw new Error("Therapist ID must be 9 digits.");
-  }
+  if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
 
-  const name = normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
+  const name =
+    normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
   const role = normalize(input?.role) || "therapist";
   const active = input?.active !== false;
 
@@ -288,7 +283,7 @@ export async function upsertTherapist(input) {
 
   await writeAll(updated);
 
-  // Best-effort cloud sync
+  // Best-effort cloud sync (never breaks UI)
   try {
     await upsertTherapistToSupabaseSafe(next);
   } catch (e) {
