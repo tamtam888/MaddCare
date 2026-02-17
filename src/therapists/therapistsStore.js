@@ -1,11 +1,10 @@
-// src/therapists/therapistsStore.js
 import { get, set } from "idb-keyval";
 import { supabase } from "../lib/supabase";
 
 const IDB_KEY = "mc_therapists_store_v2";
 const LEGACY_LS_KEY = "mc_therapists";
 const LEGACY_IDB_KEY = "mc_therapists_v1";
-const TABLE = "therapists";
+const TABLE = "profiles";
 
 function safeArray(v) {
   return Array.isArray(v) ? v : [];
@@ -69,7 +68,7 @@ function normalizeWorkDays(value) {
 }
 
 function normalizeTherapistRecord(raw) {
-  const idNumber = normalizeDigits(raw?.idNumber || raw?.id || raw?.therapistId || raw?.national_id);
+  const idNumber = normalizeDigits(raw?.idNumber || raw?.national_id || raw?.id || raw?.therapistId);
   const id = isValidIdNumber(idNumber) ? idNumber : normalizeString(raw?.id) || "";
 
   const fullName =
@@ -91,6 +90,7 @@ function normalizeTherapistRecord(raw) {
     gender: normalizeString(raw?.gender || "not_specified") || "not_specified",
     accentKey: normalizeString(raw?.accentKey || raw?.accent_key || ""),
     remoteId: normalizeString(raw?.remoteId || raw?.remote_id || "") || null,
+    role: normalizeString(raw?.role || "therapist") || "therapist",
   };
 }
 
@@ -99,8 +99,8 @@ function uniqueByIdNumber(list) {
   for (const item of safeArray(list)) {
     const t = normalizeTherapistRecord(item);
     const key = normalizeDigits(t.idNumber) || normalizeDigits(t.id);
-    if (!key) continue;
-    if (!map.has(key)) map.set(key, t);
+    if (!isValidIdNumber(key)) continue;
+    map.set(key, t);
   }
   return Array.from(map.values());
 }
@@ -158,39 +158,37 @@ function toSupabaseRow(t) {
   if (!isValidIdNumber(idNumber)) return null;
 
   return {
-    id_number: idNumber,
+    national_id: idNumber,
     full_name: normalizeString(rec.fullName) || idNumber,
-    phone: normalizeString(rec.phone),
-    address: normalizeString(rec.address),
-    email: normalizeString(rec.email),
-    work_days: safeArray(rec.workDays),
-    gender: normalizeString(rec.gender) || "not_specified",
-    accent_key: normalizeString(rec.accentKey),
+    role: normalizeString(rec.role) || "therapist",
     active: rec.active !== false,
-    remote_id: rec.remoteId || null,
+    gender: normalizeString(rec.gender) || "not_specified",
+    work_days: safeArray(rec.workDays),
+    phone: normalizeString(rec.phone),
+    email: normalizeString(rec.email),
+    address: normalizeString(rec.address),
   };
 }
 
 function fromSupabaseRow(row) {
   return normalizeTherapistRecord({
-    idNumber: row?.id_number,
-    fullName: row?.full_name,
-    phone: row?.phone,
-    address: row?.address,
-    email: row?.email,
-    workDays: row?.work_days,
-    gender: row?.gender,
-    accentKey: row?.accent_key,
+    national_id: row?.national_id,
+    full_name: row?.full_name,
+    role: row?.role,
     active: row?.active,
-    remoteId: row?.remote_id,
+    gender: row?.gender,
+    work_days: row?.work_days,
+    phone: row?.phone,
+    email: row?.email,
+    address: row?.address,
   });
 }
 
 async function loadFromSupabase() {
   const { data, error } = await supabase
     .from(TABLE)
-    .select("id_number, full_name, phone, address, email, work_days, gender, accent_key, active, remote_id, updated_at")
-    .order("updated_at", { ascending: false });
+    .select("national_id, full_name, role, active, gender, work_days, phone, email, address, created_at")
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return safeArray(data).map(fromSupabaseRow).filter((t) => isValidIdNumber(t.idNumber));
@@ -200,28 +198,17 @@ async function upsertToSupabase(t) {
   const payload = toSupabaseRow(t);
   if (!payload) throw new Error("Therapist ID number must be 9 digits.");
 
-  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "id_number" });
+  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "national_id" });
   if (error) throw error;
 
-  return normalizeTherapistRecord({
-    idNumber: payload.id_number,
-    fullName: payload.full_name,
-    phone: payload.phone,
-    address: payload.address,
-    email: payload.email,
-    workDays: payload.work_days,
-    gender: payload.gender,
-    accentKey: payload.accent_key,
-    active: payload.active,
-    remoteId: payload.remote_id,
-  });
+  return normalizeTherapistRecord(payload);
 }
 
 async function deleteFromSupabase(idNumber) {
   const id = normalizeDigits(idNumber);
   if (!isValidIdNumber(id)) return true;
 
-  const { error } = await supabase.from(TABLE).delete().eq("id_number", id);
+  const { error } = await supabase.from(TABLE).delete().eq("national_id", id);
   if (error) throw error;
 
   return true;
