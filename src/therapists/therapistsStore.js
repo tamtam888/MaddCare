@@ -2,80 +2,105 @@
 import { get, set } from "idb-keyval";
 import { supabase } from "../lib/supabase";
 
-const THERAPISTS_KEY = "mc_therapists_v1";
-const LEGACY_LOCALSTORAGE_KEY = "mc_therapists";
-const SUPABASE_TABLE = "profiles";
+const IDB_KEY = "mc_therapists_store_v2";
+const LEGACY_LS_KEY = "mc_therapists";
+const LEGACY_IDB_KEY = "mc_therapists_v1";
+const TABLE = "therapists";
 
-function safeArray(value) {
-  return Array.isArray(value) ? value : [];
+function safeArray(v) {
+  return Array.isArray(v) ? v : [];
 }
 
-function normalize(value) {
-  return String(value ?? "").trim();
+function normalizeString(v) {
+  return String(v ?? "").trim();
 }
 
-function digitsOnly(value) {
-  return normalize(value).replace(/\D/g, "");
+function normalizeDigits(v) {
+  return normalizeString(v).replace(/\D/g, "");
 }
 
-function clamp(n, min, max) {
-  return Math.min(max, Math.max(min, n));
+function isValidIdNumber(v) {
+  return /^\d{9}$/.test(normalizeDigits(v));
 }
 
-function hslToHex(h, s, l) {
-  const hh = ((h % 360) + 360) % 360;
-  const ss = clamp(s, 0, 100) / 100;
-  const ll = clamp(l, 0, 100) / 100;
+function normalizeWorkDays(value) {
+  const DAY_ORDER = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+  const DAY_ALIASES = {
+    sun: "Sun",
+    sunday: "Sun",
+    mon: "Mon",
+    monday: "Mon",
+    tue: "Tue",
+    tues: "Tue",
+    tuesday: "Tue",
+    wed: "Wed",
+    weds: "Wed",
+    wednesday: "Wed",
+    thu: "Thu",
+    thur: "Thu",
+    thurs: "Thu",
+    thursday: "Thu",
+    fri: "Fri",
+    friday: "Fri",
+    sat: "Sat",
+    saturday: "Sat",
+  };
 
-  const c = (1 - Math.abs(2 * ll - 1)) * ss;
-  const x = c * (1 - Math.abs(((hh / 60) % 2) - 1));
-  const m = ll - c / 2;
+  const normalizeOne = (tok) => {
+    const t = normalizeString(tok).toLowerCase();
+    if (!t) return "";
+    return DAY_ALIASES[t] || "";
+  };
 
-  let r = 0;
-  let g = 0;
-  let b = 0;
-
-  if (hh < 60) [r, g, b] = [c, x, 0];
-  else if (hh < 120) [r, g, b] = [x, c, 0];
-  else if (hh < 180) [r, g, b] = [0, c, x];
-  else if (hh < 240) [r, g, b] = [0, x, c];
-  else if (hh < 300) [r, g, b] = [x, 0, c];
-  else [r, g, b] = [c, 0, x];
-
-  const rr = Math.round((r + m) * 255);
-  const gg = Math.round((g + m) * 255);
-  const bb = Math.round((b + m) * 255);
-
-  const toHex = (v) => v.toString(16).padStart(2, "0");
-  return `#${toHex(rr)}${toHex(gg)}${toHex(bb)}`;
-}
-
-function hash32(str) {
-  let h = 2166136261;
-  const s = String(str || "");
-  for (let i = 0; i < s.length; i += 1) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+  if (Array.isArray(value)) {
+    const normalized = value.map(normalizeOne).filter((d) => d && d !== "Sat" && DAY_ORDER.includes(d));
+    const unique = Array.from(new Set(normalized));
+    unique.sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
+    return unique;
   }
-  return h >>> 0;
+
+  const s = normalizeString(value);
+  if (!s) return [];
+  const tokens = s.split(/[\s,.;/|]+/g).map((x) => normalizeString(x)).filter(Boolean);
+  const normalized = tokens.map(normalizeOne).filter((d) => d && d !== "Sat" && DAY_ORDER.includes(d));
+  const unique = Array.from(new Set(normalized));
+  unique.sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
+  return unique;
 }
 
-function makeStableColorFromSeed(seed) {
-  const base = hash32(seed);
-  const hue = base % 360;
-  return hslToHex(hue, 70, 50);
+function normalizeTherapistRecord(raw) {
+  const idNumber = normalizeDigits(raw?.idNumber || raw?.id || raw?.therapistId || raw?.national_id);
+  const id = isValidIdNumber(idNumber) ? idNumber : normalizeString(raw?.id) || "";
+
+  const fullName =
+    normalizeString(raw?.fullName) ||
+    normalizeString(raw?.full_name) ||
+    normalizeString(raw?.name) ||
+    normalizeString(raw?.displayName) ||
+    "";
+
+  return {
+    id: idNumber || id || "",
+    idNumber: idNumber || "",
+    fullName,
+    phone: normalizeString(raw?.phone || ""),
+    address: normalizeString(raw?.address || ""),
+    email: normalizeString(raw?.email || ""),
+    workDays: normalizeWorkDays(raw?.workDays || raw?.work_days || []),
+    active: raw?.active !== false,
+    gender: normalizeString(raw?.gender || "not_specified") || "not_specified",
+    accentKey: normalizeString(raw?.accentKey || raw?.accent_key || ""),
+    remoteId: normalizeString(raw?.remoteId || raw?.remote_id || "") || null,
+  };
 }
 
-function isValidTherapistId(id) {
-  return /^\d{9}$/.test(String(id || ""));
-}
-
-function uniqueById(list) {
+function uniqueByIdNumber(list) {
   const map = new Map();
   for (const item of safeArray(list)) {
-    if (!item || !item.id) continue;
-    const id = String(item.id);
-    if (!map.has(id)) map.set(id, item);
+    const t = normalizeTherapistRecord(item);
+    const key = normalizeDigits(t.idNumber) || normalizeDigits(t.id);
+    if (!key) continue;
+    if (!map.has(key)) map.set(key, t);
   }
   return Array.from(map.values());
 }
@@ -83,229 +108,178 @@ function uniqueById(list) {
 function sortByName(list) {
   return safeArray(list)
     .slice()
-    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+    .sort((a, b) => normalizeString(a.fullName).localeCompare(normalizeString(b.fullName)));
 }
 
-function tryReadLegacyFromLocalStorage() {
+async function readIdb(key) {
   try {
-    const raw = localStorage.getItem(LEGACY_LOCALSTORAGE_KEY);
+    const v = await get(key);
+    return safeArray(v);
+  } catch {
+    return [];
+  }
+}
+
+async function writeIdb(key, value) {
+  try {
+    await set(key, safeArray(value));
+  } catch {
+    // ignore
+  }
+}
+
+function tryReadLegacyLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LEGACY_LS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return safeArray(parsed);
   } catch {
     return [];
   }
 }
 
-function normalizeFromLegacyItem(raw) {
-  const id =
-    digitsOnly(raw?.idNumber) ||
-    digitsOnly(raw?.id_number) ||
-    digitsOnly(raw?.id) ||
-    digitsOnly(raw?.therapistId);
+async function migrateLegacyIfNeeded() {
+  const current = uniqueByIdNumber(await readIdb(IDB_KEY));
+  if (current.length) return current;
 
-  if (!isValidTherapistId(id)) return null;
+  const legacyIdb = uniqueByIdNumber(await readIdb(LEGACY_IDB_KEY));
+  const legacyLs = typeof window !== "undefined" ? uniqueByIdNumber(tryReadLegacyLocalStorage()) : [];
 
-  const name =
-    normalize(raw?.fullName) ||
-    normalize(raw?.full_name) ||
-    normalize(raw?.name) ||
-    normalize(raw?.displayName) ||
-    id;
+  const merged = uniqueByIdNumber([...legacyIdb, ...legacyLs]);
+  if (merged.length) await writeIdb(IDB_KEY, merged);
 
-  const active = raw?.active !== false;
-
-  const colorRaw = normalize(raw?.color);
-  const color =
-    colorRaw && /^#([0-9a-fA-F]{6})$/.test(colorRaw)
-      ? colorRaw.toLowerCase()
-      : makeStableColorFromSeed(id);
-
-  return { id, name, role: "therapist", active, color };
+  return merged;
 }
 
-function normalizeFromIdbItem(raw) {
-  const id = digitsOnly(raw?.id) || digitsOnly(raw?.idNumber) || digitsOnly(raw?.therapistId);
-  if (!isValidTherapistId(id)) return null;
+function toSupabaseRow(t) {
+  const rec = normalizeTherapistRecord(t);
+  const idNumber = normalizeDigits(rec.idNumber);
+  if (!isValidIdNumber(idNumber)) return null;
 
-  const name =
-    normalize(raw?.name) ||
-    normalize(raw?.fullName) ||
-    normalize(raw?.displayName) ||
-    normalize(raw?.full_name) ||
-    id;
-
-  const role = normalize(raw?.role) || "therapist";
-  const active = raw?.active !== false;
-
-  const colorRaw = normalize(raw?.color);
-  const color =
-    colorRaw && /^#([0-9a-fA-F]{6})$/.test(colorRaw)
-      ? colorRaw.toLowerCase()
-      : makeStableColorFromSeed(id);
-
-  return { id, name, role, active, color };
+  return {
+    id_number: idNumber,
+    full_name: normalizeString(rec.fullName) || idNumber,
+    phone: normalizeString(rec.phone),
+    address: normalizeString(rec.address),
+    email: normalizeString(rec.email),
+    work_days: safeArray(rec.workDays),
+    gender: normalizeString(rec.gender) || "not_specified",
+    accent_key: normalizeString(rec.accentKey),
+    active: rec.active !== false,
+    remote_id: rec.remoteId || null,
+  };
 }
 
-function normalizeFromSupabaseRow(row) {
-  const id = digitsOnly(row?.national_id);
-  if (!isValidTherapistId(id)) return null;
-
-  const name = normalize(row?.full_name) || id;
-  const role = normalize(row?.role) || "therapist";
-  const active = row?.active !== false;
-
-  return { id, name, role, active, color: makeStableColorFromSeed(id) };
+function fromSupabaseRow(row) {
+  return normalizeTherapistRecord({
+    idNumber: row?.id_number,
+    fullName: row?.full_name,
+    phone: row?.phone,
+    address: row?.address,
+    email: row?.email,
+    workDays: row?.work_days,
+    gender: row?.gender,
+    accentKey: row?.accent_key,
+    active: row?.active,
+    remoteId: row?.remote_id,
+  });
 }
 
-async function readAllRaw() {
-  try {
-    const raw = await get(THERAPISTS_KEY);
-    return safeArray(raw);
-  } catch {
-    return [];
-  }
+async function loadFromSupabase() {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("id_number, full_name, phone, address, email, work_days, gender, accent_key, active, remote_id, updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return safeArray(data).map(fromSupabaseRow).filter((t) => isValidIdNumber(t.idNumber));
 }
 
-async function writeAll(list) {
-  try {
-    await set(THERAPISTS_KEY, safeArray(list));
-  } catch {
-    // never throw
-  }
-}
+async function upsertToSupabase(t) {
+  const payload = toSupabaseRow(t);
+  if (!payload) throw new Error("Therapist ID number must be 9 digits.");
 
-async function migrateOrRepairIfNeeded() {
-  const idbRaw = await readAllRaw();
-  const idbNormalized = uniqueById(idbRaw.map(normalizeFromIdbItem).filter(Boolean));
-
-  const legacyRaw = typeof window !== "undefined" ? tryReadLegacyFromLocalStorage() : [];
-  const legacyNormalized = uniqueById(legacyRaw.map(normalizeFromLegacyItem).filter(Boolean));
-
-  if (idbNormalized.length === 0 && legacyNormalized.length > 0) {
-    await writeAll(legacyNormalized);
-    return legacyNormalized;
-  }
-
-  if (idbRaw.length !== idbNormalized.length) {
-    await writeAll(idbNormalized);
-  }
-
-  return idbNormalized;
-}
-
-async function loadTherapistsFromSupabaseSafe() {
-  // Debug marker: if you never see this in Vercel console, UI is not calling getAllTherapists()
-  console.log("[therapistsStore] loading from Supabase...");
-
-  try {
-    const { data, error } = await supabase
-      .from(SUPABASE_TABLE)
-      .select("role, full_name, national_id, active, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.warn("[profiles select] failed:", error);
-      return [];
-    }
-
-    return safeArray(data).map(normalizeFromSupabaseRow).filter(Boolean);
-  } catch (e) {
-    console.warn("[profiles select] exception:", e);
-    return [];
-  }
-}
-
-async function upsertTherapistToSupabaseSafe(input) {
-  const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
-  if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
-
-  const name =
-    normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
-
-  const role = normalize(input?.role) || "therapist";
-  const active = input?.active !== false;
-
-  const payload = { national_id: id, full_name: name, role, active };
-
-  const { error } = await supabase.from(SUPABASE_TABLE).upsert(payload, { onConflict: "national_id" });
+  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "id_number" });
   if (error) throw error;
 
-  return { id, name, role, active, color: makeStableColorFromSeed(id) };
+  return normalizeTherapistRecord({
+    idNumber: payload.id_number,
+    fullName: payload.full_name,
+    phone: payload.phone,
+    address: payload.address,
+    email: payload.email,
+    workDays: payload.work_days,
+    gender: payload.gender,
+    accentKey: payload.accent_key,
+    active: payload.active,
+    remoteId: payload.remote_id,
+  });
 }
 
-async function deleteTherapistFromSupabaseSafe(id) {
-  const target = digitsOnly(id);
-  if (!target) return true;
+async function deleteFromSupabase(idNumber) {
+  const id = normalizeDigits(idNumber);
+  if (!isValidIdNumber(id)) return true;
 
-  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("national_id", target);
+  const { error } = await supabase.from(TABLE).delete().eq("id_number", id);
   if (error) throw error;
 
   return true;
 }
 
-// --- Public API (compatible with existing UI) ---
-
 export async function getAllTherapists() {
-  const localList = await migrateOrRepairIfNeeded();
+  const local = await migrateLegacyIfNeeded();
 
   const online = typeof navigator !== "undefined" ? navigator.onLine : true;
-  if (!online) return sortByName(localList);
+  if (!online) return sortByName(local);
 
-  const cloudList = await loadTherapistsFromSupabaseSafe();
+  let cloud = [];
+  try {
+    cloud = await loadFromSupabase();
+  } catch {
+    return sortByName(local);
+  }
 
-  const merged = uniqueById([...cloudList, ...localList]);
-  await writeAll(merged);
+  const merged = uniqueByIdNumber([...cloud, ...local]);
+  await writeIdb(IDB_KEY, merged);
 
   return sortByName(merged);
 }
 
 export async function upsertTherapist(input) {
-  // Update local immediately
-  const existing = await getAllTherapists();
+  const next = normalizeTherapistRecord(input);
+  const id = normalizeDigits(next.idNumber);
+  if (!isValidIdNumber(id)) throw new Error("Therapist ID number must be 9 digits.");
+  next.id = id;
+  next.idNumber = id;
 
-  const id = digitsOnly(input?.idNumber ?? input?.id ?? input?.therapistId ?? input?.national_id);
-  if (!isValidTherapistId(id)) throw new Error("Therapist ID must be 9 digits.");
+  const current = uniqueByIdNumber(await readIdb(IDB_KEY));
+  const idx = current.findIndex((t) => normalizeDigits(t.idNumber) === id);
 
-  const name =
-    normalize(input?.name ?? input?.fullName ?? input?.displayName ?? input?.full_name) || id;
-  const role = normalize(input?.role) || "therapist";
-  const active = input?.active !== false;
+  const updated = idx >= 0 ? current.map((t, i) => (i === idx ? next : t)) : [next, ...current];
+  await writeIdb(IDB_KEY, updated);
 
-  const existingIdx = existing.findIndex((t) => String(t.id) === String(id));
-  const existingColor = existingIdx >= 0 ? String(existing[existingIdx]?.color || "").toLowerCase() : "";
-  const color = existingColor || makeStableColorFromSeed(id);
-
-  const next = { id, name, role, active, color };
-
-  const updated =
-    existingIdx >= 0 ? existing.map((t, i) => (i === existingIdx ? next : t)) : [next, ...existing];
-
-  await writeAll(updated);
-
-  // Best-effort cloud sync (never breaks UI)
   try {
-    await upsertTherapistToSupabaseSafe(next);
-  } catch (e) {
-    console.warn("[profiles upsert] failed:", e);
+    await upsertToSupabase(next);
+  } catch {
+    // keep local
   }
 
   return next;
 }
 
-export async function deleteTherapist(id) {
-  const target = digitsOnly(id);
-  if (!target) return true;
+export async function deleteTherapist(idNumber) {
+  const id = normalizeDigits(idNumber);
+  if (!isValidIdNumber(id)) return true;
 
-  const existing = await getAllTherapists();
-  const next = existing.filter((t) => digitsOnly(t.id) !== target);
-  await writeAll(next);
+  const current = uniqueByIdNumber(await readIdb(IDB_KEY));
+  const updated = current.filter((t) => normalizeDigits(t.idNumber) !== id);
+  await writeIdb(IDB_KEY, updated);
 
-  // Best-effort cloud delete
   try {
-    await deleteTherapistFromSupabaseSafe(target);
-  } catch (e) {
-    console.warn("[profiles delete] failed:", e);
+    await deleteFromSupabase(id);
+  } catch {
+    // keep local delete
   }
 
   return true;
