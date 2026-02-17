@@ -30,10 +30,8 @@ function getStatusClass(status) {
   if (s === "active") return "patient-status-pill patient-status-active";
   if (s === "stable") return "patient-status-pill patient-status-stable";
   if (s === "inactive") return "patient-status-pill patient-status-inactive";
-  if (s === "disable" || s === "disabled")
-    return "patient-status-pill patient-status-disabled";
-  if (s === "not active" || s === "not-active" || s === "notactive")
-    return "patient-status-pill patient-status-not-active";
+  if (s === "disable" || s === "disabled") return "patient-status-pill patient-status-disabled";
+  if (s === "not active" || s === "not-active" || s === "notactive") return "patient-status-pill patient-status-not-active";
 
   return "patient-status-pill";
 }
@@ -47,6 +45,16 @@ function getGenderClass(g) {
 }
 
 function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPatient }) {
+  const canView = typeof onViewPatient === "function";
+
+  function handleRowKeyDown(e, patient) {
+    if (!canView) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onViewPatient(patient);
+    }
+  }
+
   return (
     <div className="patient-list-card">
       <div className="patient-list-header-row">
@@ -63,18 +71,24 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
           const status = p.status || p.clinicalStatus || "Active";
           const city = p.city || p.location || "";
           const conditions = normalizeConditions(p.conditions);
+          const key = idValue || `${p.firstName}-${p.lastName}`;
 
           return (
-            <div className="patient-row" key={idValue || `${p.firstName}-${p.lastName}`}>
+            <div
+              className="patient-row"
+              key={key}
+              role={canView ? "button" : undefined}
+              tabIndex={canView ? 0 : undefined}
+              onClick={canView ? () => onViewPatient(p) : undefined}
+              onKeyDown={canView ? (e) => handleRowKeyDown(e, p) : undefined}
+            >
               <div className="patient-cell patient-cell-name">
                 <div className={`patient-avatar ${getGenderClass(p.gender)}`}>
                   {getInitials(p.firstName, p.lastName)}
                 </div>
 
                 <div className="patient-name-block">
-                  <div className="patient-name">
-                    {(p.firstName || "") + " " + (p.lastName || "")}
-                  </div>
+                  <div className="patient-name">{(p.firstName || "") + " " + (p.lastName || "")}</div>
                   <div className="patient-id">ID: {idValue}</div>
                 </div>
               </div>
@@ -113,7 +127,14 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
                   <button
                     type="button"
                     className="patient-action-btn"
-                    onClick={onViewPatient ? () => onViewPatient(p) : undefined}
+                    onClick={
+                      onViewPatient
+                        ? (e) => {
+                            e.stopPropagation();
+                            onViewPatient(p);
+                          }
+                        : undefined
+                    }
                   >
                     <Clock size={14} />
                   </button>
@@ -124,7 +145,14 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
                   <button
                     type="button"
                     className="patient-action-btn"
-                    onClick={onEditPatient ? () => onEditPatient(p) : undefined}
+                    onClick={
+                      onEditPatient
+                        ? (e) => {
+                            e.stopPropagation();
+                            onEditPatient(p);
+                          }
+                        : undefined
+                    }
                   >
                     <Pencil size={14} />
                   </button>
@@ -135,14 +163,20 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
                   <button
                     type="button"
                     className="patient-action-btn patient-action-danger"
-                    onClick={onDeletePatient ? () => onDeletePatient(p) : undefined}
+                    onClick={
+                      onDeletePatient
+                        ? (e) => {
+                            e.stopPropagation();
+                            onDeletePatient(p);
+                          }
+                        : undefined
+                    }
                   >
                     <Trash2 size={14} />
                   </button>
                   <span className="action-tooltip">Delete</span>
                 </div>
               </div>
-
             </div>
           );
         })}

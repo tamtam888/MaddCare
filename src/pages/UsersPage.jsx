@@ -3,13 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Pencil, Trash2, X, RefreshCw } from "lucide-react";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { getAllTherapists, upsertTherapist, deleteTherapist } from "../therapists/therapistsStore";
 import "./UsersPage.css";
-
-const LS_STORAGE_KEY = "mc_therapists";
-const IDB_STORAGE_KEY = "mc_therapists_v1";
-
-const IDB_DB_NAME = "keyval-store";
-const IDB_STORE_NAME = "keyval";
 
 const DAY_ORDER = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 const DAY_ALIASES = {
@@ -47,24 +42,6 @@ const ACCENT_KEYS = [
   "accent-k",
   "accent-l",
 ];
-
-function safeJsonParse(value, fallback) {
-  try {
-    if (!value) return fallback;
-    const parsed = JSON.parse(value);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function safeJsonStringify(value) {
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return "[]";
-  }
-}
 
 function normalizeString(v) {
   return String(v ?? "").trim();
@@ -277,13 +254,6 @@ function defaultDraft() {
   };
 }
 
-function coerceTherapistsShape(data) {
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.items)) return data.items;
-  if (data && Array.isArray(data.therapists)) return data.therapists;
-  return null;
-}
-
 function normalizeTherapistRecord(raw) {
   const rawId = normalizeString(raw?.id);
   const rawIdNumber = normalizeDigits(raw?.idNumber);
@@ -324,142 +294,11 @@ function normalizeTherapistRecord(raw) {
   };
 }
 
-function normalizeTherapistsList(list) {
-  if (!Array.isArray(list)) return [];
-  return list.map((x) => normalizeTherapistRecord(x));
-}
-
-function readTherapistsFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem(LS_STORAGE_KEY);
-    const data = safeJsonParse(raw, null);
-    const list = coerceTherapistsShape(data);
-    return normalizeTherapistsList(Array.isArray(list) ? list : []);
-  } catch {
-    return [];
-  }
-}
-
-function writeTherapistsToLocalStorage(items) {
-  try {
-    localStorage.setItem(LS_STORAGE_KEY, safeJsonStringify(items));
-  } catch {
-    // ignore
-  }
-}
-
-function idbOpen() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_DB_NAME);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
-        db.createObjectStore(IDB_STORE_NAME);
-      }
-    };
-    req.onerror = () => reject(req.error);
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-
-async function idbGet(key) {
-  const db = await idbOpen();
-  try {
-    return await new Promise((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE_NAME, "readonly");
-      const store = tx.objectStore(IDB_STORE_NAME);
-      const req = store.get(key);
-      req.onerror = () => reject(req.error);
-      req.onsuccess = () => resolve(req.result);
-    });
-  } finally {
-    db.close();
-  }
-}
-
-async function idbSet(key, value) {
-  const db = await idbOpen();
-  try {
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE_NAME, "readwrite");
-      const store = tx.objectStore(IDB_STORE_NAME);
-      const req = store.put(value, key);
-      req.onerror = () => reject(req.error);
-      req.onsuccess = () => resolve();
-    });
-  } finally {
-    db.close();
-  }
-}
-
-function mergeTherapistsLists(primary, secondary) {
-  const a = Array.isArray(primary) ? primary : [];
-  const b = Array.isArray(secondary) ? secondary : [];
-
-  const keyOf = (t) => {
-    const idNumber = normalizeDigits(t?.idNumber);
-    if (idNumber) return `idn:${idNumber}`;
-    const id = normalizeString(t?.id);
-    if (id) return `id:${id}`;
-    return `id:${uid()}`;
-  };
-
-  const mergeTwo = (prev, next) => {
-    const p = normalizeTherapistRecord(prev);
-    const n = normalizeTherapistRecord(next);
-
-    const nextWorkDays = Array.isArray(next?.workDays)
-      ? normalizeWorkDays(next.workDays)
-      : normalizeWorkDays(n.workDays);
-
-    const merged = {
-      ...p,
-      ...n,
-      id:
-        normalizeDigits(n.idNumber) ||
-        normalizeDigits(p.idNumber) ||
-        normalizeString(n.id) ||
-        normalizeString(p.id) ||
-        uid(),
-      idNumber: normalizeDigits(n.idNumber) || normalizeDigits(p.idNumber) || "",
-      fullName: normalizeString(n.fullName) || normalizeString(p.fullName) || "",
-      email: normalizeString(n.email) || normalizeString(p.email) || "",
-      phone: normalizeString(n.phone) || normalizeString(p.phone) || "",
-      address: normalizeString(n.address) || normalizeString(p.address) || "",
-      workDays: (nextWorkDays ?? normalizeWorkDays(p.workDays)).sort(
-        (x, y) => DAY_ORDER.indexOf(x) - DAY_ORDER.indexOf(y)
-      ),
-      remoteId: normalizeString(n.remoteId) || normalizeString(p.remoteId) || null,
-      accentKey: normalizeAccentKey(n.accentKey) || normalizeAccentKey(p.accentKey) || pickRandomAccentKey(),
-      gender: normalizeString(n.gender) || normalizeString(p.gender) || "not_specified",
-      active: typeof n.active === "boolean" ? n.active : typeof p.active === "boolean" ? p.active : true,
-    };
-
-    return merged;
-  };
-
-  const map = new Map();
-
-  const put = (t) => {
-    const norm = normalizeTherapistRecord(t);
-    const k = keyOf(norm);
-    const prev = map.get(k);
-    map.set(k, prev ? mergeTwo(prev, norm) : norm);
-  };
-
-  for (const t of a) put(t);
-  for (const t of b) put(t);
-
-  const result = Array.from(map.values());
-  result.sort((x, y) => normalizeString(x.fullName).localeCompare(normalizeString(y.fullName)));
-  return result;
-}
-
 export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
   const navigate = useNavigate();
   const { isAdmin, therapistId } = useAuthContext();
 
-  const [items, setItems] = useState(() => readTherapistsFromLocalStorage());
+  const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -469,25 +308,21 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
   const [errors, setErrors] = useState({});
 
   const [syncing, setSyncing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const fromIdb = await idbGet(IDB_STORAGE_KEY);
-        const idbList = normalizeTherapistsList(coerceTherapistsShape(fromIdb) || []);
-        const lsList = readTherapistsFromLocalStorage();
-
-        const merged = mergeTherapistsLists(idbList, lsList);
-
-        if (!cancelled) {
-          setItems(merged);
-          writeTherapistsToLocalStorage(merged);
-          await idbSet(IDB_STORAGE_KEY, merged);
-        }
-      } catch (err) {
-        console.error("Failed to load therapists from IndexedDB:", err);
+        setLoading(true);
+        const list = await getAllTherapists();
+        if (!cancelled) setItems((Array.isArray(list) ? list : []).map(normalizeTherapistRecord));
+      } catch (e) {
+        console.error("[UsersPage] getAllTherapists failed:", e);
+        if (!cancelled) setItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
 
@@ -495,19 +330,6 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    const normalized = normalizeTherapistsList(items);
-    writeTherapistsToLocalStorage(normalized);
-
-    (async () => {
-      try {
-        await idbSet(IDB_STORAGE_KEY, normalized);
-      } catch (err) {
-        console.error("Failed to save therapists to IndexedDB:", err);
-      }
-    })();
-  }, [items]);
 
   const visibleItems = useMemo(() => {
     if (isAdmin) return items;
@@ -560,7 +382,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     setIsModalOpen(false);
   }
 
-  function upsertItem(next) {
+  async function upsertItem(next) {
     const normalizedNext = normalizeTherapistRecord(next);
 
     setItems((prev) => {
@@ -574,17 +396,20 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
 
       if (idx === -1) return [normalizedNext, ...prevList];
 
-      const existing = prevList[idx];
-
-      const merged = mergeTherapistsLists([existing], [normalizedNext])[0] || normalizedNext;
-
       const copy = prevList.slice();
-      copy[idx] = merged;
+      copy[idx] = normalizedNext;
       return copy;
     });
+
+    try {
+      await upsertTherapist(normalizedNext);
+    } catch (e) {
+      console.error("[UsersPage] upsertTherapist failed:", e);
+      alert(e?.message || "Save failed");
+    }
   }
 
-  function onDelete(id) {
+  async function onDelete(id) {
     if (!isAdmin) return;
     const target = normalizeDigits(id) || normalizeString(id);
     if (!target) return;
@@ -597,6 +422,12 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
         return kx !== target;
       })
     );
+
+    try {
+      await deleteTherapist(target);
+    } catch (e) {
+      console.error("[UsersPage] deleteTherapist failed:", e);
+    }
   }
 
   function onBlurNormalize(field) {
@@ -647,7 +478,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     setErrors((p) => ({ ...p, workDays: nextErrors.workDays }));
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
 
     const idNumberDigits = normalizeDigits(draft.idNumber);
@@ -684,7 +515,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
 
     if (hasErrors(nextErrors)) return;
 
-    upsertItem(next);
+    await upsertItem(next);
     closeModal();
   }
 
@@ -774,7 +605,13 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.length ? (
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="users-empty-row">
+                  Loading...
+                </td>
+              </tr>
+            ) : filtered.length ? (
               filtered.map((t) => (
                 <tr key={t.id}>
                   <td className="users-main-cell">
