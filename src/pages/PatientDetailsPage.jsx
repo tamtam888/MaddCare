@@ -12,6 +12,9 @@ import PatientAppointments from "../components/PatientAppointments";
 import AppointmentDrawer from "../appointments/AppointmentDrawer";
 import { useAppointments } from "../appointments/useAppointments";
 
+const MEDIA_APP_BASE_URL =
+  import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5173";
+
 function buildFullName(p) {
   const first = (p?.firstName || "").trim();
   const last = (p?.lastName || "").trim();
@@ -37,7 +40,8 @@ function getHeaderStatusClass(p) {
   if (s === "active") return "header-active";
   if (s === "stable") return "header-stable";
   if (s === "disabled") return "header-disabled";
-  if (s === "not active" || s === "not-active" || s === "notactive") return "header-not-active";
+  if (s === "not active" || s === "not-active" || s === "notactive")
+    return "header-not-active";
   return "header-inactive";
 }
 
@@ -46,11 +50,18 @@ function getStatusPillClass(p) {
   if (s === "active") return "status-pill status-active";
   if (s === "stable") return "status-pill status-stable";
   if (s === "disabled") return "status-pill status-disabled";
-  if (s === "not active" || s === "not-active" || s === "notactive") return "status-pill status-not-active";
+  if (s === "not active" || s === "not-active" || s === "notactive")
+    return "status-pill status-not-active";
   return "status-pill status-inactive";
 }
 
-function InlineEditable({ value, placeholder = "-", inputType = "text", className = "", onChange }) {
+function InlineEditable({
+  value,
+  placeholder = "-",
+  inputType = "text",
+  className = "",
+  onChange,
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
 
@@ -66,7 +77,10 @@ function InlineEditable({ value, placeholder = "-", inputType = "text", classNam
 
   if (!editing) {
     return (
-      <span className={`editable-field ${className}`} onClick={() => setEditing(true)}>
+      <span
+        className={`editable-field ${className}`}
+        onClick={() => setEditing(true)}
+      >
         {String(value ?? "").trim().length ? value : placeholder}
       </span>
     );
@@ -85,7 +99,14 @@ function InlineEditable({ value, placeholder = "-", inputType = "text", classNam
 }
 
 function pickDobValue(p) {
-  return p?.dob ?? p?.dateOfBirth ?? p?.birthDate ?? p?.birthDateTime ?? p?.dobText ?? "";
+  return (
+    p?.dob ??
+    p?.dateOfBirth ??
+    p?.birthDate ??
+    p?.birthDateTime ??
+    p?.dobText ??
+    ""
+  );
 }
 
 function formatDobForHeader(p) {
@@ -142,7 +163,12 @@ function CollapsibleBlock({ title, subtitle = "", defaultOpen = false, children 
         </span>
       </button>
 
-      <div id={panelId} role="region" aria-labelledby={btnId} className={`pd-panel ${open ? "open" : ""}`}>
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby={btnId}
+        className={`pd-panel ${open ? "open" : ""}`}
+      >
         {children}
       </div>
     </div>
@@ -354,7 +380,11 @@ export default function PatientDetailsPage({
         <div className="patient-card">
           <h2 className="section-title">Patient profile</h2>
           <div className="empty-state">Patient not found.</div>
-          <button type="button" className="patients-toolbar-button" onClick={() => navigate("/patients")}>
+          <button
+            type="button"
+            className="patients-toolbar-button"
+            onClick={() => navigate("/patients")}
+          >
             Back to patients list
           </button>
         </div>
@@ -380,12 +410,17 @@ export default function PatientDetailsPage({
   const reportsSubtitle = `${selectedCount} selected • ${reportsUploadedCount} uploaded`;
 
   const medplumPatientId = pickMedplumPatientId(editablePatient);
+  const mediaUrl = medplumPatientId
+    ? `${MEDIA_APP_BASE_URL}/patients?medplumPatientId=${encodeURIComponent(medplumPatientId)}`
+    : "";
 
   return (
     <div className="patient-details-page">
       <div className={headerClass}>
         <div className="patient-header-left">
-          <div className={`patient-avatar-details ${getGenderClass(editablePatient)}`}>{buildInitials(editablePatient)}</div>
+          <div className={`patient-avatar-details ${getGenderClass(editablePatient)}`}>
+            {buildInitials(editablePatient)}
+          </div>
 
           <div className="patient-header-title-block">
             <h1 className="patient-details-name">{buildFullName(editablePatient)}</h1>
@@ -411,6 +446,18 @@ export default function PatientDetailsPage({
         <div className="patients-page-header-actions">
           <button type="button" className="patients-toolbar-button" onClick={handleStartTreatment}>
             <span>Start Treatment</span>
+          </button>
+
+          <button
+            type="button"
+            className="patients-toolbar-button"
+            disabled={!mediaUrl}
+            onClick={() => {
+              if (!mediaUrl) return;
+              window.open(mediaUrl, "_blank", "noopener,noreferrer");
+            }}
+          >
+            <span>Open in Media</span>
           </button>
 
           <button type="button" className="patients-toolbar-button" onClick={handleClose}>
@@ -530,7 +577,11 @@ export default function PatientDetailsPage({
         </CollapsibleBlock>
 
         <CollapsibleBlock title="Care plan" subtitle="Goals and exercises" defaultOpen={false}>
-          <CarePlanSection patient={editablePatient} onUpdatePatient={updatePatient} onSaveCarePlanEntry={handleSaveCarePlanEntry} />
+          <CarePlanSection
+            patient={editablePatient}
+            onUpdatePatient={updatePatient}
+            onSaveCarePlanEntry={handleSaveCarePlanEntry}
+          />
         </CollapsibleBlock>
 
         <CollapsibleBlock title="Reports" subtitle={reportsSubtitle} defaultOpen={false}>
@@ -555,9 +606,13 @@ export default function PatientDetailsPage({
               }
 
               const current = Array.isArray(editablePatient.history) ? editablePatient.history : [];
-              const existingIndex = current.findIndex((x) => String(x?.id || "") === String(entry?.id || ""));
+              const existingIndex = current.findIndex(
+                (x) => String(x?.id || "") === String(entry?.id || "")
+              );
               const next =
-                existingIndex >= 0 ? current.map((x, idx) => (idx === existingIndex ? entry : x)) : [entry, ...current];
+                existingIndex >= 0
+                  ? current.map((x, idx) => (idx === existingIndex ? entry : x))
+                  : [entry, ...current];
               updateHistory(next);
             }}
           />
