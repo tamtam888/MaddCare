@@ -120,11 +120,9 @@ function pickMedplumPatientId(p) {
   const candidates = [
     p?.medplumPatientId,
     p?.medplumId,
-    p?.medplumPatient,
     p?.fhirId,
     p?.fhirPatientId,
     p?.resourceId,
-    p?.id,
   ];
 
   for (const c of candidates) {
@@ -194,7 +192,9 @@ export default function PatientDetailsPage({
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
     if (!key) return null;
-    return patients.find((p) => String(p?.idNumber || "").trim() === key) || null;
+    return (
+      patients.find((p) => String(p?.idNumber || "").trim() === key) || null
+    );
   }, [patients, idNumberParam]);
 
   const [editablePatient, setEditablePatient] = useState(patientFromStore);
@@ -223,7 +223,9 @@ export default function PatientDetailsPage({
   const clearSelectedHistory = () => setSelectedHistoryIds(new Set());
 
   const selectedHistoryEntries = useMemo(() => {
-    const all = Array.isArray(editablePatient?.history) ? editablePatient.history : [];
+    const all = Array.isArray(editablePatient?.history)
+      ? editablePatient.history
+      : [];
     if (!selectedHistoryIds.size) return [];
     return all.filter((e) => selectedHistoryIds.has(String(e?.id || "")));
   }, [editablePatient?.history, selectedHistoryIds]);
@@ -283,7 +285,8 @@ export default function PatientDetailsPage({
   const handleClickSyncPatient = () => {
     const patientId = editablePatient?.idNumber;
     if (!patientId) return;
-    if (typeof handleSyncPatientToMedplum === "function") handleSyncPatientToMedplum(patientId);
+    if (typeof handleSyncPatientToMedplum === "function")
+      handleSyncPatientToMedplum(patientId);
   };
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -400,7 +403,9 @@ export default function PatientDetailsPage({
   if (String(editablePatient.phone || "").trim()) detailsSubtitleParts.push("phone");
   if (String(editablePatient.email || "").trim()) detailsSubtitleParts.push("email");
   if (String(editablePatient.address || "").trim()) detailsSubtitleParts.push("address");
-  const detailsSubtitle = detailsSubtitleParts.length ? detailsSubtitleParts.join(" • ") : "Edit contact details";
+  const detailsSubtitle = detailsSubtitleParts.length
+    ? detailsSubtitleParts.join(" • ")
+    : "Edit contact details";
 
   const historyCount = Array.isArray(editablePatient.history) ? editablePatient.history.length : 0;
   const selectedCount = selectedHistoryEntries.length;
@@ -486,7 +491,12 @@ export default function PatientDetailsPage({
               <Upload size={16} />
             </span>
             <span>Import</span>
-            <input type="file" accept="application/json" className="pd-hidden-file" onChange={handleImportChange} />
+            <input
+              type="file"
+              accept="application/json"
+              className="pd-hidden-file"
+              onChange={handleImportChange}
+            />
           </label>
         </div>
       </div>
