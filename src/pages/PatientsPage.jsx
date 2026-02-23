@@ -1,10 +1,19 @@
-// src/pages/PatientsPage.jsx
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, Download, Plus, RefreshCw } from "lucide-react";
 import PatientList from "../components/PatientList";
 import PatientForm from "../components/PatientForm";
 import "./PatientsPage.css";
+
+function toDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function buildFullName(p) {
+  const first = String(p?.firstName || "").trim();
+  const last = String(p?.lastName || "").trim();
+  return `${first} ${last}`.trim();
+}
 
 function PatientsPage(props) {
   const {
@@ -117,20 +126,59 @@ function PatientsPage(props) {
     }
   }
 
+  const sortedPatients = useMemo(() => {
+    const list = Array.isArray(patients) ? [...patients] : [];
+
+    list.sort((a, b) => {
+      const aDigits = toDigits(a?.idNumber || a?.id || "");
+      const bDigits = toDigits(b?.idNumber || b?.id || "");
+
+      const aHas = aDigits.length > 0;
+      const bHas = bDigits.length > 0;
+
+      if (aHas && bHas) {
+        const aNum = Number(aDigits);
+        const bNum = Number(bDigits);
+        if (aNum !== bNum) return aNum - bNum;
+      } else if (aHas && !bHas) {
+        return -1;
+      } else if (!aHas && bHas) {
+        return 1;
+      }
+
+      const aName = buildFullName(a).toLowerCase();
+      const bName = buildFullName(b).toLowerCase();
+      if (aName < bName) return -1;
+      if (aName > bName) return 1;
+      return 0;
+    });
+
+    return list;
+  }, [patients]);
+
   const filteredPatients = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return patients;
+    const termDigits = toDigits(searchTerm);
 
-    return patients.filter((p) => {
-      const fullName = `${p.firstName || ""} ${p.lastName || ""}`.toLowerCase();
-      const idValue = String(p.idNumber || p.id || "").toLowerCase();
-      const conditionsText = Array.isArray(p.conditions)
+    if (!term) return sortedPatients;
+
+    return sortedPatients.filter((p) => {
+      const fullName = buildFullName(p).toLowerCase();
+      const idRaw = String(p?.idNumber || p?.id || "").toLowerCase();
+      const idDigits = toDigits(p?.idNumber || p?.id || "");
+
+      const conditionsText = Array.isArray(p?.conditions)
         ? p.conditions.join(" ").toLowerCase()
-        : String(p.conditions || "").toLowerCase();
+        : String(p?.conditions || "").toLowerCase();
 
-      return fullName.includes(term) || idValue.includes(term) || conditionsText.includes(term);
+      const matchName = fullName.includes(term);
+      const matchIdText = idRaw.includes(term);
+      const matchIdDigits = termDigits.length > 0 && idDigits.includes(termDigits);
+      const matchConditions = conditionsText.includes(term);
+
+      return matchName || matchIdText || matchIdDigits || matchConditions;
     });
-  }, [patients, searchTerm]);
+  }, [sortedPatients, searchTerm]);
 
   function handleClickAdd() {
     setEditingPatient(null);

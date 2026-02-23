@@ -13,7 +13,7 @@ import AppointmentDrawer from "../appointments/AppointmentDrawer";
 import { useAppointments } from "../appointments/useAppointments";
 
 const MEDIA_APP_BASE_URL =
-  import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5173";
+  import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5174";
 
 function buildFullName(p) {
   const first = (p?.firstName || "").trim();
@@ -168,6 +168,62 @@ function CollapsibleBlock({ title, subtitle = "", defaultOpen = false, children 
         className={`pd-panel ${open ? "open" : ""}`}
       >
         {children}
+      </div>
+    </div>
+  );
+}
+
+function VideoPanel({ open, src, title = "Media", onClose }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (open) setLoaded(false);
+  }, [open, src]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="mc-media-overlay" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="mc-media-backdrop" onClick={() => onClose?.()} />
+
+      <div className="mc-media-drawer" role="document">
+        <div className="mc-media-drawer-header">
+          <div className="mc-media-drawer-title">{title}</div>
+          <button
+            type="button"
+            className="patients-toolbar-button mc-media-close-btn"
+            onClick={() => onClose?.()}
+          >
+            <span className="patients-toolbar-button-icon">
+              <X size={16} />
+            </span>
+            <span>Close</span>
+          </button>
+        </div>
+
+        <div className="mc-media-drawer-body">
+          {!loaded ? <div className="mc-media-loading">Loading…</div> : null}
+
+          <iframe
+            className={`mc-media-iframe ${loaded ? "loaded" : ""}`}
+            title={title}
+            src={src}
+            onLoad={() => setLoaded(true)}
+            allow="camera; microphone; clipboard-read; clipboard-write"
+            referrerPolicy="no-referrer"
+          />
+        </div>
       </div>
     </div>
   );
@@ -377,6 +433,12 @@ export default function PatientDetailsPage({
     navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);
   };
 
+  const [mediaPanelOpen, setMediaPanelOpen] = useState(false);
+
+  useEffect(() => {
+    setMediaPanelOpen(false);
+  }, [editablePatient?.idNumber]);
+
   if (!editablePatient) {
     return (
       <div className="patient-details-page">
@@ -448,56 +510,76 @@ export default function PatientDetailsPage({
           </div>
         </div>
 
-        <div className="patients-page-header-actions">
-          <button type="button" className="patients-toolbar-button" onClick={handleStartTreatment}>
-            <span>Start Treatment</span>
-          </button>
+        <div className="pd-actions-grid">
+          <div className="pd-actions-row">
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={handleStartTreatment}
+            >
+              <span>Start Treatment</span>
+            </button>
 
-          <button
-            type="button"
-            className="patients-toolbar-button"
-            disabled={!mediaUrl}
-            onClick={() => {
-              if (!mediaUrl) return;
-              window.open(mediaUrl, "_blank", "noopener,noreferrer");
-            }}
-          >
-            <span>Open in Media</span>
-          </button>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              disabled={!mediaUrl}
+              onClick={() => {
+                if (!mediaUrl) return;
+                setMediaPanelOpen(true);
+              }}
+            >
+              <span>Open in Media</span>
+            </button>
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClose}>
-            <span className="patients-toolbar-button-icon">
-              <X size={16} />
-            </span>
-            <span>Close</span>
-          </button>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={handleClickSyncPatient}
+            >
+              <span className="patients-toolbar-button-icon">
+                <RefreshCw size={16} />
+              </span>
+              <span>Sync Patient</span>
+            </button>
+          </div>
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClickSyncPatient}>
-            <span className="patients-toolbar-button-icon">
-              <RefreshCw size={16} />
-            </span>
-            <span>Sync Patient</span>
-          </button>
+          <div className="pd-actions-row pd-actions-row-bottom">
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={handleExportClick}
+            >
+              <span className="patients-toolbar-button-icon">
+                <Download size={16} />
+              </span>
+              <span>Export JSON</span>
+            </button>
 
-          <button type="button" className="patients-toolbar-button" onClick={handleExportClick}>
-            <span className="patients-toolbar-button-icon">
-              <Download size={16} />
-            </span>
-            <span>Export JSON</span>
-          </button>
+            <label className="patients-toolbar-button">
+              <span className="patients-toolbar-button-icon">
+                <Upload size={16} />
+              </span>
+              <span>Import</span>
+              <input
+                type="file"
+                accept="application/json"
+                className="pd-hidden-file"
+                onChange={handleImportChange}
+              />
+            </label>
 
-          <label className="patients-toolbar-button">
-            <span className="patients-toolbar-button-icon">
-              <Upload size={16} />
-            </span>
-            <span>Import</span>
-            <input
-              type="file"
-              accept="application/json"
-              className="pd-hidden-file"
-              onChange={handleImportChange}
-            />
-          </label>
+            <button
+              type="button"
+              className="patients-toolbar-button pd-close-btn"
+              onClick={handleClose}
+            >
+              <span className="patients-toolbar-button-icon">
+                <X size={16} />
+              </span>
+              <span>Close</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -555,7 +637,11 @@ export default function PatientDetailsPage({
 
         <CollapsibleBlock title="Appointments" subtitle="Upcoming and past visits" defaultOpen={false}>
           <div className="patients-page-header-actions">
-            <button type="button" className="patients-toolbar-button" onClick={openAddAppointmentForPatient}>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={openAddAppointmentForPatient}
+            >
               <span>Add appointment</span>
             </button>
           </div>
@@ -570,7 +656,11 @@ export default function PatientDetailsPage({
 
         <CollapsibleBlock title="Treatment session" subtitle="Record, dictate and improve visit notes" defaultOpen={true}>
           <div className="patients-page-header-actions">
-            <button type="button" className="patients-toolbar-button" onClick={handleStartTreatment}>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={handleStartTreatment}
+            >
               <span>Open Treatment</span>
             </button>
           </div>
@@ -638,6 +728,13 @@ export default function PatientDetailsPage({
         onSave={handleSaveAppointment}
         onDelete={handleDeleteAppointment}
         loading={apptSaving}
+      />
+
+      <VideoPanel
+        open={mediaPanelOpen}
+        src={mediaUrl || "about:blank"}
+        title="Media"
+        onClose={() => setMediaPanelOpen(false)}
       />
     </div>
   );
