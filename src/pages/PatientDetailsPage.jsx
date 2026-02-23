@@ -11,6 +11,7 @@ import { Upload, Download, RefreshCw, X } from "lucide-react";
 import PatientAppointments from "../components/PatientAppointments";
 import AppointmentDrawer from "../appointments/AppointmentDrawer";
 import { useAppointments } from "../appointments/useAppointments";
+import PatientDocuments from "../components/PatientDocuments";
 
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5174";
@@ -682,6 +683,10 @@ export default function PatientDetailsPage({
             onUpdatePatient={updatePatient}
             onSaveCarePlanEntry={handleSaveCarePlanEntry}
           />
+        </CollapsibleBlock>
+
+        <CollapsibleBlock title="Documents" subtitle="PDF, images and DOCX" defaultOpen={false}>
+          <PatientDocuments patientKey={medplumPatientId || String(editablePatient.idNumber || "")} />
         </CollapsibleBlock>
 
         <CollapsibleBlock title="Reports" subtitle={reportsSubtitle} defaultOpen={false}>
