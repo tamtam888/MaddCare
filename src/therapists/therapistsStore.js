@@ -1,10 +1,15 @@
 import { get, set } from "idb-keyval";
-import { supabase } from "../lib/supabase";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 const IDB_KEY = "mc_therapists_store_v2";
 const LEGACY_LS_KEY = "mc_therapists";
 const LEGACY_IDB_KEY = "mc_therapists_v1";
 const TABLE = "profiles";
+
+let lastTherapistsSyncError = null;
+export function getLastTherapistsSyncError() { return lastTherapistsSyncError; }
+function setLastError(msg) { lastTherapistsSyncError = String(msg || ""); }
+function clearLastError() { lastTherapistsSyncError = null; }
 
 function safeArray(v) {
   return Array.isArray(v) ? v : [];
@@ -85,9 +90,12 @@ function normalizeTherapistRecord(raw) {
     phone: normalizeString(raw?.phone || ""),
     address: normalizeString(raw?.address || ""),
     email: normalizeString(raw?.email || ""),
-    workDays: normalizeWorkDays(raw?.workDays || raw?.work_days || []),
+    workDays:
+      raw?.workDays !== undefined || raw?.work_days !== undefined
+        ? normalizeWorkDays(raw?.workDays ?? raw?.work_days)
+        : undefined,
     active: raw?.active !== false,
-    gender: normalizeString(raw?.gender || "not_specified") || "not_specified",
+    gender: normalizeString(raw?.gender || "not_specified").toLowerCase() || "not_specified",
     accentKey: normalizeString(raw?.accentKey || raw?.accent_key || ""),
     remoteId: normalizeString(raw?.remoteId || raw?.remote_id || "") || null,
     role: normalizeString(raw?.role || "therapist") || "therapist",
@@ -177,7 +185,7 @@ function fromSupabaseRow(row) {
     role: row?.role,
     active: row?.active,
     gender: row?.gender,
-    work_days: row?.work_days,
+    work_days: row?.work_days ?? [],
     phone: row?.phone,
     email: row?.email,
     address: row?.address,
@@ -185,32 +193,60 @@ function fromSupabaseRow(row) {
 }
 
 async function loadFromSupabase() {
+  if (!isSupabaseConfigured) {
+    setLastError("Cloud sync disabled (missing configuration).");
+    throw new Error("Cloud sync disabled (missing configuration).");
+  }
+
   const { data, error } = await supabase
     .from(TABLE)
     .select("national_id, full_name, role, active, gender, work_days, phone, email, address, created_at")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    setLastError(error.message || "Failed to load from cloud.");
+    throw error;
+  }
+
+  clearLastError();
   return safeArray(data).map(fromSupabaseRow).filter((t) => isValidIdNumber(t.idNumber));
 }
 
 async function upsertToSupabase(t) {
+  if (!isSupabaseConfigured) {
+    setLastError("Cloud sync disabled (missing configuration).");
+    throw new Error("Cloud sync disabled (missing configuration).");
+  }
+
   const payload = toSupabaseRow(t);
   if (!payload) throw new Error("Therapist ID number must be 9 digits.");
 
   const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "national_id" });
-  if (error) throw error;
+  if (error) {
+    setLastError(error.message || "Failed to save to cloud.");
+    throw error;
+  }
 
+  clearLastError();
   return normalizeTherapistRecord(payload);
 }
 
 async function deleteFromSupabase(idNumber) {
+  if (!isSupabaseConfigured) {
+    setLastError("Cloud sync disabled (missing configuration).");
+    return true;
+  }
+
   const id = normalizeDigits(idNumber);
   if (!isValidIdNumber(id)) return true;
 
   const { error } = await supabase.from(TABLE).delete().eq("national_id", id);
-  if (error) throw error;
+  if (error) {
+    setLastError(error.message || "Failed to delete from cloud.");
+    throw error;
+  }
 
+  clearLastError();
   return true;
 }
 
@@ -242,17 +278,27 @@ export async function upsertTherapist(input) {
 
   const current = uniqueByIdNumber(await readIdb(IDB_KEY));
   const idx = current.findIndex((t) => normalizeDigits(t.idNumber) === id);
+  const existing = idx >= 0 ? current[idx] : null;
 
-  const updated = idx >= 0 ? current.map((t, i) => (i === idx ? next : t)) : [next, ...current];
+  const updatedRecord = {
+    ...existing,
+    ...next,
+    workDays: next.workDays ?? existing?.workDays ?? [],
+  };
+
+  const updated =
+    idx >= 0
+      ? current.map((t, i) => (i === idx ? updatedRecord : t))
+      : [updatedRecord, ...current];
   await writeIdb(IDB_KEY, updated);
 
   try {
-    await upsertToSupabase(next);
+    await upsertToSupabase(updatedRecord);
   } catch {
     // keep local
   }
 
-  return next;
+  return updatedRecord;
 }
 
 export async function deleteTherapist(idNumber) {

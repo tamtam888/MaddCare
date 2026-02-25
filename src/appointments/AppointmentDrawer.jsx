@@ -115,9 +115,13 @@ export default function AppointmentDrawer({
   isAdmin = false,
   currentTherapistId = "",
   therapistOptions = [],
+  therapists = [],
 }) {
   const list = Array.isArray(patients) ? patients : [];
   const safeTherapists = Array.isArray(therapistOptions) ? therapistOptions : [];
+  const activeTherapists = Array.isArray(therapists)
+    ? therapists.filter((t) => t.active !== false)
+    : [];
 
   const form = useForm({
     resolver: zodResolver(appointmentInputSchema),
@@ -359,7 +363,22 @@ export default function AppointmentDrawer({
             <div className="mc-field">
               <label className="mc-label">Therapist</label>
 
-              {isAdmin ? (
+              {therapists.length > 0 ? (
+                <select
+                  className="mc-input"
+                  {...register("therapistId")}
+                  disabled={activeTherapists.length === 0}
+                >
+                  <option value="">
+                    {activeTherapists.length === 0 ? "No therapists available" : "Select therapist…"}
+                  </option>
+                  {activeTherapists.map((t) => (
+                    <option key={t.idNumber} value={t.idNumber}>
+                      {t.fullName}
+                    </option>
+                  ))}
+                </select>
+              ) : isAdmin ? (
                 <select className="mc-input" {...register("therapistId", { required: true })} disabled={therapistsEmpty}>
                   <option value="">{therapistsEmpty ? "No therapists available" : "Select therapist…"}</option>
                   {safeTherapists.map((t) => (
@@ -369,7 +388,10 @@ export default function AppointmentDrawer({
                   ))}
                 </select>
               ) : (
-                <input className="mc-input" {...register("therapistId")} disabled />
+                <>
+                  <input className="mc-input" {...register("therapistId")} disabled />
+                  <p className="mc-combobox-empty">Therapists unavailable — cloud sync may be offline.</p>
+                </>
               )}
 
               {errors.therapistId && <p className="mc-error">{String(errors.therapistId.message)}</p>}
