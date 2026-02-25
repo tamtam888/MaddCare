@@ -177,7 +177,9 @@ export default function PatientDocuments({ patientKey }) {
   if (!patientKey) {
     return (
       <div className="doc-surface">
-        <p className="doc-empty">No patient ID available to store documents.</p>
+        <p className="doc-empty">
+          Sync patient to Medplum to enable Documents.
+        </p>
       </div>
     );
   }
