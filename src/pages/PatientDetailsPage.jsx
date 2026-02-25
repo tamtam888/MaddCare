@@ -1,233 +1,31 @@
-import React, { useEffect, useMemo, useState, useId, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./PatientDetailsPage.css";
 
-import PatientHistory from "../components/PatientHistory";
+import CollapsibleBlock from "../components/patient/CollapsibleBlock";
+import InlineEditable from "../components/patient/InlineEditable";
+import PatientHeader from "../components/patient/PatientHeader";
+import VideoPanel from "../components/patient/VideoPanel";
+
 import AttachReports from "../components/AttachReports";
 import CarePlanSection from "../components/CarePlanSection";
-import { formatDateDMY, parseFlexibleDate } from "../utils/dateFormat";
-import { Upload, Download, RefreshCw, X } from "lucide-react";
-
 import PatientAppointments from "../components/PatientAppointments";
-import AppointmentDrawer from "../appointments/AppointmentDrawer";
-import { useAppointments } from "../appointments/useAppointments";
 import PatientDocuments from "../components/PatientDocuments";
+import PatientHistory from "../components/PatientHistory";
+
+import AppointmentDrawer from "../appointments/AppointmentDrawer";
+import { useAppointmentDrawer } from "../appointments/useAppointmentDrawer";
+import { useAppointments } from "../appointments/useAppointments";
+
+import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
+import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5174";
 
-function buildFullName(p) {
-  const first = (p?.firstName || "").trim();
-  const last = (p?.lastName || "").trim();
-  const full = `${first} ${last}`.trim();
-  return full || "Unknown patient";
-}
-
-function buildInitials(p) {
-  const a = (p?.firstName || "?").trim().slice(0, 1);
-  const b = (p?.lastName || "").trim().slice(0, 1);
-  return `${a}${b}`.toUpperCase();
-}
-
-function getGenderClass(p) {
-  const g = String(p?.gender || "").trim().toLowerCase();
-  if (g === "female" || g === "f") return "avatar-female";
-  if (g === "male" || g === "m") return "avatar-male";
-  return "avatar-other";
-}
-
-function getHeaderStatusClass(p) {
-  const s = String(p?.clinicalStatus || "").trim().toLowerCase();
-  if (s === "active") return "header-active";
-  if (s === "stable") return "header-stable";
-  if (s === "disabled") return "header-disabled";
-  if (s === "not active" || s === "not-active" || s === "notactive")
-    return "header-not-active";
-  return "header-inactive";
-}
-
-function getStatusPillClass(p) {
-  const s = String(p?.clinicalStatus || "").trim().toLowerCase();
-  if (s === "active") return "status-pill status-active";
-  if (s === "stable") return "status-pill status-stable";
-  if (s === "disabled") return "status-pill status-disabled";
-  if (s === "not active" || s === "not-active" || s === "notactive")
-    return "status-pill status-not-active";
-  return "status-pill status-inactive";
-}
-
-function InlineEditable({
-  value,
-  placeholder = "-",
-  inputType = "text",
-  className = "",
-  onChange,
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value ?? "");
-
-  useEffect(() => {
-    if (!editing) setDraft(value ?? "");
-  }, [value, editing]);
-
-  const commit = () => {
-    setEditing(false);
-    const next = draft ?? "";
-    if (next !== (value ?? "")) onChange?.(next);
-  };
-
-  if (!editing) {
-    return (
-      <span
-        className={`editable-field ${className}`}
-        onClick={() => setEditing(true)}
-      >
-        {String(value ?? "").trim().length ? value : placeholder}
-      </span>
-    );
-  }
-
-  return (
-    <input
-      className={`inline-input ${className}`}
-      type={inputType}
-      value={draft}
-      autoFocus
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-    />
-  );
-}
-
-function pickDobValue(p) {
-  return (
-    p?.dob ??
-    p?.dateOfBirth ??
-    p?.birthDate ??
-    p?.birthDateTime ??
-    p?.dobText ??
-    ""
-  );
-}
-
-function formatDobForHeader(p) {
-  const raw = pickDobValue(p);
-  const d = parseFlexibleDate(raw);
-  if (!d) return "-";
-  return formatDateDMY(d);
-}
-
-function pickMedplumPatientId(p) {
-  const candidates = [
-    p?.medplumPatientId,
-    p?.medplumId,
-    p?.fhirId,
-    p?.fhirPatientId,
-    p?.resourceId,
-  ];
-
-  for (const c of candidates) {
-    const v = String(c || "").trim();
-    if (v) return v;
-  }
-  return "";
-}
-
-function getAppointmentId(a) {
-  return a?.id || a?.appointmentId || a?._id || null;
-}
-
-function CollapsibleBlock({ title, subtitle = "", defaultOpen = false, children }) {
-  const rid = useId();
-  const panelId = `pd_panel_${String(rid).replace(/:/g, "")}`;
-  const btnId = `pd_btn_${String(rid).replace(/:/g, "")}`;
-  const [open, setOpen] = useState(Boolean(defaultOpen));
-
-  return (
-    <div className="pd-card">
-      <button
-        id={btnId}
-        type="button"
-        className="pd-header-btn"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open ? "true" : "false"}
-        aria-controls={panelId}
-      >
-        <span className="pd-header-left">
-          <span className="pd-title">{title}</span>
-          {subtitle ? <span className="pd-subtitle">{subtitle}</span> : null}
-        </span>
-        <span className={`pd-chevron ${open ? "open" : ""}`} aria-hidden="true">
-          ▾
-        </span>
-      </button>
-
-      <div
-        id={panelId}
-        role="region"
-        aria-labelledby={btnId}
-        className={`pd-panel ${open ? "open" : ""}`}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function VideoPanel({ open, src, title = "Media", onClose }) {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (open) setLoaded(false);
-  }, [open, src]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") onClose?.();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div className="mc-media-overlay" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="mc-media-backdrop" onClick={() => onClose?.()} />
-
-      <div className="mc-media-drawer" role="document">
-        <div className="mc-media-drawer-header">
-          <div className="mc-media-drawer-title">{title}</div>
-          <button
-            type="button"
-            className="patients-toolbar-button mc-media-close-btn"
-            onClick={() => onClose?.()}
-          >
-            <span className="patients-toolbar-button-icon">
-              <X size={16} />
-            </span>
-            <span>Close</span>
-          </button>
-        </div>
-
-        <div className="mc-media-drawer-body">
-          {!loaded ? <div className="mc-media-loading">Loading…</div> : null}
-
-          <iframe
-            className={`mc-media-iframe ${loaded ? "loaded" : ""}`}
-            title={title}
-            src={src}
-            onLoad={() => setLoaded(true)}
-            allow="camera; microphone; clipboard-read; clipboard-write"
-            referrerPolicy="no-referrer"
-          />
-        </div>
-      </div>
-    </div>
-  );
+function buildMediaUrl(id) {
+  if (!id) return null;
+  return `${MEDIA_APP_BASE_URL}/patients?medplumPatientId=${encodeURIComponent(id)}`;
 }
 
 export default function PatientDetailsPage({
@@ -243,19 +41,26 @@ export default function PatientDetailsPage({
   handleSaveCarePlanEntry,
 }) {
   const navigate = useNavigate();
-  const params = useParams();
-  const idNumberParam = params?.idNumber ?? params?.id ?? "";
+  const { idNumber: idNumberParam = "" } = useParams();
 
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
     if (!key) return null;
-    return (
-      patients.find((p) => String(p?.idNumber || "").trim() === key) || null
-    );
+    return patients.find((p) => String(p?.idNumber || "").trim() === key) || null;
   }, [patients, idNumberParam]);
 
   const [editablePatient, setEditablePatient] = useState(patientFromStore);
   const [selectedHistoryIds, setSelectedHistoryIds] = useState(() => new Set());
+  const [mediaPanelOpen, setMediaPanelOpen] = useState(false);
+  const [therapists, setTherapists] = useState([]);
+  const [therapistsSyncError, setTherapistsSyncError] = useState(null);
+
+  useEffect(() => {
+    getAllTherapists().then((list) => {
+      setTherapists(list);
+      setTherapistsSyncError(getLastTherapistsSyncError());
+    });
+  }, []);
 
   useEffect(() => {
     setEditablePatient(patientFromStore);
@@ -265,10 +70,13 @@ export default function PatientDetailsPage({
     setSelectedHistoryIds(new Set());
   }, [editablePatient?.idNumber]);
 
+  useEffect(() => {
+    setMediaPanelOpen(false);
+  }, [editablePatient?.idNumber]);
+
   const toggleHistorySelected = (entryId) => {
     const id = String(entryId || "");
     if (!id) return;
-
     setSelectedHistoryIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -280,9 +88,7 @@ export default function PatientDetailsPage({
   const clearSelectedHistory = () => setSelectedHistoryIds(new Set());
 
   const selectedHistoryEntries = useMemo(() => {
-    const all = Array.isArray(editablePatient?.history)
-      ? editablePatient.history
-      : [];
+    const all = Array.isArray(editablePatient?.history) ? editablePatient.history : [];
     if (!selectedHistoryIds.size) return [];
     return all.filter((e) => selectedHistoryIds.has(String(e?.id || "")));
   }, [editablePatient?.history, selectedHistoryIds]);
@@ -292,25 +98,28 @@ export default function PatientDetailsPage({
     onUpdatePatient?.(updated);
   };
 
-  const updateField = (field, value) => {
-    updatePatient({ ...editablePatient, [field]: value });
-  };
+  const updateField = (field, value) => updatePatient({ ...editablePatient, [field]: value });
 
   const updateHistory = (nextHistory) => {
     const safe = Array.isArray(nextHistory) ? nextHistory : [];
     updatePatient({ ...editablePatient, history: safe });
   };
 
-  const handleClose = () => navigate("/patients");
+  const handleStartTreatment = () => {
+    const pid = String(editablePatient?.idNumber || "").trim();
+    if (!pid) return;
+    navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);
+  };
+
+  const handleClickSyncPatient = () => {
+    const patientId = editablePatient?.idNumber;
+    if (!patientId) return;
+    if (typeof handleSyncPatientToMedplum === "function")
+      handleSyncPatientToMedplum(patientId);
+  };
 
   const handleExportClick = () => {
     if (typeof handleExportPatients === "function") handleExportPatients();
-  };
-
-  const handleImportChange = (e) => {
-    const file = e?.target?.files?.[0] || null;
-    if (typeof handleImportPatients === "function") handleImportPatients(file);
-    if (e?.target) e.target.value = "";
   };
 
   const onSaveTranscriptionLocal = useCallback(
@@ -339,106 +148,19 @@ export default function PatientDetailsPage({
     [editablePatient?.idNumber, handleSelectPatient, handleSaveTranscription]
   );
 
-  const handleClickSyncPatient = () => {
-    const patientId = editablePatient?.idNumber;
-    if (!patientId) return;
-    if (typeof handleSyncPatientToMedplum === "function")
-      handleSyncPatientToMedplum(patientId);
-  };
+  const medplumPatientId = useMemo(
+    () => (editablePatient ? pickMedplumPatientId(editablePatient) : ""),
+    [editablePatient]
+  );
+
+  const mediaUrl = useMemo(() => buildMediaUrl(medplumPatientId), [medplumPatientId]);
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
-
-  const [apptDrawerOpen, setApptDrawerOpen] = useState(false);
-  const [apptDrawerMode, setApptDrawerMode] = useState("add");
-  const [apptInitialValues, setApptInitialValues] = useState(null);
-  const [apptEditingId, setApptEditingId] = useState(null);
-  const [apptSaving, setApptSaving] = useState(false);
-
-  const openAddAppointmentForPatient = () => {
-    const pid = String(editablePatient?.idNumber || "").replace(/\D/g, "");
-    if (!pid) return;
-
-    setApptEditingId(null);
-    setApptDrawerMode("add");
-    setApptInitialValues({
-      patientId: pid,
-      therapistId: "",
-      start: "",
-      end: "",
-      status: "scheduled",
-      notes: "",
-    });
-    setApptDrawerOpen(true);
-  };
-
-  const openEditAppointment = (appt) => {
-    if (!appt) return;
-
-    const id = getAppointmentId(appt);
-
-    setApptEditingId(id);
-    setApptDrawerMode("edit");
-    setApptInitialValues({
-      patientId: appt.patientId,
-      therapistId: appt.therapistId || "",
-      start: appt.start || "",
-      end: appt.end || "",
-      status: appt.status || "scheduled",
-      notes: appt.notes || "",
-    });
-    setApptDrawerOpen(true);
-  };
-
-  const closeApptDrawer = () => {
-    setApptDrawerOpen(false);
-    setApptEditingId(null);
-    setApptDrawerMode("add");
-    setApptInitialValues(null);
-  };
-
-  const handleSaveAppointment = async (values) => {
-    try {
-      setApptSaving(true);
-
-      if (apptDrawerMode === "edit") {
-        if (!apptEditingId) return;
-        await updateAppointment(apptEditingId, values);
-      } else {
-        await addAppointment(values);
-      }
-
-      closeApptDrawer();
-    } finally {
-      setApptSaving(false);
-    }
-  };
-
-  const handleDeleteAppointment = async () => {
-    if (!apptEditingId) return;
-
-    const ok = window.confirm("Delete this appointment?");
-    if (!ok) return;
-
-    try {
-      setApptSaving(true);
-      await deleteAppointment(apptEditingId);
-      closeApptDrawer();
-    } finally {
-      setApptSaving(false);
-    }
-  };
-
-  const handleStartTreatment = () => {
-    const pid = String(editablePatient?.idNumber || "").trim();
-    if (!pid) return;
-    navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);
-  };
-
-  const [mediaPanelOpen, setMediaPanelOpen] = useState(false);
-
-  useEffect(() => {
-    setMediaPanelOpen(false);
-  }, [editablePatient?.idNumber]);
+  const apptDrawer = useAppointmentDrawer(editablePatient?.idNumber, {
+    addAppointment,
+    updateAppointment,
+    deleteAppointment,
+  });
 
   if (!editablePatient) {
     return (
@@ -458,9 +180,11 @@ export default function PatientDetailsPage({
     );
   }
 
-  const headerClass = `patient-header-wrapper ${getHeaderStatusClass(editablePatient)}`;
-  const statusPill = getStatusPillClass(editablePatient);
-  const dobFormatted = formatDobForHeader(editablePatient);
+  const historyCount = Array.isArray(editablePatient.history) ? editablePatient.history.length : 0;
+  const selectedCount = selectedHistoryEntries.length;
+  const historySubtitle = `${selectedCount} selected • ${historyCount} entries`;
+  const reportsUploadedCount = Array.isArray(editablePatient.reports) ? editablePatient.reports.length : 0;
+  const reportsSubtitle = `${selectedCount} selected • ${reportsUploadedCount} uploaded`;
 
   const detailsSubtitleParts = [];
   if (String(editablePatient.phone || "").trim()) detailsSubtitleParts.push("phone");
@@ -470,119 +194,18 @@ export default function PatientDetailsPage({
     ? detailsSubtitleParts.join(" • ")
     : "Edit contact details";
 
-  const historyCount = Array.isArray(editablePatient.history) ? editablePatient.history.length : 0;
-  const selectedCount = selectedHistoryEntries.length;
-  const historySubtitle = `${selectedCount} selected • ${historyCount} entries`;
-
-  const reportsUploadedCount = Array.isArray(editablePatient.reports) ? editablePatient.reports.length : 0;
-  const reportsSubtitle = `${selectedCount} selected • ${reportsUploadedCount} uploaded`;
-
-  const medplumPatientId = pickMedplumPatientId(editablePatient);
-  const mediaUrl = medplumPatientId
-    ? `${MEDIA_APP_BASE_URL}/patients?medplumPatientId=${encodeURIComponent(medplumPatientId)}`
-    : "";
-
   return (
     <div className="patient-details-page">
-      <div className={headerClass}>
-        <div className="patient-header-left">
-          <div className={`patient-avatar-details ${getGenderClass(editablePatient)}`}>
-            {buildInitials(editablePatient)}
-          </div>
-
-          <div className="patient-header-title-block">
-            <h1 className="patient-details-name">{buildFullName(editablePatient)}</h1>
-
-            <div className="patient-details-meta">
-              <span className="meta-chip">
-                <strong>ID:</strong> {editablePatient.idNumber || "-"}
-              </span>
-
-              <span className="meta-chip">
-                <strong>DOB:</strong> <bdi dir="ltr">{dobFormatted}</bdi>
-              </span>
-
-              <span className="meta-chip">
-                <strong>Gender:</strong> {editablePatient.gender || "Not set"}
-              </span>
-
-              <span className={statusPill}>{editablePatient.clinicalStatus || "Not Active"}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="pd-actions-grid">
-          <div className="pd-actions-row">
-            <button
-              type="button"
-              className="patients-toolbar-button"
-              onClick={handleStartTreatment}
-            >
-              <span>Start Treatment</span>
-            </button>
-
-            <button
-              type="button"
-              className="patients-toolbar-button"
-              disabled={!mediaUrl}
-              onClick={() => {
-                if (!mediaUrl) return;
-                setMediaPanelOpen(true);
-              }}
-            >
-              <span>Open in Media</span>
-            </button>
-
-            <button
-              type="button"
-              className="patients-toolbar-button"
-              onClick={handleClickSyncPatient}
-            >
-              <span className="patients-toolbar-button-icon">
-                <RefreshCw size={16} />
-              </span>
-              <span>Sync Patient</span>
-            </button>
-          </div>
-
-          <div className="pd-actions-row pd-actions-row-bottom">
-            <button
-              type="button"
-              className="patients-toolbar-button"
-              onClick={handleExportClick}
-            >
-              <span className="patients-toolbar-button-icon">
-                <Download size={16} />
-              </span>
-              <span>Export JSON</span>
-            </button>
-
-            <label className="patients-toolbar-button">
-              <span className="patients-toolbar-button-icon">
-                <Upload size={16} />
-              </span>
-              <span>Import</span>
-              <input
-                type="file"
-                accept="application/json"
-                className="pd-hidden-file"
-                onChange={handleImportChange}
-              />
-            </label>
-
-            <button
-              type="button"
-              className="patients-toolbar-button pd-close-btn"
-              onClick={handleClose}
-            >
-              <span className="patients-toolbar-button-icon">
-                <X size={16} />
-              </span>
-              <span>Close</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <PatientHeader
+        patient={editablePatient}
+        medplumPatientId={medplumPatientId}
+        onStartTreatment={handleStartTreatment}
+        onOpenMedia={() => { if (medplumPatientId) setMediaPanelOpen(true); }}
+        onSyncPatient={handleClickSyncPatient}
+        onExport={handleExportClick}
+        onImportPatients={handleImportPatients}
+        onClose={() => navigate("/patients")}
+      />
 
       <div className="patient-sections-stack">
         <CollapsibleBlock title="Patient details" subtitle={detailsSubtitle} defaultOpen={false}>
@@ -641,17 +264,21 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
-              onClick={openAddAppointmentForPatient}
+              onClick={apptDrawer.openAdd}
             >
               <span>Add appointment</span>
             </button>
           </div>
 
+          {therapistsSyncError && (
+            <p className="empty-state">{therapistsSyncError}</p>
+          )}
+
           <PatientAppointments
             patient={editablePatient}
             patientFullName={buildFullName(editablePatient)}
             isAdmin={false}
-            onOpenAppointment={openEditAppointment}
+            onOpenAppointment={apptDrawer.openEdit}
           />
         </CollapsibleBlock>
 
@@ -686,7 +313,7 @@ export default function PatientDetailsPage({
         </CollapsibleBlock>
 
         <CollapsibleBlock title="Documents" subtitle="PDF, images and DOCX" defaultOpen={false}>
-          <PatientDocuments patientKey={medplumPatientId || String(editablePatient.idNumber || "")} />
+          <PatientDocuments patientKey={medplumPatientId} />
         </CollapsibleBlock>
 
         <CollapsibleBlock title="Reports" subtitle={reportsSubtitle} defaultOpen={false}>
@@ -725,19 +352,20 @@ export default function PatientDetailsPage({
       </div>
 
       <AppointmentDrawer
-        open={apptDrawerOpen}
-        mode={apptDrawerMode}
+        open={apptDrawer.open}
+        mode={apptDrawer.mode}
         patients={patients}
-        initialValues={apptInitialValues}
-        onClose={closeApptDrawer}
-        onSave={handleSaveAppointment}
-        onDelete={handleDeleteAppointment}
-        loading={apptSaving}
+        therapists={therapists}
+        initialValues={apptDrawer.initialValues}
+        onClose={apptDrawer.close}
+        onSave={apptDrawer.save}
+        onDelete={apptDrawer.remove}
+        loading={apptDrawer.saving}
       />
 
       <VideoPanel
-        open={mediaPanelOpen}
-        src={mediaUrl || "about:blank"}
+        open={mediaPanelOpen && Boolean(mediaUrl)}
+        src={mediaUrl ?? "about:blank"}
         title="Media"
         onClose={() => setMediaPanelOpen(false)}
       />
