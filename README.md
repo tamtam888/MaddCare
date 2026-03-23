@@ -1,79 +1,87 @@
-# MedicalCare — Clinic Management (React + Vite)
+# MedicalCare
 
-MedicalCare is a React (Vite) client application for managing patients and treatment workflow, including an appointments calendar, in-app notifications, and optional Medplum synchronization.
-
-> Repository note: the `main-clean` branch may be protected and require Pull Requests for changes (no direct push).
+Clinical management platform for therapists with AI-assisted workflows.
 
 ---
 
-## ✅ Implemented Features
+## Overview
 
-### Patient Management
-- Create and manage patient profiles.
-- Persist patient data in browser storage so it survives refresh.
-- Patient details page with history and supporting UI modules.
+MedicalCare is a product-oriented healthcare platform designed to help therapists manage patients, treatment processes, and clinical workflows in one structured system.
 
-### Appointments Calendar (Treatments)
-- Weekly/day/month views using FullCalendar.
-- Create appointments via selection or “+ Add”.
-- Edit appointments in a drawer.
-- Drag & drop / resize appointments.
-- Clinic-hours enforcement (07:00–22:00).
-- Conflict prevention:
-  - Prevent double-booking for the same therapist.
-  - Prevent a patient being booked with two therapists at the same time.
-  - Warn on same-day appointments with another therapist (confirmation prompt).
-
-### Roles / Visibility
-- **Admin**: sees all appointments and can run sync.
-- **Therapist**: sees only their own appointments.
-
-### In-App Notifications
-- Bell icon popover with a badge counter.
-- Notifications are persisted per user scope (admin / therapist).
-- Notifications are generated for appointment changes:
-  - Created / assigned to therapist
-  - Cancelled / removed
-  - Time changed (with suppression to avoid self-change noise)
-- Clear / dismiss notifications and persist dismissed IDs.
-
-### Medplum Sync (Appointments)
-- Admin-only sync button.
-- If Medplum is not connected, user receives a clear message and sync does not run.
-- Sync creates/updates Appointment resources in Medplum and stores returned remote IDs.
-- Pending sync and sync errors are tracked per appointment.
+The platform combines therapist tools, AI-assisted writing, reporting workflows, care planning, and media capabilities into a unified experience built for real-world therapeutic work.
 
 ---
 
-## 🧰 Tech Stack
+## Core Capabilities
 
-- React + React Router
+### 🧑‍⚕️ Therapist Dashboard
+- Central workspace for managing patients and treatment progress
+- Overview of active cases and ongoing workflows
+- Designed for real-world therapist usage
+
+### 🗂 Patient Management
+- Structured patient profiles and treatment data
+- Organized clinical information across sessions
+- Built for scalable workflows
+
+### 📝 Treatment Documentation
+- Session summaries and structured notes
+- AI-assisted refinement of therapist-written text
+- Improves clarity and professional medical writing
+
+### 📊 Reports and Summaries
+- AI-generated treatment summaries from structured data
+- Final reports based on treatment history
+- Generated using de-identified data (no personal patient details)
+- Designed for privacy-preserving workflows
+
+### 🧠 Care Plans, Templates, and Exercises
+- Structured care plans per patient
+- Reusable templates for therapist workflows
+- Exercise tracking within treatment processes
+
+### 🎥 Media and Video Workflow
+- Integrated media capabilities (video-based sessions)
+- Supports comparison and tracking of patient progress
+- Part of the platform, not a standalone product
+
+### 🔐 Data Handling and Privacy
+- Privacy-conscious handling of sensitive medical data
+- De-identified data in AI-generated outputs
+- Designed to prevent exposure of personal patient information
+
+---
+
+## Why This Project Matters
+
+MedicalCare demonstrates:
+
+- Product thinking beyond UI
+- Building complex systems for real-world clinical use
+- Integrating AI into practical workflows
+- Working with sensitive healthcare data responsibly
+- Designing scalable and structured systems
+
+---
+
+## Tech Stack
+
+- React
 - Vite
-- FullCalendar (timeGrid/dayGrid/interaction)
-- Medplum SDK
-- CSS (per page/component)
-- Browser storage for persistence
-- Testing: Vitest + Testing Library
+- Medplum (FHIR)
+- IndexedDB
+- MediaRecorder API
+- AI-assisted workflows
 
 ---
 
-## 💾 Data & Persistence
+## Live Demo
 
-- App data is stored client-side.
-- Appointments and notifications persist across refresh.
-- Notifications are scoped per user key (admin or therapist).
+https://medical-care-mu.vercel.app
 
 ---
 
-## 🚀 Run Locally
+## Notes
 
-```bash
-npm install
-npm run dev
-
-```
-## 🔀 Git Workflow
-
-- `main-clean` is protected and accepts changes via Pull Requests only.
-- Development is done on feature branches.
-- Approved changes are merged into `main-clean`.
+- The system is still evolving with additional features in progress
+- Media functionality is part of the platform and not a separate product
