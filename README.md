@@ -1,55 +1,87 @@
 # MedicalCare
 
-Clinical management platform with AI-assisted workflows.
+Clinical management platform for therapists with AI-assisted workflows.
 
 ---
 
-## 🚀 Overview
+## Overview
 
-MedicalCare is a product-oriented healthcare platform designed for managing patients, treatments, and clinical workflows.
+MedicalCare is a product-oriented healthcare platform designed to help therapists manage patients, treatment processes, and clinical workflows in one structured system.
 
-It combines structured data handling with AI-assisted processes to support real-world usage scenarios in therapy and clinical environments.
-
----
-
-## ✨ Key Features
-
-- Patient management system (records, details, structured data)
-- Clinical workflow support (appointments, treatment tracking)
-- AI-assisted documentation and interaction flows
-- Media module for session-related data (video/audio)
-- Privacy-conscious handling of sensitive data
+The platform combines therapist tools, AI-assisted writing, reporting workflows, care planning, and media capabilities into a unified experience built for real-world therapeutic work.
 
 ---
 
-## 🧠 Why this project matters
+## Core Capabilities
 
-This project focuses on:
+### 🧑‍⚕️ Therapist Dashboard
+- Central workspace for managing patients and treatment progress
+- Overview of active cases and ongoing workflows
+- Designed for real-world therapist usage
 
-- Building real-world product architecture (not just UI)
-- Working with sensitive data responsibly
-- Using AI as part of development workflows (not as a shortcut)
-- Designing systems that could scale into real clinical environments
+### 🗂 Patient Management
+- Structured patient profiles and treatment data
+- Organized clinical information across sessions
+- Built for scalable workflows
+
+### 📝 Treatment Documentation
+- Session summaries and structured notes
+- AI-assisted refinement of therapist-written text
+- Improves clarity and professional medical writing
+
+### 📊 Reports and Summaries
+- AI-generated treatment summaries from structured data
+- Final reports based on treatment history
+- Generated using de-identified data (no personal patient details)
+- Designed for privacy-preserving workflows
+
+### 🧠 Care Plans, Templates, and Exercises
+- Structured care plans per patient
+- Reusable templates for therapist workflows
+- Exercise tracking within treatment processes
+
+### 🎥 Media and Video Workflow
+- Integrated media capabilities (video-based sessions)
+- Supports comparison and tracking of patient progress
+- Part of the platform, not a standalone product
+
+### 🔐 Data Handling and Privacy
+- Privacy-conscious handling of sensitive medical data
+- De-identified data in AI-generated outputs
+- Designed to prevent exposure of personal patient information
 
 ---
 
-## 🛠 Tech Stack
+## Why This Project Matters
+
+MedicalCare demonstrates:
+
+- Product thinking beyond UI
+- Building complex systems for real-world clinical use
+- Integrating AI into practical workflows
+- Working with sensitive healthcare data responsibly
+- Designing scalable and structured systems
+
+---
+
+## Tech Stack
 
 - React
 - Vite
 - Medplum (FHIR)
 - IndexedDB
 - MediaRecorder API
+- AI-assisted workflows
 
 ---
 
-## 🔗 Live Demo
+## Live Demo
 
-👉 https://medical-care-mu.vercel.app
+https://medical-care-mu.vercel.app
 
 ---
 
-## 📌 Notes
+## Notes
 
-- The video/media functionality is part of the system and not a standalone product
-- Some advanced features are still in progress
+- The system is still evolving with additional features in progress
+- Media functionality is part of the platform and not a separate product
