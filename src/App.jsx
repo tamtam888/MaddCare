@@ -10,6 +10,7 @@ import CalendarTreatmentsPage from "./pages/CalendarTreatmentsPage";
 import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
 import TreatmentPage from "./pages/TreatmentPage";
+import MediaPage from "./pages/MediaPage";
 import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
@@ -239,7 +240,9 @@ function App() {
             <Route
               path="/users"
               element={
-                <RequireAuth element={<UsersPage handleSyncAllTherapistsToMedplum={handleSyncAllTherapistsToMedplum} />} />
+                <RequireAuth
+                  element={<UsersPage handleSyncAllTherapistsToMedplum={handleSyncAllTherapistsToMedplum} />}
+                />
               }
             />
 
@@ -304,10 +307,20 @@ function App() {
             />
 
             <Route
+              path="/media"
+              element={<RequireAuth element={<MediaPage />} />}
+            />
+
+            <Route
               path="/data/care-plan"
               element={
                 <RequireAuth
-                  element={<CarePlansPage patients={patientsState.patients} onUpdatePatient={patientsState.handleUpdatePatientInline} />}
+                  element={
+                    <CarePlansPage
+                      patients={patientsState.patients}
+                      onUpdatePatient={patientsState.handleUpdatePatientInline}
+                    />
+                  }
                 />
               }
             />
@@ -315,11 +328,21 @@ function App() {
             <Route
               path="/data/appointment"
               element={
-                <RequireAuth element={<CalendarTreatmentsPage medplumProfile={medplumProfile} patients={patientsState.patients} />} />
+                <RequireAuth
+                  element={
+                    <CalendarTreatmentsPage
+                      medplumProfile={medplumProfile}
+                      patients={patientsState.patients}
+                    />
+                  }
+                />
               }
             />
 
-            <Route path="/settings" element={<RequireAuth element={<SimplePage title="Settings" text="Application settings." />} />} />
+            <Route
+              path="/settings"
+              element={<RequireAuth element={<SimplePage title="Settings" text="Application settings." />} />}
+            />
 
             <Route path="*" element={<Navigate to={loggedIn ? "/patients" : "/login"} replace />} />
           </Routes>
