@@ -1,5 +1,14 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Stethoscope, ClipboardList, CalendarDays, Users, Mic, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Stethoscope,
+  ClipboardList,
+  CalendarDays,
+  Users,
+  Mic,
+  LogOut,
+  Clapperboard,
+} from "lucide-react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import "./Sidebar.css";
@@ -67,6 +76,11 @@ function Sidebar() {
         <NavLink to="/treatment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
           <span className="sidebar-link-icon"><Mic size={18} /></span>
           <span className="sidebar-link-label">{t('treatment')}</span>
+        </NavLink>
+
+        <NavLink to="/media" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+          <span className="sidebar-link-icon"><Clapperboard size={18} /></span>
+          <span className="sidebar-link-label">{t('media')}</span>
         </NavLink>
 
         {isAdmin ? (
