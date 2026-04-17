@@ -97,6 +97,18 @@
   color: #111827;
 }
 
+.patient-name-female {
+  color: #be185d;
+}
+
+.patient-name-male {
+  color: #1d4ed8;
+}
+
+.patient-name-other {
+  color: #047857;
+}
+
 .patient-id {
   font-size: 0.78rem;
   color: #6b7280;

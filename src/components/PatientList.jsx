@@ -44,6 +44,14 @@ function getGenderClass(g) {
   return "patient-avatar-other";
 }
 
+function getGenderNameClass(g) {
+  if (!g) return "patient-name-other";
+  const s = String(g).toLowerCase();
+  if (s === "female") return "patient-name-female";
+  if (s === "male") return "patient-name-male";
+  return "patient-name-other";
+}
+
 function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPatient }) {
   const canView = typeof onViewPatient === "function";
 
@@ -88,7 +96,7 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
                 </div>
 
                 <div className="patient-name-block">
-                  <div className="patient-name">{(p.firstName || "") + " " + (p.lastName || "")}</div>
+                  <div className={`patient-name ${getGenderNameClass(p.gender)}`}>{(p.firstName || "") + " " + (p.lastName || "")}</div>
                   <div className="patient-id">ID: {idValue}</div>
                 </div>
               </div>
