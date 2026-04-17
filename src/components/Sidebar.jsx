@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Stethoscope, ClipboardList, CalendarDays, Users, Mic, LogOut } from "lucide-react";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import "./Sidebar.css";
 
 function normalize(value) {
@@ -24,6 +25,7 @@ function readDisplayNameFallback({ role, therapistId }) {
 function Sidebar() {
   const navigate = useNavigate();
   const { role, therapistId, isAdmin, setRole, setTherapistId } = useAuthContext();
+  const { t, dir } = useLanguage();
 
   const displayName = readDisplayNameFallback({ role, therapistId });
 
@@ -39,7 +41,7 @@ function Sidebar() {
   };
 
   return (
-    <aside className="app-sidebar sidebar-ltr">
+    <aside className={`app-sidebar ${dir === 'rtl' ? 'sidebar-rtl' : 'sidebar-ltr'}`}>
       <div className="sidebar-brand">
         <div className="sidebar-brand-logo">
           <img src="/icon.png" alt="MedicalCare logo" className="sidebar-brand-logo-img" />
@@ -47,69 +49,55 @@ function Sidebar() {
 
         <div className="sidebar-brand-text">
           <div className="sidebar-brand-title">MedicalCare</div>
-          <div className="sidebar-brand-subtitle">Treatment management</div>
+          <div className="sidebar-brand-subtitle">{t('treatmentManagement')}</div>
         </div>
       </div>
 
       <nav className="sidebar-nav">
         <NavLink to="/dashboard" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-          <span className="sidebar-link-icon">
-            <LayoutDashboard size={18} />
-          </span>
-          <span className="sidebar-link-label">Dashboard</span>
+          <span className="sidebar-link-icon"><LayoutDashboard size={18} /></span>
+          <span className="sidebar-link-label">{t('dashboard')}</span>
         </NavLink>
 
         <NavLink to="/patients" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-          <span className="sidebar-link-icon">
-            <Stethoscope size={18} />
-          </span>
-          <span className="sidebar-link-label">Patients</span>
+          <span className="sidebar-link-icon"><Stethoscope size={18} /></span>
+          <span className="sidebar-link-label">{t('patients')}</span>
         </NavLink>
 
         <NavLink to="/treatment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-          <span className="sidebar-link-icon">
-            <Mic size={18} />
-          </span>
-          <span className="sidebar-link-label">Treatment</span>
+          <span className="sidebar-link-icon"><Mic size={18} /></span>
+          <span className="sidebar-link-label">{t('treatment')}</span>
         </NavLink>
 
         {isAdmin ? (
           <NavLink to="/users" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-            <span className="sidebar-link-icon">
-              <Users size={18} />
-            </span>
-            <span className="sidebar-link-label">Users</span>
+            <span className="sidebar-link-icon"><Users size={18} /></span>
+            <span className="sidebar-link-label">{t('users')}</span>
           </NavLink>
         ) : null}
 
-        <div className="sidebar-section-title">Data</div>
+        <div className="sidebar-section-title">{t('dataSection')}</div>
 
         <NavLink to="/data/care-plan" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-          <span className="sidebar-link-icon">
-            <ClipboardList size={18} />
-          </span>
-          <span className="sidebar-link-label">Care plans</span>
+          <span className="sidebar-link-icon"><ClipboardList size={18} /></span>
+          <span className="sidebar-link-label">{t('carePlans')}</span>
         </NavLink>
 
         <NavLink to="/data/appointment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
-          <span className="sidebar-link-icon">
-            <CalendarDays size={18} />
-          </span>
-          <span className="sidebar-link-label">Appointments</span>
+          <span className="sidebar-link-icon"><CalendarDays size={18} /></span>
+          <span className="sidebar-link-label">{t('appointments')}</span>
         </NavLink>
       </nav>
 
       <div className="sidebar-footer">
         <div className="sidebar-user">
           <div className="sidebar-user-name">{displayName}</div>
-          <div className="sidebar-user-role">{isAdmin ? "Admin" : "Therapist"}</div>
+          <div className="sidebar-user-role">{isAdmin ? t('admin') : t('therapist')}</div>
         </div>
 
         <button type="button" className="sidebar-logout" onClick={handleSignOut}>
-          <span className="sidebar-logout-icon">
-            <LogOut size={18} />
-          </span>
-          <span className="sidebar-logout-label">Sign out</span>
+          <span className="sidebar-logout-icon"><LogOut size={18} /></span>
+          <span className="sidebar-logout-label">{t('signOut')}</span>
         </button>
       </div>
     </aside>

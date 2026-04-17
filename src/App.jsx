@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { get, set } from "idb-keyval";
 import { usePatients } from "./hooks/usePatients";
+import { LanguageProvider } from "./i18n/LanguageContext";
 import DashboardPage from "./pages/DashboardPage";
 import PatientsPage from "./pages/PatientsPage";
 import PatientDetailsPage from "./pages/PatientDetailsPage";
@@ -210,6 +211,7 @@ function App() {
   const isLoginRoute = location.pathname === "/login";
 
   return (
+    <LanguageProvider>
     <div className="app-shell">
       {loggedIn && !isLoginRoute ? <Sidebar /> : null}
 
@@ -334,6 +336,7 @@ function App() {
         ) : null}
       </div>
     </div>
+    </LanguageProvider>
   );
 }
 

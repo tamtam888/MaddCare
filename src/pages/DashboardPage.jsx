@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardPage.css";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function BellIcon() {
   return (
@@ -36,6 +37,7 @@ const isActiveStatus = (value) => {
 function DashboardPage({ patients = [] }) {
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
+  const { t, lang, setLang, languages } = useLanguage();
 
   const totalPatients = patients.length;
 
@@ -51,40 +53,37 @@ function DashboardPage({ patients = [] }) {
     const conditionCounts = {};
     patients.forEach((p) => {
       let conditions = [];
-
       if (Array.isArray(p?.conditions)) {
         conditions = p.conditions;
       } else if (typeof p?.issues === "string") {
         conditions = p.issues.split(",").map((str) => str.trim());
       }
-
       conditions.forEach((c) => {
         if (!c) return;
         const key = c.toLowerCase();
         conditionCounts[key] = (conditionCounts[key] || 0) + 1;
       });
     });
-
     return Object.entries(conditionCounts).sort((a, b) => b[1] - a[1]);
   }, [patients]);
 
   const quickActions = useMemo(() => {
     const base = [
       {
-        title: "Patients",
-        subtitle: "View and manage patient records.",
+        title: t('patients'),
+        subtitle: t('viewAndManage'),
         icon: "🧑‍⚕️",
         onClick: () => navigate("/patients"),
       },
       {
-        title: "Treatment Calendar",
-        subtitle: "Open the appointments calendar.",
+        title: t('treatmentCalendar'),
+        subtitle: t('openCalendar'),
         icon: "📅",
         onClick: () => navigate("/data/appointment"),
       },
       {
-        title: "Care Plans",
-        subtitle: "Manage care plans and exercises.",
+        title: t('carePlans'),
+        subtitle: t('manageCarePlans'),
         icon: "🧩",
         onClick: () => navigate("/data/care-plan"),
       },
@@ -92,24 +91,40 @@ function DashboardPage({ patients = [] }) {
 
     if (isAdmin) {
       base.push({
-        title: "Users",
-        subtitle: "Manage therapists and roles.",
+        title: t('users'),
+        subtitle: t('manageTherapists'),
         icon: "👥",
         onClick: () => navigate("/users"),
       });
     }
 
     return base;
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, t, lang]);
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-main">
         <div className="dashboard-topbar">
           <div className="topbar-left">
-            <span className="topbar-title">MedicalCare - Patient &amp; Treatment Manager</span>
+            <span className="topbar-title">MedicalCare — {t('treatmentManagement')}</span>
           </div>
           <div className="topbar-right">
+            {/* Language toggle */}
+            <div className="lang-toggle" role="group" aria-label="Language">
+              {languages.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  className={`lang-btn${lang === l.code ? ' lang-btn-active' : ''}`}
+                  onClick={() => setLang(l.code)}
+                  aria-pressed={lang === l.code}
+                  title={l.name}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
             <button type="button" className="topbar-icon-button" aria-label="Notifications">
               <BellIcon />
             </button>
@@ -121,38 +136,38 @@ function DashboardPage({ patients = [] }) {
 
         <header className="dashboard-header">
           <div className="dashboard-header-text">
-            <p className="dashboard-welcome">Welcome back</p>
+            <p className="dashboard-welcome">{t('welcomeBack')}</p>
           </div>
         </header>
 
         <section className="dashboard-cards-row">
           <article className="stat-card">
-            <div className="stat-card-label">Total Patients</div>
+            <div className="stat-card-label">{t('totalPatients')}</div>
             <div className="stat-card-value">{totalPatients}</div>
-            <div className="stat-card-footer">All registered patients</div>
+            <div className="stat-card-footer">{t('allRegistered')}</div>
           </article>
 
           <article className="stat-card">
-            <div className="stat-card-label">Active</div>
+            <div className="stat-card-label">{t('active')}</div>
             <div className="stat-card-value">{activeCases}</div>
-            <div className="stat-card-footer">Currently under care</div>
+            <div className="stat-card-footer">{t('currentlyUnderCare')}</div>
           </article>
 
           <article className="stat-card">
-            <div className="stat-card-label">Not Active</div>
+            <div className="stat-card-label">{t('notActive')}</div>
             <div className="stat-card-value">{nonActiveCount}</div>
-            <div className="stat-card-footer">Exception / needs review</div>
+            <div className="stat-card-footer">{t('needsReview')}</div>
           </article>
         </section>
 
         <section className="dashboard-split-row">
           <article className="panel-card">
             <div className="panel-header">
-              <h2 className="panel-title">Conditions Distribution</h2>
+              <h2 className="panel-title">{t('conditionsDistribution')}</h2>
             </div>
             <div className="panel-body">
               {conditionEntries.length === 0 ? (
-                <p className="panel-empty">No condition data yet. Add patients with conditions to see distribution.</p>
+                <p className="panel-empty">{t('noConditionData')}</p>
               ) : (
                 <ul className="distribution-list">
                   {conditionEntries.map(([name, count]) => (
@@ -180,15 +195,13 @@ function DashboardPage({ patients = [] }) {
 
           <article className="panel-card">
             <div className="panel-header">
-              <h2 className="panel-title">Quick Actions</h2>
+              <h2 className="panel-title">{t('quickActions')}</h2>
             </div>
             <div className="panel-body">
               <div className="quick-actions-grid">
                 {quickActions.map((a) => (
                   <button key={a.title} type="button" className="quick-action-card" onClick={a.onClick}>
-                    <div className="quick-action-icon" aria-hidden="true">
-                      {a.icon}
-                    </div>
+                    <div className="quick-action-icon" aria-hidden="true">{a.icon}</div>
                     <div className="quick-action-title">{a.title}</div>
                     <div className="quick-action-subtitle">{a.subtitle}</div>
                   </button>
