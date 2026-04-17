@@ -1,4 +1,4 @@
-import { Download, RefreshCw, Upload, X } from "lucide-react";
+import { Download, RefreshCw, Upload, X, FileText } from "lucide-react";
 import {
   buildInitials,
   formatDobForHeader,
@@ -11,6 +11,7 @@ export default function PatientHeader({
   patient,
   medplumPatientId,
   onStartTreatment,
+  onStartIntake,
   onOpenMedia,
   onSyncPatient,
   onExport,
@@ -66,6 +67,21 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
+            disabled={!mediaEnabled}
+            onClick={() => {
+              if (!mediaEnabled) return;
+              onStartIntake?.();
+            }}
+          >
+            <span className="patients-toolbar-button-icon">
+              <FileText size={16} />
+            </span>
+            <span>Start Intake</span>
+          </button>
+
+          <button
+            type="button"
+            className="patients-toolbar-button"
             onClick={onStartTreatment}
           >
             <span>Start Treatment</span>
@@ -82,20 +98,9 @@ export default function PatientHeader({
           >
             <span>Open in Media</span>
           </button>
-
-          <button
-            type="button"
-            className="patients-toolbar-button"
-            onClick={onSyncPatient}
-          >
-            <span className="patients-toolbar-button-icon">
-              <RefreshCw size={16} />
-            </span>
-            <span>Sync Patient</span>
-          </button>
         </div>
 
-        <div className="pd-actions-row pd-actions-row-bottom">
+        <div className="pd-actions-row">
           <button
             type="button"
             className="patients-toolbar-button"
@@ -120,6 +125,19 @@ export default function PatientHeader({
             />
           </label>
 
+          <button
+            type="button"
+            className="patients-toolbar-button"
+            onClick={onSyncPatient}
+          >
+            <span className="patients-toolbar-button-icon">
+              <RefreshCw size={16} />
+            </span>
+            <span>Sync Patient</span>
+          </button>
+        </div>
+
+        <div className="pd-actions-row pd-actions-row-bottom">
           <button
             type="button"
             className="patients-toolbar-button pd-close-btn"

@@ -1,5 +1,14 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Stethoscope, ClipboardList, CalendarDays, Users, Mic, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Stethoscope,
+  ClipboardList,
+  CalendarDays,
+  Users,
+  Mic,
+  LogOut,
+  Clapperboard,
+} from "lucide-react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import "./Sidebar.css";
 
@@ -52,29 +61,51 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
           <span className="sidebar-link-icon">
             <LayoutDashboard size={18} />
           </span>
           <span className="sidebar-link-label">Dashboard</span>
         </NavLink>
 
-        <NavLink to="/patients" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+        <NavLink
+          to="/patients"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
           <span className="sidebar-link-icon">
             <Stethoscope size={18} />
           </span>
           <span className="sidebar-link-label">Patients</span>
         </NavLink>
 
-        <NavLink to="/treatment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+        <NavLink
+          to="/treatment"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
           <span className="sidebar-link-icon">
             <Mic size={18} />
           </span>
           <span className="sidebar-link-label">Treatment</span>
         </NavLink>
 
+        <NavLink
+          to="/media"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
+          <span className="sidebar-link-icon">
+            <Clapperboard size={18} />
+          </span>
+          <span className="sidebar-link-label">Media</span>
+        </NavLink>
+
         {isAdmin ? (
-          <NavLink to="/users" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+          <NavLink
+            to="/users"
+            className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+          >
             <span className="sidebar-link-icon">
               <Users size={18} />
             </span>
@@ -84,14 +115,20 @@ function Sidebar() {
 
         <div className="sidebar-section-title">Data</div>
 
-        <NavLink to="/data/care-plan" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+        <NavLink
+          to="/data/care-plan"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
           <span className="sidebar-link-icon">
             <ClipboardList size={18} />
           </span>
           <span className="sidebar-link-label">Care plans</span>
         </NavLink>
 
-        <NavLink to="/data/appointment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+        <NavLink
+          to="/data/appointment"
+          className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}
+        >
           <span className="sidebar-link-icon">
             <CalendarDays size={18} />
           </span>

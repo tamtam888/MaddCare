@@ -5,7 +5,6 @@ import "./PatientDetailsPage.css";
 import CollapsibleBlock from "../components/patient/CollapsibleBlock";
 import InlineEditable from "../components/patient/InlineEditable";
 import PatientHeader from "../components/patient/PatientHeader";
-import VideoPanel from "../components/patient/VideoPanel";
 
 import AttachReports from "../components/AttachReports";
 import CarePlanSection from "../components/CarePlanSection";
@@ -23,9 +22,19 @@ import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/ther
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "https://maddvideo.vercel.app";
 
-function buildMediaUrl(id) {
-  if (!id) return null;
-  return `${MEDIA_APP_BASE_URL}/patients?medplumPatientId=${encodeURIComponent(id)}`;
+function buildMediaUrl({ medplumPatientId, patientId }) {
+  const params = new URLSearchParams();
+
+  if (patientId) params.set("patientId", String(patientId).trim());
+  if (medplumPatientId) params.set("medplumPatientId", String(medplumPatientId).trim());
+
+  const qs = params.toString();
+  return `${MEDIA_APP_BASE_URL}/patients${qs ? `?${qs}` : ""}`;
+}
+
+function buildIntakeUrl(patientId) {
+  if (!patientId) return null;
+  return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(String(patientId).trim())}/intake/new`;
 }
 
 export default function PatientDetailsPage({
@@ -51,7 +60,6 @@ export default function PatientDetailsPage({
 
   const [editablePatient, setEditablePatient] = useState(patientFromStore);
   const [selectedHistoryIds, setSelectedHistoryIds] = useState(() => new Set());
-  const [mediaPanelOpen, setMediaPanelOpen] = useState(false);
   const [therapists, setTherapists] = useState([]);
   const [therapistsSyncError, setTherapistsSyncError] = useState(null);
 
@@ -68,10 +76,6 @@ export default function PatientDetailsPage({
 
   useEffect(() => {
     setSelectedHistoryIds(new Set());
-  }, [editablePatient?.idNumber]);
-
-  useEffect(() => {
-    setMediaPanelOpen(false);
   }, [editablePatient?.idNumber]);
 
   const toggleHistorySelected = (entryId) => {
@@ -114,8 +118,9 @@ export default function PatientDetailsPage({
   const handleClickSyncPatient = () => {
     const patientId = editablePatient?.idNumber;
     if (!patientId) return;
-    if (typeof handleSyncPatientToMedplum === "function")
+    if (typeof handleSyncPatientToMedplum === "function") {
       handleSyncPatientToMedplum(patientId);
+    }
   };
 
   const handleExportClick = () => {
@@ -153,7 +158,30 @@ export default function PatientDetailsPage({
     [editablePatient]
   );
 
-  const mediaUrl = useMemo(() => buildMediaUrl(medplumPatientId), [medplumPatientId]);
+  const localPatientId = useMemo(
+    () => String(editablePatient?.idNumber || editablePatient?.id || "").trim(),
+    [editablePatient]
+  );
+
+  const mediaUrl = useMemo(
+    () =>
+      buildMediaUrl({
+        medplumPatientId,
+        patientId: localPatientId,
+      }),
+    [medplumPatientId, localPatientId]
+  );
+
+  const handleStartIntake = () => {
+    const intakeUrl = buildIntakeUrl(localPatientId);
+    if (!intakeUrl) return;
+    window.open(intakeUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleOpenMedia = () => {
+    if (!mediaUrl) return;
+    window.open(mediaUrl, "_blank", "noopener,noreferrer");
+  };
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const apptDrawer = useAppointmentDrawer(editablePatient?.idNumber, {
@@ -198,9 +226,10 @@ export default function PatientDetailsPage({
     <div className="patient-details-page">
       <PatientHeader
         patient={editablePatient}
-        medplumPatientId={medplumPatientId}
+        medplumPatientId={medplumPatientId || localPatientId}
         onStartTreatment={handleStartTreatment}
-        onOpenMedia={() => { if (medplumPatientId) setMediaPanelOpen(true); }}
+        onStartIntake={handleStartIntake}
+        onOpenMedia={handleOpenMedia}
         onSyncPatient={handleClickSyncPatient}
         onExport={handleExportClick}
         onImportPatients={handleImportPatients}
@@ -362,13 +391,7 @@ export default function PatientDetailsPage({
         onDelete={apptDrawer.remove}
         loading={apptDrawer.saving}
       />
-
-      <VideoPanel
-        open={mediaPanelOpen && Boolean(mediaUrl)}
-        src={mediaUrl ?? "about:blank"}
-        title="Media"
-        onClose={() => setMediaPanelOpen(false)}
-      />
     </div>
   );
 }
+
