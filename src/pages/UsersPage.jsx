@@ -1,7 +1,26 @@
 // src/pages/UsersPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Pencil, Trash2, X, RefreshCw } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, X, RefreshCw, Link2 } from "lucide-react";
+
+const APP_URL = typeof window !== 'undefined'
+  ? window.location.origin
+  : 'https://medical-care-mu.vercel.app';
+
+function copyInvite(therapist) {
+  const name = normalizeString(therapist.fullName);
+  const id   = normalizeString(therapist.idNumber);
+  const text =
+    `You have been invited to MedicalCare!\n` +
+    `Login at: ${APP_URL}/login\n` +
+    `Full name: ${name}\n` +
+    `ID number: ${id}`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Invite details copied to clipboard!');
+  }).catch(() => {
+    prompt('Copy this invite:', text);
+  });
+}
 import { useAuthContext } from "../hooks/useAuthContext";
 import { getAllTherapists, upsertTherapist, deleteTherapist } from "../therapists/therapistsStore";
 import "./UsersPage.css";
@@ -646,6 +665,17 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                   </td>
 
                   <td className="users-row-actions">
+                    {isAdmin ? (
+                      <button
+                        type="button"
+                        className="users-icon-btn"
+                        onClick={() => copyInvite(t)}
+                        aria-label="Copy invite"
+                        title="Copy invite link"
+                      >
+                        <Link2 size={16} />
+                      </button>
+                    ) : null}
                     <button type="button" className="users-icon-btn" onClick={() => openEdit(t)} aria-label="Edit">
                       <Pencil size={16} />
                     </button>

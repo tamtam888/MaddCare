@@ -146,6 +146,95 @@ body {
   opacity: 0.4;
 }
 
+/* ── RTL / i18n ─────────────────────────────────────────────── */
+
+/* Hebrew font support */
+:root:lang(he),
+[dir="rtl"] {
+  font-family: system-ui, -apple-system, "Segoe UI", Arial,
+    "Noto Sans Hebrew", "David", sans-serif;
+}
+
+/* Language toggle in Dashboard topbar */
+.lang-toggle {
+  display: flex;
+  gap: 2px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.lang-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+  letter-spacing: 0.03em;
+}
+
+.lang-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.lang-btn-active {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+/* RTL layout — sidebar slides to the right */
+[dir="rtl"] .app-shell {
+  flex-direction: row-reverse;
+}
+
+/* RTL text alignment for key containers */
+[dir="rtl"] .sidebar-nav,
+[dir="rtl"] .sidebar-footer,
+[dir="rtl"] .sidebar-brand {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .sidebar-link {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .sidebar-logout {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dashboard-topbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dashboard-cards-row,
+[dir="rtl"] .dashboard-split-row {
+  direction: rtl;
+}
+
+[dir="rtl"] .topbar-right {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .stat-card,
+[dir="rtl"] .panel-card {
+  text-align: right;
+}
+
+[dir="rtl"] .distribution-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .quick-action-card {
+  text-align: right;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .app-header {
