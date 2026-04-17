@@ -1,7 +1,7 @@
 // src/pages/UsersPage.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Pencil, Trash2, X, RefreshCw, Link2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, X, RefreshCw, Link2, Upload, Download } from "lucide-react";
 
 const APP_URL = typeof window !== 'undefined'
   ? window.location.origin
@@ -328,6 +328,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
 
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const importFileRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -545,6 +546,41 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     }
   }, [isAdmin, therapistId, navigate]);
 
+  const handleExportUsers = () => {
+    const data = JSON.stringify(items, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `therapists-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportUsers = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed) ? parsed : [];
+      let count = 0;
+      for (const t of list) {
+        const normalized = normalizeTherapistRecord(t);
+        if (!normalized.fullName) continue;
+        await upsertTherapist(normalized);
+        count++;
+      }
+      const updated = await getAllTherapists();
+      setItems((Array.isArray(updated) ? updated : []).map(normalizeTherapistRecord));
+      alert(`Import successful: ${count} therapist(s) loaded.`);
+    } catch (err) {
+      console.error("[handleImportUsers]", err);
+      alert("Import failed. Make sure the file is a valid therapists JSON.");
+    }
+    e.target.value = "";
+  };
+
   const handleClickSyncAll = async () => {
     if (!isAdmin) return;
     if (typeof handleSyncAllTherapistsToMedplum !== "function") return;
@@ -585,6 +621,23 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                   <RefreshCw size={16} />
                 </span>
                 <span>{syncing ? "Syncing..." : "Sync All"}</span>
+              </button>
+
+              <button type="button" className="patients-toolbar-button" onClick={() => importFileRef.current?.click()}>
+                <span className="patients-toolbar-button-icon"><Upload size={16} /></span>
+                <span>Import</span>
+              </button>
+              <input
+                ref={importFileRef}
+                type="file"
+                accept="application/json,.json"
+                style={{ display: "none" }}
+                onChange={handleImportUsers}
+              />
+
+              <button type="button" className="patients-toolbar-button" onClick={handleExportUsers}>
+                <span className="patients-toolbar-button-icon"><Download size={16} /></span>
+                <span>Export</span>
               </button>
 
               <button type="button" className="patients-add-button" onClick={openCreate}>
