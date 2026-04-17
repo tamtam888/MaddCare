@@ -2,9 +2,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./RecordAudio.css";
 import { saveAudioBlob, deleteAudioBlob } from "../utils/audioStorage";
-import { getLang, setLang, SUPPORTED_LANGS } from "../utils/langPreference";
-
-const AI_BASE = import.meta.env.VITE_AI_SERVER_URL || "http://localhost:3001";
 
 function pickMimeType() {
   const types = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/ogg"];
@@ -19,7 +16,7 @@ function improveTranscriptionLocal(text) {
 }
 
 async function improveTranscriptionViaServer(text, { signal } = {}) {
-  const res = await fetch(`${AI_BASE}/api/ai/improve-visit`, {
+  const res = await fetch("http://localhost:3001/api/ai/improve-visit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
@@ -44,7 +41,6 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
   const [isRecording, setIsRecording] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
-  const [selectedLang, setSelectedLang] = useState(getLang);
 
   const [audioId, setAudioId] = useState(null);
   const [audioURL, setAudioURL] = useState("");
@@ -214,7 +210,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
-    recognition.lang = selectedLang;
+    recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
 
@@ -334,19 +330,6 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     }
   };
 
-  const handleLangChange = (e) => {
-    const code = e.target.value;
-    setSelectedLang(code);
-    setLang(code);
-    if (isDictating) {
-      // restart dictation with new language
-      dictationWantedRef.current = false;
-      try { recognitionRef.current?.stop(); } catch {}
-      setIsDictating(false);
-      setStatusMessage("Language changed. Press Start dictation again.");
-    }
-  };
-
   const patientLabel = selectedPatient
     ? `${selectedPatient.firstName || ""} ${selectedPatient.lastName || ""} (ID ${
         selectedPatient.idNumber || ""
@@ -381,20 +364,6 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
         >
           {isDictating ? "Stop dictation" : "Start dictation"}
         </button>
-
-        {canUseSpeechRecognition && (
-          <select
-            className="record-lang-select"
-            value={selectedLang}
-            onChange={handleLangChange}
-            disabled={isRecording || isDictating}
-            title="Dictation language"
-          >
-            {SUPPORTED_LANGS.map((l) => (
-              <option key={l.code} value={l.code}>{l.label}</option>
-            ))}
-          </select>
-        )}
       </div>
 
       <div className="transcription-block">
