@@ -21,7 +21,7 @@ import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
 import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 
 const MEDIA_APP_BASE_URL =
-  import.meta.env.VITE_MEDIA_APP_BASE_URL || "http://localhost:5174";
+  import.meta.env.VITE_MEDIA_APP_BASE_URL || "https://maddvideo.vercel.app";
 
 function buildMediaUrl(id) {
   if (!id) return null;
