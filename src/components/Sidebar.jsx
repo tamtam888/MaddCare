@@ -25,7 +25,6 @@ function readDisplayNameFallback({ role, therapistId }) {
       if (v && normalize(v)) return normalize(v);
     }
   } catch {}
-
   if (String(role || "").toLowerCase() === "admin") return "Admin";
   if (normalize(therapistId)) return normalize(therapistId);
   return "User";
@@ -42,10 +41,8 @@ function Sidebar() {
     try {
       localStorage.removeItem("mc_logged_in");
     } catch {}
-
     setRole("therapist");
     setTherapistId("local-therapist");
-
     navigate("/login", { replace: true });
   };
 
@@ -55,7 +52,6 @@ function Sidebar() {
         <div className="sidebar-brand-logo">
           <img src="/icon.png" alt="MedicalCare logo" className="sidebar-brand-logo-img" />
         </div>
-
         <div className="sidebar-brand-text">
           <div className="sidebar-brand-title">MedicalCare</div>
           <div className="sidebar-brand-subtitle">{t('treatmentManagement')}</div>
@@ -108,7 +104,6 @@ function Sidebar() {
           <div className="sidebar-user-name">{displayName}</div>
           <div className="sidebar-user-role">{isAdmin ? t('admin') : t('therapist')}</div>
         </div>
-
         <button type="button" className="sidebar-logout" onClick={handleSignOut}>
           <span className="sidebar-logout-icon"><LogOut size={18} /></span>
           <span className="sidebar-logout-label">{t('signOut')}</span>
