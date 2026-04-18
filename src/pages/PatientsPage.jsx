@@ -5,6 +5,18 @@ import PatientList from "../components/PatientList";
 import PatientForm from "../components/PatientForm";
 import "./PatientsPage.css";
 
+const MEDIA_APP_BASE_URL =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
+    ? import.meta.env.VITE_MEDIA_APP_BASE_URL
+    : "https://maddvideo.vercel.app";
+
+function openIntakeForPatient(patient) {
+  const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
+  if (!patientId) return;
+  const url = `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(String(patientId).trim())}/intake/new`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 function toDigits(value) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -196,6 +208,7 @@ function PatientsPage(props) {
   }
 
   function handleSubmitForm(prepared) {
+    const isNew = !editingPatient;
     if (editingPatient) {
       callUpdatePatient(prepared);
     } else {
@@ -203,6 +216,10 @@ function PatientsPage(props) {
     }
     setShowForm(false);
     setEditingPatient(null);
+    // Auto-open intake form only for newly added patients
+    if (isNew) {
+      openIntakeForPatient(prepared);
+    }
   }
 
   function handleClickImport() {

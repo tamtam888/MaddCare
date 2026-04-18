@@ -67,21 +67,6 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
-            disabled={!mediaEnabled}
-            onClick={() => {
-              if (!mediaEnabled) return;
-              onStartIntake?.();
-            }}
-          >
-            <span className="patients-toolbar-button-icon">
-              <FileText size={16} />
-            </span>
-            <span>Start Intake</span>
-          </button>
-
-          <button
-            type="button"
-            className="patients-toolbar-button"
             onClick={onStartTreatment}
           >
             <span>Start Treatment</span>
