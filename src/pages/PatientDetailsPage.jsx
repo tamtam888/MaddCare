@@ -37,6 +37,17 @@ function buildIntakeUrl(patientId) {
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(String(patientId).trim())}/intake/new`;
 }
 
+function buildVideoWorkflowUrl({ patientId, patientName, mode }) {
+  const id = String(patientId || "").trim();
+  if (!id) return `${MEDIA_APP_BASE_URL}/patients`;
+  const params = new URLSearchParams();
+  params.set("patientId", id);
+  if (patientName) params.set("patientName", String(patientName).trim());
+  if (mode) params.set("mode", mode);
+  params.set("source", "medicalcare");
+  return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}?${params.toString()}`;
+}
+
 export default function PatientDetailsPage({
   patients = [],
   onUpdatePatient,
@@ -183,6 +194,23 @@ export default function PatientDetailsPage({
     window.open(mediaUrl, "_blank", "noopener,noreferrer");
   };
 
+  const patientFullName = useMemo(
+    () => buildFullName(editablePatient) || "",
+    [editablePatient]
+  );
+
+  const openVideoWorkflow = useCallback(
+    (mode) => {
+      const url = buildVideoWorkflowUrl({
+        patientId: localPatientId,
+        patientName: patientFullName,
+        mode,
+      });
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [localPatientId, patientFullName]
+  );
+
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const apptDrawer = useAppointmentDrawer(editablePatient?.idNumber, {
     addAppointment,
@@ -319,6 +347,32 @@ export default function PatientDetailsPage({
               onClick={handleStartTreatment}
             >
               <span>Open Treatment</span>
+            </button>
+          </div>
+        </CollapsibleBlock>
+
+        <CollapsibleBlock title="Video sessions" subtitle="Intake, progress comparison and exercise review" defaultOpen={false}>
+          <div className="patients-page-header-actions">
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={() => openVideoWorkflow("intake")}
+            >
+              <span>🎥 Intake Video</span>
+            </button>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={() => openVideoWorkflow("progress")}
+            >
+              <span>📊 Progress Comparison</span>
+            </button>
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={() => openVideoWorkflow("exercise")}
+            >
+              <span>🏃 Exercise Review</span>
             </button>
           </div>
         </CollapsibleBlock>
