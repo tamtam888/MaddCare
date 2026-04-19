@@ -6,6 +6,37 @@ import { toISODateTimeLocalInput, fromISODateTimeLocalInput } from "../utils/dat
 import { capitalizeWords, isProbablyId, capitalizeSentences } from "../utils/textFormatters";
 import "./AppointmentDrawer.css";
 
+const MEDIA_APP_BASE_URL =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
+    ? import.meta.env.VITE_MEDIA_APP_BASE_URL
+    : "https://maddvideo.vercel.app";
+
+function buildVideoUrl(patient, mode) {
+  const patientId = String(
+    patient?.idNumber ?? patient?.patientId ?? patient?.id ?? ""
+  ).replace(/\D/g, "");
+  if (!patientId) return `${MEDIA_APP_BASE_URL}/patients`;
+
+  const first = capitalizeWords(patient?.firstName || "");
+  const last = capitalizeWords(patient?.lastName || "");
+  const patientName = patient?.fullName
+    ? capitalizeWords(patient.fullName)
+    : `${first} ${last}`.trim();
+
+  const params = new URLSearchParams();
+  params.set("patientId", patientId);
+  if (patientName) params.set("patientName", patientName);
+  if (mode) params.set("mode", mode);
+  params.set("source", "medicalcare");
+
+  return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(patientId)}?${params.toString()}`;
+}
+
+function openVideo(patient, mode) {
+  const url = buildVideoUrl(patient, mode);
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 function normalize(value) {
   return String(value ?? "").trim();
 }
@@ -411,6 +442,30 @@ export default function AppointmentDrawer({
             <label className="mc-label">Notes</label>
             <textarea className="mc-textarea" rows={4} {...register("notes")} onBlur={handleNotesBlur} />
           </div>
+
+          {showLinked && resolution.patient && (
+            <div className="mc-video-section">
+              <span className="mc-video-label">Video workflow</span>
+              <div className="mc-video-buttons">
+                <button
+                  type="button"
+                  className="mc-button mc-button--video"
+                  onClick={() => openVideo(resolution.patient, "intake")}
+                  title="Open intake video for this patient"
+                >
+                  🎥 Intake Video
+                </button>
+                <button
+                  type="button"
+                  className="mc-button mc-button--video"
+                  onClick={() => openVideo(resolution.patient, "progress")}
+                  title="Open progress comparison for this patient"
+                >
+                  📊 Progress
+                </button>
+              </div>
+            </div>
+          )}
 
           <footer className="mc-drawer-footer">
             {mode === "edit" ? (

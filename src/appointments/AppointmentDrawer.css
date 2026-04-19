@@ -257,3 +257,42 @@
   font-weight: 700;
   color: rgba(17, 24, 39, 0.62);
 }
+
+/* Video workflow strip inside the appointment drawer */
+.mc-video-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  border-radius: 12px;
+}
+
+.mc-video-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(99, 102, 241, 0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mc-video-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mc-button--video {
+  background: #ffffff;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: rgba(17, 24, 39, 0.85);
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.mc-button--video:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.5);
+}
