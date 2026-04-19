@@ -128,14 +128,9 @@ function normalizeKpi(kpi, context) {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
-/** Health check — lets the front-end verify the AI server is reachable. */
+/** Health check — Render pings this to confirm the service is up. */
 app.get("/api/health", (_req, res) => {
-  const hasKey = Boolean(process.env.OPENAI_API_KEY);
-  res.json({
-    ok: true,
-    ai: hasKey ? "configured" : "missing_api_key",
-    model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-  });
+  res.status(200).json({ ok: true });
 });
 
 app.post("/api/ai/treatment-report", async (req, res) => {
@@ -301,9 +296,11 @@ app.post("/api/ai/improve-visit", async (req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const port = Number(process.env.PORT || 3001);
-app.listen(port, () => {
+
+// Bind to 0.0.0.0 so Render (and other cloud hosts) can reach the service.
+app.listen(port, "0.0.0.0", () => {
   const origin = allowedOrigin === "*" ? "all origins (dev)" : allowedOrigin;
-  console.log(`[server] AI proxy listening on port ${port} | CORS: ${origin}`);
+  console.log(`[server] AI proxy listening on 0.0.0.0:${port} | CORS: ${origin}`);
   if (!process.env.OPENAI_API_KEY) {
     console.warn("[server] WARNING: OPENAI_API_KEY is not set — AI routes will return errors");
   }
