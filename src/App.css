@@ -121,6 +121,50 @@ body {
   color: #6b7280;
 }
 
+/* Media workflow */
+.media-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.media-workflow-card {
+  background-color: #f9fafb;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 14px;
+  padding: 1.25rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.media-workflow-card-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.media-workflow-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.media-workflow-card-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  flex: 1;
+}
+
+.media-workflow-hint {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
 /* Footer */
 .app-footer {
   position: static;
