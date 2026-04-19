@@ -4,14 +4,27 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// ── Global safety net ─────────────────────────────────────────────────────────
+// Prevents the process from crashing on unhandled async errors.
+process.on("unhandledRejection", (reason) => {
+  console.error("[server] Unhandled rejection:", reason);
+});
+
+// ── App setup ─────────────────────────────────────────────────────────────────
 const app = express();
-app.use(cors());
+
+// CORS: restrict to ALLOWED_ORIGIN in production; open in dev when not set.
+const allowedOrigin = process.env.ALLOWED_ORIGIN || "*";
+app.use(cors({ origin: allowedOrigin }));
+
 app.use(express.json({ limit: "1mb" }));
 
-function requireApiKey(req, res) {
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function requireApiKey(res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    console.error("[server] OPENAI_API_KEY is not set");
+    res.status(500).json({ error: "AI service is not configured on the server." });
     return null;
   }
   return apiKey;
@@ -29,33 +42,48 @@ function buildChatPayload({ model, system, user, temperature = 0.3, max_tokens =
   };
 }
 
-async function callOpenAI({ apiKey, payload }) {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+/**
+ * Calls the OpenAI chat completions API with a configurable timeout.
+ * Throws on non-2xx responses, empty content, or timeout.
+ */
+async function callOpenAI({ apiKey, payload, timeoutMs = 20_000 }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (fetchErr) {
+    if (fetchErr.name === "AbortError") {
+      throw new Error(`OpenAI request timed out after ${timeoutMs / 1000}s`);
+    }
+    throw fetchErr;
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
-    throw new Error(errText || "OpenAI request failed");
+    console.error(`[server] OpenAI API error ${response.status}:`, errText.slice(0, 300));
+    throw new Error(`OpenAI returned ${response.status}${errText ? `: ${errText.slice(0, 200)}` : ""}`);
   }
 
   const json = await response.json();
   const content = String(json?.choices?.[0]?.message?.content || "").trim();
-  if (!content) throw new Error("Empty model response");
+  if (!content) throw new Error("OpenAI returned an empty response");
   return content;
 }
 
 function safeJsonParse(s) {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(s); } catch { return null; }
 }
 
 function clampInt(n, min, max) {
@@ -71,18 +99,20 @@ function normalizeKpi(kpi, context) {
   const k = kpi && typeof kpi === "object" ? kpi : {};
 
   const goals = k.goals && typeof k.goals === "object" ? k.goals : {};
-  const totalGoals = clampInt(goals.total ?? 0, 0, 999);
-  const achieved = clampInt(goals.achieved ?? 0, 0, 999);
-  const inProgress = clampInt(goals.inProgress ?? 0, 0, 999);
-  const notAchieved = clampInt(goals.notAchieved ?? 0, 0, 999);
+  const totalGoals   = clampInt(goals.total       ?? 0, 0, 999);
+  const achieved     = clampInt(goals.achieved     ?? 0, 0, 999);
+  const inProgress   = clampInt(goals.inProgress   ?? 0, 0, 999);
+  const notAchieved  = clampInt(goals.notAchieved  ?? 0, 0, 999);
 
-  const sessionsSelected = clampInt(k.sessionsSelected ?? selectedCount, 0, 9999);
-  const sessionsTotal = clampInt(k.sessionsTotal ?? totalHistoryCount, 0, 9999);
+  const sessionsSelected = clampInt(k.sessionsSelected ?? selectedCount,      0, 9999);
+  const sessionsTotal    = clampInt(k.sessionsTotal    ?? totalHistoryCount,   0, 9999);
 
   const functionalProgressScore = clampInt(k.functionalProgressScore ?? 5, 0, 10);
   const trendRaw = String(k.overallTrend || "").trim();
   const overallTrend =
-    trendRaw === "Improving" || trendRaw === "Stable" || trendRaw === "Declining" ? trendRaw : "Stable";
+    trendRaw === "Improving" || trendRaw === "Stable" || trendRaw === "Declining"
+      ? trendRaw
+      : "Stable";
 
   const reportingPeriod = String(k.reportingPeriod || "").trim();
 
@@ -90,33 +120,45 @@ function normalizeKpi(kpi, context) {
     reportingPeriod,
     sessionsSelected,
     sessionsTotal,
-    goals: {
-      total: totalGoals,
-      achieved: achieved,
-      inProgress: inProgress,
-      notAchieved: notAchieved,
-    },
+    goals: { total: totalGoals, achieved, inProgress, notAchieved },
     functionalProgressScore,
     overallTrend,
   };
 }
 
+// ── Routes ────────────────────────────────────────────────────────────────────
+
+/** Health check — lets the front-end verify the AI server is reachable. */
+app.get("/api/health", (_req, res) => {
+  const hasKey = Boolean(process.env.OPENAI_API_KEY);
+  res.json({
+    ok: true,
+    ai: hasKey ? "configured" : "missing_api_key",
+    model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+  });
+});
+
 app.post("/api/ai/treatment-report", async (req, res) => {
   try {
-    const apiKey = requireApiKey(req, res);
+    const apiKey = requireApiKey(res);
     if (!apiKey) return;
 
     const visits = Array.isArray(req.body?.visits) ? req.body.visits : [];
-    if (!visits.length) return res.status(400).json({ error: "Missing visits" });
+    if (!visits.length) {
+      return res.status(400).json({ error: "Missing visits" });
+    }
 
-    const carePlan = req.body?.carePlan && typeof req.body.carePlan === "object" ? req.body.carePlan : null;
+    const carePlan =
+      req.body?.carePlan && typeof req.body.carePlan === "object"
+        ? req.body.carePlan
+        : null;
 
     const safeVisits = visits.slice(0, 30).map((v) => ({
-      visitNo: Number(v?.visitNo || 0),
-      type: String(v?.type || "other").slice(0, 40),
-      date: String(v?.date || "").slice(0, 20),
-      title: String(v?.title || "").slice(0, 160),
-      summary: String(v?.summary || "").slice(0, 2200),
+      visitNo:  Number(v?.visitNo || 0),
+      type:     String(v?.type    || "other").slice(0, 40),
+      date:     String(v?.date    || "").slice(0, 20),
+      title:    String(v?.title   || "").slice(0, 160),
+      summary:  String(v?.summary || "").slice(0, 2200),
       hasAudio: Boolean(v?.hasAudio),
     }));
 
@@ -125,19 +167,19 @@ app.post("/api/ai/treatment-report", async (req, res) => {
           goals: Array.isArray(carePlan?.goals)
             ? carePlan.goals
                 .map((g) => ({
-                  title: String(g?.title || "").slice(0, 180),
+                  title:  String(g?.title  || "").slice(0, 180),
                   status: String(g?.status || "").slice(0, 60),
                   target: String(g?.target || "").slice(0, 40),
-                  notes: String(g?.notes || "").slice(0, 500),
+                  notes:  String(g?.notes  || "").slice(0, 500),
                 }))
                 .slice(0, 30)
             : [],
           exercises: Array.isArray(carePlan?.exercises)
             ? carePlan.exercises
                 .map((ex) => ({
-                  name: String(ex?.name || "").slice(0, 160),
+                  name:         String(ex?.name         || "").slice(0, 160),
                   instructions: String(ex?.instructions || "").slice(0, 700),
-                  dosage: String(ex?.dosage || "").slice(0, 120),
+                  dosage:       String(ex?.dosage       || "").slice(0, 120),
                 }))
                 .slice(0, 60)
             : [],
@@ -212,26 +254,22 @@ app.post("/api/ai/treatment-report", async (req, res) => {
       totalHistoryCount: Number(req.body?.totalHistoryCount || 0),
     });
 
-    if (!reportText) {
-      return res.json({
-        kpi,
-        reportText: "Not specified.",
-      });
-    }
-
-    return res.json({ kpi, reportText });
-  } catch {
-    return res.status(500).json({ error: "Server error" });
+    return res.json({ kpi, reportText: reportText || "Not specified." });
+  } catch (err) {
+    console.error("[server] /api/ai/treatment-report error:", err?.message || err);
+    return res.status(500).json({ error: "Failed to generate report. Please try again." });
   }
 });
 
 app.post("/api/ai/improve-visit", async (req, res) => {
   try {
-    const apiKey = requireApiKey(req, res);
+    const apiKey = requireApiKey(res);
     if (!apiKey) return;
 
     const input = String(req.body?.text || "").trim();
-    if (!input) return res.status(400).json({ error: "Missing text" });
+    if (!input) {
+      return res.status(400).json({ error: "Missing text" });
+    }
 
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
@@ -255,12 +293,18 @@ app.post("/api/ai/improve-visit", async (req, res) => {
     const improved = await callOpenAI({ apiKey, payload });
 
     return res.json({ text: improved });
-  } catch {
-    return res.status(500).json({ error: "Server error" });
+  } catch (err) {
+    console.error("[server] /api/ai/improve-visit error:", err?.message || err);
+    return res.status(500).json({ error: "Failed to improve text. Please try again." });
   }
 });
 
+// ── Start ─────────────────────────────────────────────────────────────────────
 const port = Number(process.env.PORT || 3001);
 app.listen(port, () => {
-  console.log(`AI proxy listening on http://localhost:${port}`);
+  const origin = allowedOrigin === "*" ? "all origins (dev)" : allowedOrigin;
+  console.log(`[server] AI proxy listening on port ${port} | CORS: ${origin}`);
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("[server] WARNING: OPENAI_API_KEY is not set — AI routes will return errors");
+  }
 });

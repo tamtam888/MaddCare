@@ -8,6 +8,20 @@ function pickMimeType() {
   return types.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
 }
 
+/**
+ * Returns the AI server base URL.
+ * - In dev (import.meta.env.DEV): falls back to localhost:3001 if env var not set.
+ * - In production: returns null when VITE_AI_SERVER_URL is not configured so the
+ *   caller can show a clear "AI unavailable" message instead of failing silently.
+ */
+function getAiServerUrl() {
+  const envUrl = import.meta.env.VITE_AI_SERVER_URL;
+  if (envUrl) return String(envUrl).replace(/\/$/, "");
+  if (import.meta.env.DEV) return "http://localhost:3001";
+  return null; // production with no AI server configured
+}
+
+/** Simple local formatter used only when the AI server is unavailable. */
 function improveTranscriptionLocal(text) {
   if (!text) return "";
   let result = text.trim().replace(/\s+/g, " ");
@@ -15,26 +29,53 @@ function improveTranscriptionLocal(text) {
   return `Clinical summary: ${result.charAt(0).toUpperCase()}${result.slice(1)}`;
 }
 
+/**
+ * Calls the AI server to improve a clinical visit note.
+ * Throws:
+ *   - "AI_UNAVAILABLE"  — server not configured (production, no env var)
+ *   - AbortError        — request was cancelled by the caller or timed out
+ *   - Error(message)    — server returned an error or empty response
+ */
 async function improveTranscriptionViaServer(text, { signal } = {}) {
-  const res = await fetch("http://localhost:3001/api/ai/improve-visit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
-    signal,
-  });
-
-  if (!res.ok) {
-    let extra = "";
-    try {
-      extra = await res.text();
-    } catch {}
-    throw new Error(`Improve API failed (${res.status})${extra ? `: ${extra}` : ""}`);
+  const baseUrl = getAiServerUrl();
+  if (!baseUrl) {
+    const err = new Error("AI_UNAVAILABLE");
+    err.code = "AI_UNAVAILABLE";
+    throw err;
   }
 
-  const data = await res.json().catch(() => ({}));
-  const out = data?.text ?? data?.improvedText ?? data?.result;
-  if (typeof out !== "string" || !out.trim()) throw new Error("Improve API returned empty text");
-  return out.trim();
+  // 15-second hard timeout so the UI never hangs
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), 15_000);
+
+  // Forward the caller's abort signal to the timeout controller
+  if (signal) {
+    signal.addEventListener("abort", () => timeoutController.abort(), { once: true });
+  }
+
+  try {
+    const res = await fetch(`${baseUrl}/api/ai/improve-visit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+      signal: timeoutController.signal,
+    });
+
+    if (!res.ok) {
+      let extra = "";
+      try { extra = await res.text(); } catch { /* ignore */ }
+      throw new Error(`AI server error (${res.status})${extra ? `: ${extra}` : ""}`);
+    }
+
+    const data = await res.json().catch(() => ({}));
+    const out = data?.text ?? data?.improvedText ?? data?.result;
+    if (typeof out !== "string" || !out.trim()) {
+      throw new Error("AI returned an empty response");
+    }
+    return out.trim();
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
@@ -52,7 +93,6 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
   const recognitionRef = useRef(null);
   const audioPreviewUrlRef = useRef("");
   const dictationWantedRef = useRef(false);
-
   const improveAbortRef = useRef(null);
 
   const canUseSpeechRecognition =
@@ -65,31 +105,23 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
 
   useEffect(() => {
     return () => {
-      try {
-        mediaRecorderRef.current?.stop();
-        mediaRecorderRef.current?.stream?.getTracks?.().forEach((t) => t.stop());
-      } catch {}
+      try { mediaRecorderRef.current?.stop(); } catch { /* ignore */ }
+      try { mediaRecorderRef.current?.stream?.getTracks?.().forEach((t) => t.stop()); } catch { /* ignore */ }
       try {
         dictationWantedRef.current = false;
         recognitionRef.current?.stop();
-      } catch {}
+      } catch { /* ignore */ }
       if (audioPreviewUrlRef.current) {
-        try {
-          URL.revokeObjectURL(audioPreviewUrlRef.current);
-        } catch {}
+        try { URL.revokeObjectURL(audioPreviewUrlRef.current); } catch { /* ignore */ }
         audioPreviewUrlRef.current = "";
       }
-      try {
-        improveAbortRef.current?.abort?.();
-      } catch {}
+      try { improveAbortRef.current?.abort?.(); } catch { /* ignore */ }
     };
   }, []);
 
   const resetDraftUIOnly = () => {
     if (audioPreviewUrlRef.current) {
-      try {
-        URL.revokeObjectURL(audioPreviewUrlRef.current);
-      } catch {}
+      try { URL.revokeObjectURL(audioPreviewUrlRef.current); } catch { /* ignore */ }
       audioPreviewUrlRef.current = "";
     }
     setAudioURL("");
@@ -101,9 +133,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
   const stopDictationIfRunning = () => {
     if (!isDictating) return;
     dictationWantedRef.current = false;
-    try {
-      recognitionRef.current?.stop();
-    } catch {}
+    try { recognitionRef.current?.stop(); } catch { /* ignore */ }
     setIsDictating(false);
   };
 
@@ -131,7 +161,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
 
         if (!blob || blob.size < 1024) {
           console.error("Recorded blob is empty/small:", blob?.size, blob?.type);
-          setStatusMessage("Recording failed (empty audio). Try again.");
+          setStatusMessage("Recording failed — audio was empty. Please try again.");
           return;
         }
 
@@ -141,9 +171,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
         await saveAudioBlob(id, blob);
 
         if (audioPreviewUrlRef.current) {
-          try {
-            URL.revokeObjectURL(audioPreviewUrlRef.current);
-          } catch {}
+          try { URL.revokeObjectURL(audioPreviewUrlRef.current); } catch { /* ignore */ }
           audioPreviewUrlRef.current = "";
         }
 
@@ -152,19 +180,17 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
 
         setAudioId(id);
         setAudioURL(url);
-        setStatusMessage(`Recording saved. (${Math.round(blob.size / 1024)} KB)`);
+        setStatusMessage(`Recording saved (${Math.round(blob.size / 1024)} KB).`);
       };
 
       mediaRecorderRef.current = recorder;
-
-      // Start without timeslice to keep WebM duration metadata stable
       recorder.start();
 
       setIsRecording(true);
       setStatusMessage("Recording in progress...");
     } catch (error) {
       console.error("Microphone error:", error);
-      alert("Could not access microphone.");
+      alert("Could not access microphone. Please allow microphone permissions and try again.");
       setStatusMessage("Microphone access failed.");
     }
   };
@@ -174,17 +200,11 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     if (!rec) return;
 
     try {
-      try {
-        rec.requestData();
-      } catch {}
+      try { rec.requestData(); } catch { /* ignore */ }
 
       setTimeout(() => {
-        try {
-          rec.stop();
-        } catch {}
-        try {
-          rec.stream.getTracks().forEach((t) => t.stop());
-        } catch {}
+        try { rec.stop(); } catch { /* ignore */ }
+        try { rec.stream.getTracks().forEach((t) => t.stop()); } catch { /* ignore */ }
         mediaRecorderRef.current = null;
         setIsRecording(false);
       }, 200);
@@ -199,9 +219,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
 
     if (isDictating) {
       dictationWantedRef.current = false;
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
+      try { recognitionRef.current?.stop(); } catch { /* ignore */ }
       setIsDictating(false);
       setStatusMessage("Dictation stopped.");
       return;
@@ -229,7 +247,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
       console.error("SpeechRecognition error:", event?.error, event);
       dictationWantedRef.current = false;
       setIsDictating(false);
-      setStatusMessage(`Dictation error${event?.error ? `: ${event.error}` : "."}`);
+      setStatusMessage(`Dictation error${event?.error ? `: ${event.error}` : ". Please try again."}`);
     };
 
     recognition.onend = () => {
@@ -256,7 +274,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
       console.error("SpeechRecognition start failed:", e);
       dictationWantedRef.current = false;
       setIsDictating(false);
-      setStatusMessage("Dictation error.");
+      setStatusMessage("Could not start dictation. Please try again.");
     }
   };
 
@@ -265,28 +283,43 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     if (!t || isImproving) return;
 
     setIsImproving(true);
-    setStatusMessage("Improving transcription...");
+    setStatusMessage("Improving with AI...");
 
     try {
-      try {
-        improveAbortRef.current?.abort?.();
-      } catch {}
+      // Cancel any in-flight request before starting a new one
+      try { improveAbortRef.current?.abort?.(); } catch { /* ignore */ }
       const controller = new AbortController();
       improveAbortRef.current = controller;
 
       let improvedText = "";
       try {
         improvedText = await improveTranscriptionViaServer(t, { signal: controller.signal });
+        setStatusMessage("Improved with AI.");
       } catch (err) {
-        console.warn("Improve via server failed, using local fallback:", err);
-        improvedText = improveTranscriptionLocal(t);
+        // User navigated away or cancelled — do not update anything
+        if (err.name === "AbortError") {
+          setStatusMessage("");
+          setIsImproving(false);
+          return;
+        }
+
+        // Production with no AI server configured
+        if (err.code === "AI_UNAVAILABLE") {
+          improvedText = improveTranscriptionLocal(t);
+          setStatusMessage("AI not configured — text formatted locally.");
+        } else {
+          // Server reachable but returned an error (timeout, 500, etc.)
+          console.warn("AI improve failed, using local fallback:", err.message);
+          improvedText = improveTranscriptionLocal(t);
+          setStatusMessage("AI unavailable — text formatted locally.");
+        }
       }
 
       setTranscription(improvedText);
-      setStatusMessage("Transcription improved.");
     } catch (error) {
-      console.error("Improve failed:", error);
-      setStatusMessage("Improve failed.");
+      // Unexpected error in the outer block (should not happen, but guard anyway)
+      console.error("Improve failed unexpectedly:", error);
+      setStatusMessage("Improve failed. Please try again.");
     } finally {
       setIsImproving(false);
     }
@@ -389,7 +422,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
             onClick={handleImprove}
             disabled={!transcription.trim() || isImproving}
           >
-            Improve with AI
+            {isImproving ? "Improving..." : "Improve with AI"}
           </button>
 
           <button
@@ -409,7 +442,9 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
         </div>
       )}
 
-      <div className="record-status-line">{statusMessage}</div>
+      {statusMessage ? (
+        <div className="record-status-line">{statusMessage}</div>
+      ) : null}
     </div>
   );
 }
