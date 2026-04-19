@@ -931,7 +931,10 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
       <div className="mc-calendar-header">
         <div className="mc-calendar-title-wrap">
           <h1 className="mc-calendar-title">Appointments</h1>
-          <p className="mc-calendar-subtitle">{loading ? "Loading appointments..." : `${visibleAppointments.length} appointments`}</p>
+          <p className="mc-calendar-subtitle">
+            {loading ? "Loading appointments..." : `${visibleAppointments.length} appointment${visibleAppointments.length === 1 ? "" : "s"}`}
+            {!loading && " · click to edit · double-click to open patient"}
+          </p>
         </div>
 
         <div className="mc-calendar-actions">
@@ -995,7 +998,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
           ) : null}
 
           <button type="button" className="mc-calendar-add" onClick={handleAddClick}>
-            + Add
+            + Add Appointment
           </button>
         </div>
       </div>

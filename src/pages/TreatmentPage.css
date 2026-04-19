@@ -25,6 +25,13 @@
   color: #111827;
 }
 
+.treatment-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
 .treatment-subtitle {
   margin: 0;
   font-size: 0.95rem;

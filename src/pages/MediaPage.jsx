@@ -38,12 +38,12 @@ export default function MediaPage({ selectedPatient }) {
 
   return (
     <div className="page-placeholder">
-      <h1 className="page-placeholder-title">Video Clinical Workflow</h1>
+      <h1 className="page-placeholder-title">Video Sessions</h1>
 
       <p className="page-placeholder-text">
         {hasPatient
-          ? `Patient: ${patientLabel} — select a workflow below to open in the video module.`
-          : "Select a patient from the patient list to launch a targeted video workflow, or open the general module."}
+          ? `Patient: ${patientLabel} — choose a workflow below to open the video module.`
+          : "Open a patient record first to launch a targeted video workflow, or open the video module directly."}
       </p>
 
       <div className="media-workflow-grid">
@@ -51,7 +51,7 @@ export default function MediaPage({ selectedPatient }) {
           <div className="media-workflow-card-icon">🎥</div>
           <h3 className="media-workflow-card-title">Intake Assessment</h3>
           <p className="media-workflow-card-desc">
-            Record the initial video assessment to document baseline movement and function.
+            Record the initial video assessment to document baseline movement and function before treatment begins.
           </p>
           <button
             type="button"
@@ -66,7 +66,7 @@ export default function MediaPage({ selectedPatient }) {
           <div className="media-workflow-card-icon">📊</div>
           <h3 className="media-workflow-card-title">Progress Comparison</h3>
           <p className="media-workflow-card-desc">
-            Compare videos side-by-side to track functional improvement over time.
+            Compare recordings side-by-side to track functional improvement and share progress with the patient.
           </p>
           <button
             type="button"
@@ -80,9 +80,9 @@ export default function MediaPage({ selectedPatient }) {
 
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">🏃</div>
-          <h3 className="media-workflow-card-title">Treatment Review</h3>
+          <h3 className="media-workflow-card-title">Exercise Review</h3>
           <p className="media-workflow-card-desc">
-            Review exercise and treatment session recordings for clinical feedback.
+            Review exercise and treatment session recordings to give clinical feedback and adjust the plan.
           </p>
           <button
             type="button"
@@ -90,14 +90,14 @@ export default function MediaPage({ selectedPatient }) {
             disabled={!hasPatient}
             onClick={() => openVideo(selectedPatient, "treatment")}
           >
-            Review Sessions
+            Review Exercises
           </button>
         </div>
       </div>
 
       {!hasPatient && (
         <p className="media-workflow-hint">
-          Progress Comparison and Treatment Review require a patient to be selected first.
+          Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
         </p>
       )}
     </div>

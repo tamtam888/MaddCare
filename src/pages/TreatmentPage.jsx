@@ -65,13 +65,16 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
     if (patientId) navigate(`/patients/${encodeURIComponent(patientId)}`);
   };
 
+  // ── No patient selected — show search list ────────────────────────────────
   if (!selectedPatient) {
     return (
       <div className="treatment-page" dir="ltr">
         <div className="treatment-header-row">
           <div className="treatment-header-text">
-            <h1 className="treatment-title">Treatment</h1>
-            <p className="treatment-subtitle">Select a patient to start a session.</p>
+            <h1 className="treatment-title">Treatment Session</h1>
+            <p className="treatment-subtitle">
+              Select a patient below to start recording their session notes.
+            </p>
           </div>
         </div>
 
@@ -81,7 +84,8 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
             className="treatment-search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or ID..."
+            placeholder="Search by name or ID number..."
+            autoFocus
           />
         </div>
 
@@ -105,19 +109,26 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
 
                 <div className="treatment-item-right">
                   <button type="button" className="treatment-start-btn" onClick={() => openPatient(p)}>
-                    Start
+                    Start Session
                   </button>
                 </div>
               </div>
             );
           })}
 
-          {!filtered?.length ? <div className="treatment-empty">No patients found.</div> : null}
+          {!filtered?.length ? (
+            <div className="treatment-empty">
+              {search
+                ? "No patients match your search."
+                : "No patients yet. Add patients from the Patients section first."}
+            </div>
+          ) : null}
         </div>
       </div>
     );
   }
 
+  // ── Patient selected — show recording panel ───────────────────────────────
   const name = getPatientName(selectedPatient);
 
   return (
@@ -126,7 +137,10 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
         <div className="treatment-header-text">
           <h1 className="treatment-title">Treatment Session</h1>
           <p className="treatment-subtitle">
-            {name} {patientId ? `· ID ${patientId}` : ""}
+            {name}{patientId ? ` · ID ${patientId}` : ""}
+          </p>
+          <p className="treatment-hint">
+            Record audio or dictate live · then use <strong>Improve with AI</strong> to refine the note · save to patient history when ready.
           </p>
         </div>
 
