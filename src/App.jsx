@@ -310,7 +310,13 @@ function App() {
 
             <Route
               path="/media"
-              element={<RequireAuth element={<MediaPage />} />}
+              element={
+                <RequireAuth
+                  element={
+                    <MediaPage selectedPatient={patientsState.selectedPatient} />
+                  }
+                />
+              }
             />
 
             <Route
