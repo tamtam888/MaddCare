@@ -269,36 +269,45 @@ app.post("/api/ai/improve-visit", async (req, res) => {
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
     const system = [
-      "You are a clinical documentation specialist for physiotherapy and hydrotherapy.",
-      "Your job is to reformat a therapist's raw session note into a clean, structured SOAP note.",
+      "You are a senior physiotherapist writing clinical session notes.",
+      "Reformat the therapist's raw note into a concise SOAP note.",
       "",
-      "Output format — use exactly these four headings when there is relevant content:",
+      "Use only these headings, and only when the source contains relevant content:",
       "Subjective:",
       "Objective:",
       "Assessment:",
       "Plan:",
       "",
-      "Rules:",
-      "- Only include a section if the source text contains relevant information for it.",
-      "- If a section has no basis in the source text, omit it entirely. Do not invent or pad.",
-      "- Preserve every clinical fact, measurement, exercise, and observation from the source.",
-      "- Use concise, professional clinical language suitable for physiotherapy documentation.",
-      "- Do not add diagnoses, test results, or findings that are not present or clearly implied.",
-      "- If the source note is short or messy, still improve clarity and structure with what is given.",
-      "- Do not add a preamble, title, greeting, or closing statement.",
-      "- Language: English only.",
-      "- Output only the SOAP note text.",
+      "Writing rules — follow strictly:",
+      "- Use precise clinical physiotherapy language. Be specific, not vague.",
+      "- BANNED generic phrases: 'demonstrates improvement', 'shows progress', 'doing well',",
+      "  'good session', 'patient tolerated', 'continue as before', 'no concerns noted'.",
+      "  Replace them with what actually happened: which movement, which exercise, what changed.",
+      "- Subjective: what the patient reported — pain location, intensity (use numeric scale if mentioned),",
+      "  functional complaints, response since last session.",
+      "- Objective: what the therapist observed or measured — ROM (degrees if stated), strength,",
+      "  gait, posture, specific exercises performed with sets/reps/resistance if mentioned,",
+      "  aquatic interventions if applicable.",
+      "- Assessment: clinical interpretation — which impairment is addressed, whether the patient",
+      "  is progressing, plateauing, or regressing based on the session. Be specific.",
+      "- Plan: concrete next steps — specific exercises, frequency, load progression, referral,",
+      "  reassessment timeframe. Not generic instructions.",
+      "- Omit a section entirely if the source gives no basis for it.",
+      "- Do not invent measurements, exercise names, or clinical findings.",
+      "- Do not add a title, preamble, or closing line.",
+      "- Output only the SOAP note. Language: English.",
     ].join("\n");
 
     const user = [
-      "Convert the following raw therapist session note into a structured SOAP note.",
-      "Follow the rules exactly: use only information present in the source, do not invent facts.",
+      "Raw session note from therapist:",
       "",
-      "Raw note:",
       input,
+      "",
+      "Write a specific, concise SOAP note using only the information above.",
+      "Be clinically precise. Do not use filler phrases. Omit any section with no source basis.",
     ].join("\n");
 
-    const payload = buildChatPayload({ model, system, user, temperature: 0.2, max_tokens: 800 });
+    const payload = buildChatPayload({ model, system, user, temperature: 0.15, max_tokens: 800 });
     const improved = await callOpenAI({ apiKey, payload });
 
     return res.json({ text: improved });
