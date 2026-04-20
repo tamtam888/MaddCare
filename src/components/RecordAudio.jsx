@@ -9,32 +9,53 @@ function pickMimeType() {
 }
 
 /**
- * Returns the AI server base URL.
- * - In dev (import.meta.env.DEV): falls back to localhost:3001 if env var not set.
- * - In production: returns null when VITE_AI_SERVER_URL is not configured so the
- *   caller can show a clear "AI unavailable" message instead of failing silently.
+ * Returns the AI server base URL, with full console diagnostics.
+ *
+ * IMPORTANT — Vite bakes VITE_* vars into the bundle at build time.
+ * If VITE_AI_SERVER_URL was not set in Vercel before the build ran,
+ * it will be undefined here even if you add it later.
+ * Fix: add the env var in Vercel → Settings → Environment Variables,
+ * then trigger a new deploy (Redeploy) to rebuild the bundle.
  */
 function getAiServerUrl() {
   const envUrl = import.meta.env.VITE_AI_SERVER_URL;
-  if (envUrl) return String(envUrl).replace(/\/$/, "");
-  if (import.meta.env.DEV) return "http://localhost:3001";
-  return null; // production with no AI server configured
+
+  // Log everything needed to diagnose deployment issues
+  console.log("[AI] VITE_AI_SERVER_URL:", envUrl ?? "(not set — was it present at Vercel build time?)");
+  console.log("[AI] Build mode — PROD:", import.meta.env.PROD, "| DEV:", import.meta.env.DEV);
+
+  if (envUrl && String(envUrl).trim()) {
+    const url = String(envUrl).trim().replace(/\/$/, "");
+    console.log("[AI] Using AI server:", url);
+    return url;
+  }
+
+  if (import.meta.env.DEV) {
+    console.log("[AI] Dev mode — falling back to http://localhost:3001");
+    return "http://localhost:3001";
+  }
+
+  console.warn(
+    "[AI] VITE_AI_SERVER_URL is not set in this build.",
+    "Set it in Vercel environment variables and redeploy to enable AI features."
+  );
+  return null;
 }
 
-/** Simple local formatter used only when the AI server is unavailable. */
+/** Simple local formatter used only when the AI server is truly unavailable. */
 function improveTranscriptionLocal(text) {
   if (!text) return "";
   let result = text.trim().replace(/\s+/g, " ");
   if (!/[.!?]$/.test(result)) result += ".";
-  return `Clinical summary: ${result.charAt(0).toUpperCase()}${result.slice(1)}`;
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 /**
  * Calls the AI server to improve a clinical visit note.
  * Throws:
- *   - "AI_UNAVAILABLE"  — server not configured (production, no env var)
- *   - AbortError        — request was cancelled by the caller or timed out
- *   - Error(message)    — server returned an error or empty response
+ *   - err.code === "AI_UNAVAILABLE" — env var missing, build-time issue
+ *   - AbortError                    — cancelled by caller or timed out
+ *   - Error(message)                — server returned an error or empty response
  */
 async function improveTranscriptionViaServer(text, { signal } = {}) {
   const baseUrl = getAiServerUrl();
@@ -44,9 +65,15 @@ async function improveTranscriptionViaServer(text, { signal } = {}) {
     throw err;
   }
 
+  const endpoint = `${baseUrl}/api/ai/improve-visit`;
+  console.log("[AI] POST →", endpoint);
+
   // 15-second hard timeout so the UI never hangs
   const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), 15_000);
+  const timeoutId = setTimeout(() => {
+    console.warn("[AI] Request timed out after 15s —", endpoint);
+    timeoutController.abort();
+  }, 15_000);
 
   // Forward the caller's abort signal to the timeout controller
   if (signal) {
@@ -54,12 +81,14 @@ async function improveTranscriptionViaServer(text, { signal } = {}) {
   }
 
   try {
-    const res = await fetch(`${baseUrl}/api/ai/improve-visit`, {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
       signal: timeoutController.signal,
     });
+
+    console.log("[AI] Response status:", res.status, res.statusText);
 
     if (!res.ok) {
       let extra = "";
@@ -296,29 +325,32 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
         improvedText = await improveTranscriptionViaServer(t, { signal: controller.signal });
         setStatusMessage("Improved with AI.");
       } catch (err) {
-        // User navigated away or cancelled — do not update anything
+        // User navigated away or timed out — clear quietly
         if (err.name === "AbortError") {
           setStatusMessage("");
           setIsImproving(false);
           return;
         }
 
-        // Production with no AI server configured
+        // VITE_AI_SERVER_URL was not baked into this build
         if (err.code === "AI_UNAVAILABLE") {
+          console.warn(
+            "[AI] AI_UNAVAILABLE — VITE_AI_SERVER_URL was not set when this build was compiled.",
+            "Add the variable in Vercel and redeploy to fix this."
+          );
           improvedText = improveTranscriptionLocal(t);
-          setStatusMessage("AI not configured — text formatted locally.");
+          setStatusMessage("AI not configured — add VITE_AI_SERVER_URL in Vercel and redeploy.");
         } else {
-          // Server reachable but returned an error (timeout, 500, etc.)
-          console.warn("AI improve failed, using local fallback:", err.message);
+          // Server URL was found but the request failed (CORS, 5xx, network error, etc.)
+          console.error("[AI] Request failed:", err.name, "|", err.message);
           improvedText = improveTranscriptionLocal(t);
-          setStatusMessage("AI unavailable — text formatted locally.");
+          setStatusMessage(`AI request failed (${err.message}) — text formatted locally.`);
         }
       }
 
       setTranscription(improvedText);
     } catch (error) {
-      // Unexpected error in the outer block (should not happen, but guard anyway)
-      console.error("Improve failed unexpectedly:", error);
+      console.error("[AI] Unexpected error in handleImprove:", error);
       setStatusMessage("Improve failed. Please try again.");
     } finally {
       setIsImproving(false);
