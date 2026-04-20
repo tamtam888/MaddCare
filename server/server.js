@@ -269,22 +269,36 @@ app.post("/api/ai/improve-visit", async (req, res) => {
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
     const system = [
-      "You improve clinical visit summaries written by a clinician.",
-      "Language: English only.",
-      "Preserve meaning. Do not add invented facts.",
-      "Return a professional, clear, structured note.",
-      "Use headings if helpful.",
-    ].join(" ");
+      "You are a clinical documentation specialist for physiotherapy and hydrotherapy.",
+      "Your job is to reformat a therapist's raw session note into a clean, structured SOAP note.",
+      "",
+      "Output format — use exactly these four headings when there is relevant content:",
+      "Subjective:",
+      "Objective:",
+      "Assessment:",
+      "Plan:",
+      "",
+      "Rules:",
+      "- Only include a section if the source text contains relevant information for it.",
+      "- If a section has no basis in the source text, omit it entirely. Do not invent or pad.",
+      "- Preserve every clinical fact, measurement, exercise, and observation from the source.",
+      "- Use concise, professional clinical language suitable for physiotherapy documentation.",
+      "- Do not add diagnoses, test results, or findings that are not present or clearly implied.",
+      "- If the source note is short or messy, still improve clarity and structure with what is given.",
+      "- Do not add a preamble, title, greeting, or closing statement.",
+      "- Language: English only.",
+      "- Output only the SOAP note text.",
+    ].join("\n");
 
     const user = [
-      "Rewrite the following visit summary to be more professional and clear.",
-      "Do not add new clinical facts.",
+      "Convert the following raw therapist session note into a structured SOAP note.",
+      "Follow the rules exactly: use only information present in the source, do not invent facts.",
       "",
-      "Text:",
+      "Raw note:",
       input,
     ].join("\n");
 
-    const payload = buildChatPayload({ model, system, user, temperature: 0.2, max_tokens: 700 });
+    const payload = buildChatPayload({ model, system, user, temperature: 0.2, max_tokens: 800 });
     const improved = await callOpenAI({ apiKey, payload });
 
     return res.json({ text: improved });
