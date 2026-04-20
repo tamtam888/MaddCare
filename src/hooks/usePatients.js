@@ -12,7 +12,7 @@ import {
 } from "../utils/fhirPatient.js";
 import { medplum } from "../medplumClient";
 import { loadAudioBlob } from "../utils/audioStorage";
-import { supabase } from "../lib/supabase";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 const STORAGE_KEY = "patients";
 
@@ -566,7 +566,9 @@ export function usePatients() {
 
       if (error) {
         for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
-        console.error("[Supabase upsert] failed:", error);
+        console.error("[patients] sync to cloud failed:", error);
+      } else {
+        console.log(`[patients] synced ${batch.length} patient(s) to cloud`);
       }
     });
   };
@@ -589,7 +591,9 @@ export function usePatients() {
 
         if (error) {
           for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
-          console.error("[Supabase upsert] failed:", error);
+          console.error("[patients] sync to cloud failed (reconnect flush):", error);
+        } else {
+          console.log(`[patients] synced ${batch.length} patient(s) to cloud (reconnect flush)`);
         }
       });
     };
@@ -616,37 +620,52 @@ export function usePatients() {
         const arr = Array.isArray(fromIdb) ? fromIdb : null;
 
         if (arr && arr.length > 0) {
+          console.log(`[patients] loaded ${arr.length} from IndexedDB`);
           if (!cancelled) setPatients(arr.map(normalizePatientPreserve));
         } else {
           const fromLocal = loadPatientsFromLocalStorage();
           if (fromLocal.length > 0) {
+            console.log(`[patients] loaded ${fromLocal.length} from localStorage (migrating to IDB)`);
             await idbSet(KV_PATIENTS, fromLocal.map(normalizePatientPreserve));
             safeWriteLocalBackup(fromLocal);
             if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
           } else {
+            console.log("[patients] no local data found — starting empty");
             if (!cancelled) setPatients([]);
           }
         }
       } catch {
         const fromLocal = loadPatientsFromLocalStorage();
+        console.log(`[patients] IDB error — falling back to localStorage (${fromLocal.length} patients)`);
         if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
       }
     }
 
     async function loadFromCloudAndMerge() {
+      if (!isSupabaseConfigured) {
+        console.warn("[patients] Supabase not configured — running in local-only mode");
+        return;
+      }
+
       try {
         const cloudPatients = await loadPatientsFromSupabase();
-        if (!cloudPatients || cloudPatients.length === 0) return;
+        if (!cloudPatients || cloudPatients.length === 0) {
+          console.log("[patients] cloud returned 0 patients — keeping local data");
+          return;
+        }
 
         if (cancelled) return;
 
+        console.log(`[patients] loaded ${cloudPatients.length} from cloud — merging with local`);
+
         setPatients((prev) => {
           const merged = mergePatients(prev, cloudPatients);
+          console.log(`[patients] merged local + cloud → ${merged.length} total`);
           persistPatients(merged);
           return merged;
         });
       } catch (e) {
-        console.error("[Supabase load] failed:", e);
+        console.error("[patients] cloud load failed:", e);
       }
     }
 
