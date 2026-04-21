@@ -116,6 +116,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
   const [audioURL, setAudioURL] = useState("");
   const [transcription, setTranscription] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [dictationLang, setDictationLang] = useState("en-US");
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -257,7 +258,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
-    recognition.lang = "en-US";
+    recognition.lang = dictationLang;
     recognition.interimResults = true;
     recognition.continuous = true;
 
@@ -298,7 +299,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
     try {
       recognition.start();
       setIsDictating(true);
-      setStatusMessage("Dictation in progress...");
+      setStatusMessage(`Dictation in progress (${dictationLang === "he-IL" ? "Hebrew" : "English"})...`);
     } catch (e) {
       console.error("SpeechRecognition start failed:", e);
       dictationWantedRef.current = false;
@@ -428,6 +429,16 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
           title={isRecording ? "Stop recording to start dictation" : ""}
         >
           {isDictating ? "Stop dictation" : "Start dictation"}
+        </button>
+
+        <button
+          type="button"
+          className="record-btn record-btn-secondary"
+          onClick={() => setDictationLang((l) => (l === "en-US" ? "he-IL" : "en-US"))}
+          disabled={isDictating || !canUseSpeechRecognition}
+          title="Switch dictation language"
+        >
+          {dictationLang === "he-IL" ? "עב → EN" : "EN → עב"}
         </button>
       </div>
 
