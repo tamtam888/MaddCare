@@ -13,7 +13,13 @@ const MEDIA_APP_BASE_URL =
 function openIntakeForPatient(patient) {
   const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
   if (!patientId) return;
-  const url = `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(String(patientId).trim())}/intake/new`;
+  const id = String(patientId).trim();
+  const patientName = [patient?.firstName, patient?.lastName].filter(Boolean).join(" ");
+  const params = new URLSearchParams();
+  if (patientName) params.set("patientName", patientName);
+  params.set("mode", "intake");
+  params.set("source", "medicalcare");
+  const url = `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
 

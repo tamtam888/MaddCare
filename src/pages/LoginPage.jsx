@@ -24,8 +24,8 @@ function digitsOnly(value) {
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("admin");
-  const [idNumber, setIdNumber] = useState(ADMIN_ID);
+  const [fullName, setFullName] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
