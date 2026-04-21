@@ -72,7 +72,7 @@ export default function MediaPage({ selectedPatient }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "compare")}
+            onClick={() => openVideo(selectedPatient, "progress")}
           >
             Compare Videos
           </button>
@@ -88,7 +88,7 @@ export default function MediaPage({ selectedPatient }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "treatment")}
+            onClick={() => openVideo(selectedPatient, "exercise")}
           >
             Review Exercises
           </button>
