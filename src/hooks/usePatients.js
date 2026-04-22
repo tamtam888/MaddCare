@@ -498,11 +498,20 @@ function createDebouncer(delayMs) {
   };
 }
 
-async function loadPatientsFromSupabase() {
-  const { data, error } = await supabase
+async function loadPatientsFromSupabase(therapistId, isAdmin) {
+  let query = supabase
     .from(SUPABASE_TABLE)
     .select("id_number,data,updated_at")
     .order("updated_at", { ascending: false });
+
+  // Admins see all patients; therapists see only their own.
+  // "local-therapist" is the offline default — skip filtering so offline
+  // installs still function without a real therapist ID.
+  if (!isAdmin && therapistId && therapistId !== "local-therapist") {
+    query = query.eq("therapist_id", therapistId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -519,6 +528,7 @@ async function upsertPatientToSupabase(patient) {
   const payload = {
     id_number: idNumber,
     data: normalizePatientPreserve({ ...patient, idNumber }),
+    therapist_id: patient.therapistId || null,
     updated_at: new Date().toISOString(),
   };
 
@@ -559,6 +569,7 @@ export function usePatients() {
       const payload = batch.map((p) => ({
         id_number: trimId(p.idNumber),
         data: p,
+        therapist_id: p.therapistId || null,
         updated_at: new Date().toISOString(),
       }));
 
@@ -584,6 +595,7 @@ export function usePatients() {
         const payload = batch.map((p) => ({
           id_number: trimId(p.idNumber),
           data: p,
+          therapist_id: p.therapistId || null,
           updated_at: new Date().toISOString(),
         }));
 
@@ -647,8 +659,13 @@ export function usePatients() {
         return;
       }
 
+      // Read identity from localStorage — same source as useAuthContext.
+      const currentTherapistId = (localStorage.getItem("mc_therapistId") || "").trim();
+      const currentRole        = (localStorage.getItem("mc_role") || "therapist").trim();
+      const currentIsAdmin     = currentRole === "admin";
+
       try {
-        const cloudPatients = await loadPatientsFromSupabase();
+        const cloudPatients = await loadPatientsFromSupabase(currentTherapistId, currentIsAdmin);
         if (!cloudPatients || cloudPatients.length === 0) {
           console.log("[patients] cloud returned 0 patients — keeping local data");
           return;
@@ -802,10 +819,15 @@ export function usePatients() {
       return;
     }
 
+    // Stamp the creating therapist's ID so patient rows are ownership-scoped.
+    const currentTherapistId =
+      (localStorage.getItem("mc_therapistId") || "").trim() || "local-therapist";
+
     const newPatient = normalizePatientPreserve({
       ...formData,
       idNumber,
       id: formData?.id || idNumber,
+      therapistId: currentTherapistId,
       history: [
         {
           id: safeUuid(),

@@ -87,6 +87,8 @@ function normalizeTherapistRecord(raw) {
     id: idNumber || id || "",
     idNumber: idNumber || "",
     fullName,
+    username: normalizeString(raw?.username || ""),
+    password: normalizeString(raw?.password || ""),
     phone: normalizeString(raw?.phone || ""),
     address: normalizeString(raw?.address || ""),
     email: normalizeString(raw?.email || ""),
@@ -165,9 +167,10 @@ function toSupabaseRow(t) {
   const idNumber = normalizeDigits(rec.idNumber);
   if (!isValidIdNumber(idNumber)) return null;
 
-  return {
+  const row = {
     national_id: idNumber,
     full_name: normalizeString(rec.fullName) || idNumber,
+    username: normalizeString(rec.username) || null,
     role: normalizeString(rec.role) || "therapist",
     active: rec.active !== false,
     gender: normalizeString(rec.gender) || "not_specified",
@@ -176,12 +179,21 @@ function toSupabaseRow(t) {
     email: normalizeString(rec.email),
     address: normalizeString(rec.address),
   };
+
+  // Only include password in the upsert when it is explicitly provided.
+  // Omitting the field means Supabase leaves the existing stored password unchanged.
+  const pw = normalizeString(rec.password);
+  if (pw) row.password = pw;
+
+  return row;
 }
 
 function fromSupabaseRow(row) {
   return normalizeTherapistRecord({
     national_id: row?.national_id,
     full_name: row?.full_name,
+    username: row?.username,
+    // password intentionally omitted — not fetched in general list queries
     role: row?.role,
     active: row?.active,
     gender: row?.gender,
@@ -198,9 +210,10 @@ async function loadFromSupabase() {
     throw new Error("Cloud sync disabled (missing configuration).");
   }
 
+  // password is intentionally excluded — use verifyTherapistCredentials() for login checks
   const { data, error } = await supabase
     .from(TABLE)
-    .select("national_id, full_name, role, active, gender, work_days, phone, email, address, created_at")
+    .select("national_id, full_name, username, role, active, gender, work_days, phone, email, address, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -284,6 +297,9 @@ export async function upsertTherapist(input) {
     ...existing,
     ...next,
     workDays: next.workDays ?? existing?.workDays ?? [],
+    // Preserve the stored password when the incoming record has none (e.g. after
+    // a general list fetch that intentionally omits the password column).
+    password: next.password || existing?.password || "",
   };
 
   const updated =
@@ -316,4 +332,69 @@ export async function deleteTherapist(idNumber) {
   }
 
   return true;
+}
+
+/**
+ * Verifies login credentials against the profiles table using a targeted
+ * single-row query — never loads all therapists' passwords into the client.
+ *
+ * Returns the normalised therapist record on success, or null on failure.
+ * Falls back to local IDB (cached data) when Supabase is unreachable.
+ */
+export async function verifyTherapistCredentials(username, password) {
+  const uName = normalizeString(username).toLowerCase();
+  const pwd   = normalizeString(password);
+
+  if (!uName || !pwd) return null;
+
+  // ── Supabase path (preferred) ──────────────────────────────────────────────
+  if (isSupabaseConfigured) {
+    try {
+      // Primary: match by username (case-insensitive via ilike)
+      const { data: byUsername, error: e1 } = await supabase
+        .from(TABLE)
+        .select("national_id, full_name, username, password, role, active, gender, work_days, phone, email, address")
+        .ilike("username", uName)
+        .maybeSingle();
+
+      if (!e1 && byUsername && normalizeString(byUsername.password) === pwd) {
+        return fromSupabaseRow(byUsername);
+      }
+
+      // Legacy fallback: match by full_name + national_id-as-password
+      const pwdDigits = pwd.replace(/\D/g, "");
+      if (pwdDigits) {
+        const { data: byName, error: e2 } = await supabase
+          .from(TABLE)
+          .select("national_id, full_name, username, password, role, active, gender, work_days, phone, email, address")
+          .ilike("full_name", username)          // original casing intentional
+          .maybeSingle();
+
+        if (!e2 && byName && normalizeDigits(byName.national_id) === pwdDigits) {
+          return fromSupabaseRow(byName);
+        }
+      }
+
+      // Credentials not found in Supabase
+      return null;
+    } catch {
+      // Network error — fall through to local IDB cache
+    }
+  }
+
+  // ── Local IDB fallback (offline mode) ─────────────────────────────────────
+  const local = await migrateLegacyIfNeeded();
+  const match = local.find((t) => {
+    const tUsername = normalizeString(t?.username).toLowerCase();
+    if (tUsername) {
+      return tUsername === uName && normalizeString(t?.password) === pwd;
+    }
+    // Legacy: fullName + idNumber
+    return (
+      normalizeString(t?.fullName).toLowerCase() === uName &&
+      normalizeDigits(t?.idNumber) === pwd.replace(/\D/g, "")
+    );
+  });
+
+  return match || null;
 }

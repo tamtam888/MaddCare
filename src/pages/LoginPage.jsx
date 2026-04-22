@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllTherapists } from "../therapists/therapistsStore";
+import { verifyTherapistCredentials } from "../therapists/therapistsStore";
 import "./LoginPage.css";
-import { supabase } from "../lib/supabase";
 
 
 const LOGGED_IN_KEY = "mc_logged_in";
@@ -37,19 +36,18 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    const name = normalize(fullName);
-    const nameLower = name.toLowerCase();
-    const id = digitsOnly(idNumber);
+    const username = normalize(fullName);
+    const password = normalize(idNumber);
 
-    if (!name || !id) {
-      setError("Please enter full name and ID number.");
+    if (!username || !password) {
+      setError("Please enter your username and password.");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const isAdmin = nameLower === ADMIN_USERNAME && id === ADMIN_ID;
+      const isAdmin = username.toLowerCase() === ADMIN_USERNAME && password === ADMIN_ID;
 
       if (isAdmin) {
         try {
@@ -63,31 +61,25 @@ export default function LoginPage() {
         return;
       }
 
-      const therapists = await getAllTherapists();
-
-      const match = Array.isArray(therapists)
-        ? therapists.find((t) => {
-            const tName = normalize(t?.name).toLowerCase();
-            const tId = digitsOnly(t?.id);
-            return tName === nameLower && tId === id;
-          })
-        : null;
+      // Targeted credential check — fetches only the matching therapist record,
+      // never loads all therapists' passwords into the client.
+      const match = await verifyTherapistCredentials(username, password);
 
       if (!match) {
-        setError("Name and ID do not match any therapist. Please check your details.");
+        setError("Username or password is incorrect.");
         return;
       }
 
       if (match?.active === false) {
-        setError("This therapist is currently inactive. Please contact the admin.");
+        setError("This account is currently inactive. Please contact the admin.");
         return;
       }
 
       try {
         localStorage.setItem(LOGGED_IN_KEY, "1");
         localStorage.setItem(ROLE_KEY, "therapist");
-        localStorage.setItem(THERAPIST_ID_KEY, digitsOnly(match.id));
-        localStorage.setItem(DISPLAY_NAME_KEY, normalize(match.name));
+        localStorage.setItem(THERAPIST_ID_KEY, digitsOnly(match.idNumber || match.id));
+        localStorage.setItem(DISPLAY_NAME_KEY, normalize(match.fullName));
       } catch {}
 
       navigate("/dashboard", { replace: true });
@@ -114,30 +106,29 @@ export default function LoginPage() {
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
             <label className="login-label" htmlFor="login_full_name">
-              Full name
+              Username
             </label>
             <input
               id="login_full_name"
               className="login-input"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Full name"
+              placeholder="Username"
               autoComplete="username"
             />
           </div>
 
           <div className="login-field">
             <label className="login-label" htmlFor="login_id_number">
-              ID number
+              Password
             </label>
             <input
               id="login_id_number"
               className="login-input"
               value={idNumber}
               onChange={(e) => setIdNumber(e.target.value)}
-              placeholder="ID number"
+              placeholder="Password"
               type="password"
-              inputMode="numeric"
               autoComplete="current-password"
             />
           </div>
