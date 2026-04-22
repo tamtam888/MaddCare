@@ -361,21 +361,7 @@ export async function verifyTherapistCredentials(username, password) {
         return fromSupabaseRow(byUsername);
       }
 
-      // Legacy fallback: match by full_name + national_id-as-password
-      const pwdDigits = pwd.replace(/\D/g, "");
-      if (pwdDigits) {
-        const { data: byName, error: e2 } = await supabase
-          .from(TABLE)
-          .select("national_id, full_name, username, password, role, active, gender, work_days, phone, email, address")
-          .ilike("full_name", username)          // original casing intentional
-          .maybeSingle();
-
-        if (!e2 && byName && normalizeDigits(byName.national_id) === pwdDigits) {
-          return fromSupabaseRow(byName);
-        }
-      }
-
-      // Credentials not found in Supabase
+      // Credentials not found in Supabase — no legacy fallback for pilot
       return null;
     } catch {
       // Network error — fall through to local IDB cache
@@ -383,17 +369,12 @@ export async function verifyTherapistCredentials(username, password) {
   }
 
   // ── Local IDB fallback (offline mode) ─────────────────────────────────────
+  // IDB offline fallback — username + password only, no legacy idNumber path
   const local = await migrateLegacyIfNeeded();
   const match = local.find((t) => {
     const tUsername = normalizeString(t?.username).toLowerCase();
-    if (tUsername) {
-      return tUsername === uName && normalizeString(t?.password) === pwd;
-    }
-    // Legacy: fullName + idNumber
-    return (
-      normalizeString(t?.fullName).toLowerCase() === uName &&
-      normalizeDigits(t?.idNumber) === pwd.replace(/\D/g, "")
-    );
+    if (!tUsername) return false;
+    return tUsername === uName && normalizeString(t?.password) === pwd;
   });
 
   return match || null;

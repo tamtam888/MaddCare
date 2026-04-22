@@ -7,7 +7,7 @@ import "./LoginPage.css";
 const LOGGED_IN_KEY = "mc_logged_in";
 const ROLE_KEY = "mc_role";
 const THERAPIST_ID_KEY = "mc_therapistId";
-const DISPLAY_NAME_KEY = "mc_display_name";
+const DISPLAY_NAME_KEY = "mc_therapistName";
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_ID = "15951595";

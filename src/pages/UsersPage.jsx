@@ -8,13 +8,15 @@ const APP_URL = typeof window !== 'undefined'
   : 'https://medical-care-mu.vercel.app';
 
 function copyInvite(therapist) {
-  const name = normalizeString(therapist.fullName);
-  const id   = normalizeString(therapist.idNumber);
+  const username = normalizeString(therapist.username) || normalizeString(therapist.fullName);
+  // Password is no longer fetched in the general therapist list — share it
+  // via a secure channel (e.g. direct message). The invite link is still useful
+  // for communicating the login URL and username.
   const text =
     `You have been invited to MedicalCare!\n` +
     `Login at: ${APP_URL}/login\n` +
-    `Full name: ${name}\n` +
-    `ID number: ${id}`;
+    `Username: ${username}\n` +
+    `Password: [share securely — not shown here]`;
   navigator.clipboard.writeText(text).then(() => {
     alert('Invite details copied to clipboard!');
   }).catch(() => {
@@ -215,7 +217,7 @@ function isValidAddress(value) {
   return hasLetter && hasNumber;
 }
 
-function validateForm(draft, workDaysText) {
+function validateForm(draft, workDaysText, isCreate = true) {
   const errors = {};
 
   const fullName = normalizeFullName(draft.fullName);
@@ -227,6 +229,12 @@ function validateForm(draft, workDaysText) {
   const idDigits = normalizeDigits(draft.idNumber);
   if (!idDigits) errors.idNumber = "ID number is required.";
   else if (!isValidIdNumber(idDigits)) errors.idNumber = "ID number must be 9 digits.";
+
+  const username = normalizeString(draft.username).toLowerCase();
+  if (!username) errors.username = "Username is required.";
+  else if (!/^[a-z0-9_-]{2,32}$/.test(username)) errors.username = "Username: 2–32 characters, letters/numbers/hyphens/underscores only.";
+
+  if (isCreate && !normalizeString(draft.password)) errors.password = "Password is required.";
 
   if (!isValidPhone(draft.phone)) errors.phone = "Phone number is invalid.";
   if (!isValidEmail(draft.email)) errors.email = "Email is invalid.";
@@ -262,6 +270,8 @@ function defaultDraft() {
     id: "",
     fullName: "",
     idNumber: "",
+    username: "",
+    password: "",
     phone: "",
     address: "",
     email: "",
@@ -302,6 +312,8 @@ function normalizeTherapistRecord(raw) {
     id: stableId,
     fullName: fullNameCandidate,
     idNumber: idNumberCandidate,
+    username: normalizeString(raw?.username || ""),
+    password: normalizeString(raw?.password || ""),
     phone: normalizeString(raw?.phone || ""),
     address: normalizeString(raw?.address || ""),
     email: normalizeString(raw?.email || ""),
@@ -454,7 +466,14 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     if (field === "fullName") {
       const v = normalizeFullName(draft.fullName);
       setDraft((p) => ({ ...p, fullName: v }));
-      setErrors((p) => ({ ...p, fullName: validateForm({ ...draft, fullName: v }, workDaysText).fullName }));
+      setErrors((p) => ({ ...p, fullName: validateForm({ ...draft, fullName: v }, workDaysText, mode === "create").fullName }));
+      return;
+    }
+
+    if (field === "username") {
+      const v = normalizeString(draft.username).toLowerCase().replace(/[^a-z0-9_-]/g, "");
+      setDraft((p) => ({ ...p, username: v }));
+      setErrors((p) => ({ ...p, username: validateForm({ ...draft, username: v }, workDaysText, mode === "create").username }));
       return;
     }
 
@@ -501,6 +520,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
   async function onSubmit(e) {
     e.preventDefault();
 
+    const isCreate = mode === "create";
     const idNumberDigits = normalizeDigits(draft.idNumber);
 
     const normalizedDraft = {
@@ -508,6 +528,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
       fullName: normalizeFullName(draft.fullName),
       idNumber: idNumberDigits,
       id: idNumberDigits || normalizeString(draft.id) || uid(),
+      username: normalizeString(draft.username).toLowerCase().replace(/[^a-z0-9_-]/g, ""),
       phone: normalizePhone(draft.phone),
       email: normalizeString(draft.email),
       address: normalizeString(draft.address),
@@ -516,8 +537,18 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     const parsed = normalizeWorkDaysFromText(workDaysText);
     const formattedDays = formatWorkDays(parsed.days);
 
+    // On edit: if password field was cleared, keep the existing saved password
+    const existingPassword = !isCreate
+      ? normalizeString(items.find((x) => {
+          const kx = normalizeDigits(x.idNumber) || normalizeString(x.id);
+          const kt = idNumberDigits || normalizeString(draft.id);
+          return kx === kt;
+        })?.password || "")
+      : "";
+
     const next = {
       ...normalizedDraft,
+      password: normalizeString(normalizedDraft.password) || existingPassword,
       workDays: parsed.days,
       gender: normalizeString(normalizedDraft.gender) || "not_specified",
       active: Boolean(normalizedDraft.active),
@@ -528,7 +559,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
       remoteId: normalizeString(normalizedDraft.remoteId) || null,
     };
 
-    const nextErrors = validateForm(next, formattedDays);
+    const nextErrors = validateForm(next, formattedDays, isCreate);
     setErrors(nextErrors);
     setDraft(next);
     setWorkDaysText(formattedDays);
@@ -670,7 +701,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>ID</th>
+              <th>Username</th>
               <th>Work days</th>
               <th>Status</th>
               <th className="users-actions-col">Actions</th>
@@ -695,7 +726,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                     </div>
                   </td>
 
-                  <td>{maskIdNumber(t.idNumber) || "—"}</td>
+                  <td>{normalizeString(t.username) || <span className="users-muted">—</span>}</td>
 
                   <td>
                     <div className="users-chips">
@@ -779,6 +810,32 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                     autoComplete="name"
                   />
                   {errors.fullName ? <div className="users-error">{errors.fullName}</div> : null}
+                </label>
+
+                <label className="users-field">
+                  <span className="users-label">Username</span>
+                  <input
+                    className={errors.username ? "users-input users-input-error" : "users-input"}
+                    value={draft.username}
+                    onChange={(e) => setDraft((p) => ({ ...p, username: e.target.value }))}
+                    onBlur={() => onBlurNormalize("username")}
+                    placeholder="e.g. hydro1"
+                    autoComplete="off"
+                  />
+                  {errors.username ? <div className="users-error">{errors.username}</div> : null}
+                </label>
+
+                <label className="users-field">
+                  <span className="users-label">{mode === "create" ? "Password" : "Password (leave blank to keep)"}</span>
+                  <input
+                    className={errors.password ? "users-input users-input-error" : "users-input"}
+                    value={draft.password}
+                    onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))}
+                    placeholder={mode === "create" ? "Set a password" : "Leave blank to keep current"}
+                    type="password"
+                    autoComplete="new-password"
+                  />
+                  {errors.password ? <div className="users-error">{errors.password}</div> : null}
                 </label>
 
                 <label className="users-field">

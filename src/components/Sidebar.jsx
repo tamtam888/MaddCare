@@ -19,7 +19,7 @@ function normalize(value) {
 
 function readDisplayNameFallback({ role, therapistId }) {
   try {
-    const keys = ["mc_display_name", "mc_user_full_name", "mc_user_name", "mc_full_name"];
+    const keys = ["mc_therapistName", "mc_display_name", "mc_user_full_name", "mc_user_name", "mc_full_name"];
     for (const k of keys) {
       const v = localStorage.getItem(k);
       if (v && normalize(v)) return normalize(v);
