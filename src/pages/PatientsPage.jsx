@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
 import { Upload, Download, Plus, RefreshCw } from "lucide-react";
 import PatientList from "../components/PatientList";
 import PatientForm from "../components/PatientForm";
@@ -10,7 +11,7 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function openIntakeForPatient(patient) {
+function openIntakeForPatient(patient, therapistId) {
   const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
   if (!patientId) return;
   const id = String(patientId).trim();
@@ -19,6 +20,7 @@ function openIntakeForPatient(patient) {
   if (patientName) params.set("patientName", patientName);
   params.set("mode", "intake");
   params.set("source", "medicalcare");
+  if (therapistId) params.set("tid", String(therapistId).trim());
   const url = `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -51,6 +53,7 @@ function PatientsPage(props) {
     handleSyncAllToMedplum,
   } = props;
 
+  const { therapistId } = useAuthContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -224,7 +227,7 @@ function PatientsPage(props) {
     setEditingPatient(null);
     // Auto-open intake form only for newly added patients
     if (isNew) {
-      openIntakeForPatient(prepared);
+      openIntakeForPatient(prepared, therapistId);
     }
   }
 

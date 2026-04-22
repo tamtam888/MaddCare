@@ -11,7 +11,7 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function buildVideoUrl(patient, mode) {
+function buildVideoUrl(patient, mode, therapistId) {
   const patientId = String(
     patient?.idNumber ?? patient?.patientId ?? patient?.id ?? ""
   ).replace(/\D/g, "");
@@ -28,12 +28,13 @@ function buildVideoUrl(patient, mode) {
   if (patientName) params.set("patientName", patientName);
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
+  if (therapistId) params.set("tid", String(therapistId).trim());
 
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(patientId)}?${params.toString()}`;
 }
 
-function openVideo(patient, mode) {
-  const url = buildVideoUrl(patient, mode);
+function openVideo(patient, mode, therapistId) {
+  const url = buildVideoUrl(patient, mode, therapistId);
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
@@ -450,7 +451,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "intake")}
+                  onClick={() => openVideo(resolution.patient, "intake", currentTherapistId)}
                   title="Open intake video for this patient"
                 >
                   🎥 Intake Video
@@ -458,7 +459,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "progress")}
+                  onClick={() => openVideo(resolution.patient, "progress", currentTherapistId)}
                   title="Open progress comparison for this patient"
                 >
                   📊 Progress

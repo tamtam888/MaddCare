@@ -1,9 +1,11 @@
+import { useAuthContext } from "../hooks/useAuthContext";
+
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function buildVideoUrl(patient, mode) {
+function buildVideoUrl(patient, mode, therapistId) {
   const base = MEDIA_APP_BASE_URL;
   if (!patient) {
     return `${base}/patients`;
@@ -19,16 +21,18 @@ function buildVideoUrl(patient, mode) {
   if (patientName) params.set("patientName", patientName);
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
+  if (therapistId) params.set("tid", String(therapistId).trim());
 
   return `${base}/patients/${encodeURIComponent(patientId)}?${params.toString()}`;
 }
 
-function openVideo(patient, mode) {
-  const url = buildVideoUrl(patient, mode);
+function openVideo(patient, mode, therapistId) {
+  const url = buildVideoUrl(patient, mode, therapistId);
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
 export default function MediaPage({ selectedPatient }) {
+  const { therapistId } = useAuthContext();
   const hasPatient = Boolean(selectedPatient);
   const patientLabel = hasPatient
     ? [selectedPatient.firstName, selectedPatient.lastName]
@@ -56,7 +60,7 @@ export default function MediaPage({ selectedPatient }) {
           <button
             type="button"
             className="primary-button"
-            onClick={() => openVideo(selectedPatient, "intake")}
+            onClick={() => openVideo(selectedPatient, "intake", therapistId)}
           >
             {hasPatient ? "Start Intake Video" : "Open Video Module"}
           </button>
@@ -72,7 +76,7 @@ export default function MediaPage({ selectedPatient }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "progress")}
+            onClick={() => openVideo(selectedPatient, "progress", therapistId)}
           >
             Compare Videos
           </button>
@@ -88,7 +92,7 @@ export default function MediaPage({ selectedPatient }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "exercise")}
+            onClick={() => openVideo(selectedPatient, "exercise", therapistId)}
           >
             Review Exercises
           </button>
