@@ -32,9 +32,14 @@ function buildMediaUrl({ medplumPatientId, patientId }) {
   return `${MEDIA_APP_BASE_URL}/patients${qs ? `?${qs}` : ""}`;
 }
 
-function buildIntakeUrl(patientId) {
+function buildIntakeUrl(patientId, patientName) {
   if (!patientId) return null;
-  return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(String(patientId).trim())}/intake/new`;
+  const id = String(patientId).trim();
+  const params = new URLSearchParams();
+  if (patientName) params.set("patientName", String(patientName).trim());
+  params.set("mode", "intake");
+  params.set("source", "medicalcare");
+  return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
 }
 
 function buildVideoWorkflowUrl({ patientId, patientName, mode }) {
@@ -184,7 +189,7 @@ export default function PatientDetailsPage({
   );
 
   const handleStartIntake = () => {
-    const intakeUrl = buildIntakeUrl(localPatientId);
+    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
   };

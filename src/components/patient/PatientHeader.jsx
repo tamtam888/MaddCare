@@ -67,6 +67,14 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
+            onClick={onStartIntake}
+          >
+            <span>Start Intake</span>
+          </button>
+
+          <button
+            type="button"
+            className="patients-toolbar-button"
             onClick={onStartTreatment}
           >
             <span>Start Treatment</span>
