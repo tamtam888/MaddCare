@@ -69,6 +69,9 @@ export default function PatientHeader({
             className="patients-toolbar-button"
             onClick={onStartIntake}
           >
+            <span className="patients-toolbar-button-icon">
+              <FileText size={16} />
+            </span>
             <span>Start Intake</span>
           </button>
 
