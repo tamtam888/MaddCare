@@ -155,7 +155,7 @@ function normalizeFullName(value) {
 
   const parts = raw.split(" ").filter(Boolean);
   const normalized = parts.map((p) => {
-    const cleaned = p.replace(/[^A-Za-z'-]/g, "");
+    const cleaned = p.replace(/[^A-Za-z\u0590-\u05FF'-]/g, "");
     if (!cleaned) return "";
     const lower = cleaned.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
@@ -168,7 +168,7 @@ function isValidFullName(value) {
   const normalized = normalizeFullName(value);
   const parts = normalized.split(" ").filter(Boolean);
   if (parts.length < 2) return false;
-  return /^[A-Za-z][A-Za-z'-]*(\s[A-Za-z][A-Za-z'-]*)+$/.test(normalized);
+  return /^[A-Za-z\u0590-\u05FF][A-Za-z\u0590-\u05FF'-]*(\s[A-Za-z\u0590-\u05FF][A-Za-z\u0590-\u05FF'-]*)+$/.test(normalized);
 }
 
 function normalizePhone(value) {

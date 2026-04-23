@@ -44,6 +44,7 @@ const normalizePatientPreserve = (patient) => {
     medplumId: patient?.medplumId ?? base?.medplumId ?? null,
     medplumSyncedAt: patient?.medplumSyncedAt ?? null,
     medplumSyncStatus: patient?.medplumSyncStatus ?? "local",
+    allowedTherapists: ensureArray(patient?.allowedTherapists),
   };
 };
 
@@ -508,7 +509,9 @@ async function loadPatientsFromSupabase(therapistId, isAdmin) {
   // "local-therapist" is the offline default — skip filtering so offline
   // installs still function without a real therapist ID.
   if (!isAdmin && therapistId && therapistId !== "local-therapist") {
-    query = query.eq("therapist_id", therapistId);
+    query = query.or(
+      `therapist_id.eq.${therapistId},allowed_therapists.cs.{${therapistId}}`
+    );
   }
 
   const { data, error } = await query;
@@ -529,6 +532,7 @@ async function upsertPatientToSupabase(patient) {
     id_number: idNumber,
     data: normalizePatientPreserve({ ...patient, idNumber }),
     therapist_id: patient.therapistId || null,
+    allowed_therapists: ensureArray(patient.allowedTherapists),
     updated_at: new Date().toISOString(),
   };
 
@@ -570,6 +574,7 @@ export function usePatients() {
         id_number: trimId(p.idNumber),
         data: p,
         therapist_id: p.therapistId || null,
+        allowed_therapists: ensureArray(p.allowedTherapists),
         updated_at: new Date().toISOString(),
       }));
 
@@ -596,6 +601,7 @@ export function usePatients() {
           id_number: trimId(p.idNumber),
           data: p,
           therapist_id: p.therapistId || null,
+          allowed_therapists: ensureArray(p.allowedTherapists),
           updated_at: new Date().toISOString(),
         }));
 
