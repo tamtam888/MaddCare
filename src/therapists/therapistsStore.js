@@ -310,8 +310,10 @@ export async function upsertTherapist(input) {
 
   try {
     await upsertToSupabase(updatedRecord);
-  } catch {
-    // keep local
+  } catch (e) {
+    // IDB write already succeeded above; re-throw so callers can surface the error.
+    console.error('[therapistsStore] cloud save failed:', e?.message || e);
+    throw e;
   }
 
   return updatedRecord;
