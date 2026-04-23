@@ -357,12 +357,16 @@ export async function verifyTherapistCredentials(username, password) {
         .ilike("username", uName)
         .maybeSingle();
 
-      if (!e1 && byUsername && normalizeString(byUsername.password) === pwd) {
-        return fromSupabaseRow(byUsername);
+      if (!e1) {
+        // Supabase responded cleanly
+        if (byUsername && normalizeString(byUsername.password) === pwd) {
+          return fromSupabaseRow(byUsername);
+        }
+        // User not found or wrong password — do not fall back to IDB
+        return null;
       }
-
-      // Credentials not found in Supabase — no legacy fallback for pilot
-      return null;
+      // e1 truthy = Supabase infrastructure error — fall through to IDB
+      console.warn('[auth] Supabase error, falling back to IDB:', e1.message)
     } catch {
       // Network error — fall through to local IDB cache
     }
