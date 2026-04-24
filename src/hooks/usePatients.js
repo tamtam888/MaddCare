@@ -36,8 +36,15 @@ const safeUuid = () => {
 
 const normalizePatientPreserve = (patient) => {
   const base = normalizePatient(patient);
+
+  // PatientForm creates patients with street/city/zipCode but no address string.
+  // PatientDetailsPage reads address. Synthesize it so both views stay consistent.
+  const existingAddr = typeof base.address === 'string' ? base.address.trim() : '';
+  const address = existingAddr || [base.street, base.city, base.zipCode].filter(Boolean).join(', ');
+
   return {
     ...base,
+    address: address || base.address,
     history: ensureArray(patient?.history ?? base?.history),
     reports: ensureArray(patient?.reports ?? base?.reports),
     carePlans: ensureArray(patient?.carePlans ?? base?.carePlans),
