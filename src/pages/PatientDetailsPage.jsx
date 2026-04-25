@@ -33,7 +33,7 @@ function buildMediaUrl({ medplumPatientId, patientId }) {
   return `${MEDIA_APP_BASE_URL}/patients${qs ? `?${qs}` : ""}`;
 }
 
-function buildIntakeUrl(patientId, patientName, therapistId) {
+function buildIntakeUrl(patientId, patientName, therapistId, activeIds = []) {
   if (!patientId) return null;
   const id = String(patientId).trim();
   const params = new URLSearchParams();
@@ -41,10 +41,11 @@ function buildIntakeUrl(patientId, patientName, therapistId) {
   params.set("mode", "intake");
   params.set("source", "medicalcare");
   if (therapistId) params.set("tid", String(therapistId).trim());
+  if (activeIds.length > 0) params.set("activePatients", activeIds.join(','));
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
 }
 
-function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId }) {
+function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId, activeIds = [] }) {
   const id = String(patientId || "").trim();
   if (!id) return `${MEDIA_APP_BASE_URL}/patients`;
   const params = new URLSearchParams();
@@ -53,6 +54,7 @@ function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId }) {
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
   if (therapistId) params.set("tid", String(therapistId).trim());
+  if (activeIds.length > 0) params.set("activePatients", activeIds.join(','));
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}?${params.toString()}`;
 }
 
@@ -70,7 +72,7 @@ export default function PatientDetailsPage({
 }) {
   const navigate = useNavigate();
   const { idNumber: idNumberParam = "" } = useParams();
-  const { therapistId } = useAuthContext();
+  const { therapistId, isAdmin } = useAuthContext();
 
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
@@ -183,6 +185,13 @@ export default function PatientDetailsPage({
     [editablePatient]
   );
 
+  // All patient IDs visible to the current therapist -- sent to MaddVideo
+  // so it can filter out patients deleted in MedicalCare.
+  const activePatientIds = useMemo(
+    () => patients.map((p) => String(p.idNumber || p.id || '')).filter(Boolean),
+    [patients]
+  );
+
   const mediaUrl = useMemo(
     () =>
       buildMediaUrl({
@@ -193,14 +202,20 @@ export default function PatientDetailsPage({
   );
 
   const handleStartIntake = () => {
-    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId);
+    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleOpenMedia = () => {
-    if (!mediaUrl) return;
-    window.open(mediaUrl, "_blank", "noopener,noreferrer");
+    if (!localPatientId) return;
+    const url = buildVideoWorkflowUrl({
+      patientId: localPatientId,
+      patientName: patientFullName,
+      therapistId,
+      activeIds: activePatientIds,
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const patientFullName = useMemo(
@@ -215,10 +230,11 @@ export default function PatientDetailsPage({
         patientName: patientFullName,
         mode,
         therapistId,
+        activeIds: activePatientIds,
       });
       window.open(url, "_blank", "noopener,noreferrer");
     },
-    [localPatientId, patientFullName, therapistId]
+    [localPatientId, patientFullName, therapistId, activePatientIds]
   );
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -442,6 +458,64 @@ export default function PatientDetailsPage({
             }}
           />
         </CollapsibleBlock>
+
+      {isAdmin && (
+        <CollapsibleBlock title="Shared access" subtitle="Therapists who can see this patient" defaultOpen={false}>
+          <div className="details-row-inline">
+            <span className="details-label">Add therapist</span>
+            <select
+              className="inline-input"
+              defaultValue=""
+              onChange={(e) => {
+                const id = e.target.value;
+                if (!id) return;
+                const current = Array.isArray(editablePatient.allowedTherapists)
+                  ? editablePatient.allowedTherapists
+                  : [];
+                if (current.includes(id)) return;
+                updatePatient({ ...editablePatient, allowedTherapists: [...current, id] });
+                e.target.value = "";
+              }}
+            >
+              <option value="">-- select therapist --</option>
+              {therapists
+                .filter((t) => t.idNumber !== editablePatient.therapistId)
+                .map((t) => (
+                  <option key={t.idNumber} value={t.idNumber}>
+                    {t.fullName} ({t.username})
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div style={{ marginTop: "0.5rem" }}>
+            {Array.isArray(editablePatient.allowedTherapists) &&
+            editablePatient.allowedTherapists.length > 0 ? (
+              editablePatient.allowedTherapists.map((tid) => {
+                const t = therapists.find((x) => x.idNumber === tid);
+                return (
+                  <div key={tid} className="details-row-inline" style={{ gap: "0.5rem" }}>
+                    <span className="details-value">
+                      {t ? `${t.fullName} (${t.username})` : tid}
+                    </span>
+                    <button
+                      type="button"
+                      className="patients-toolbar-button"
+                      onClick={() => {
+                        const next = editablePatient.allowedTherapists.filter((x) => x !== tid);
+                        updatePatient({ ...editablePatient, allowedTherapists: next });
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="empty-state">No additional therapists assigned.</p>
+            )}
+          </div>
+        </CollapsibleBlock>
+      )}
       </div>
 
       <AppointmentDrawer
