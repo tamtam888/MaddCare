@@ -57,7 +57,7 @@ export default function LoginPage() {
           localStorage.setItem(DISPLAY_NAME_KEY, "Admin");
         } catch {}
 
-        navigate("/dashboard", { replace: true });
+        window.location.replace("/dashboard");
         return;
       }
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
         localStorage.setItem(DISPLAY_NAME_KEY, normalize(match.fullName));
       } catch {}
 
-      navigate("/dashboard", { replace: true });
+      window.location.replace("/dashboard");
     } catch (err) {
       if (import.meta.env.DEV) console.error("Login failed:", err);
       setError("Login failed. Please try again.");
