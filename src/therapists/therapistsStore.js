@@ -234,7 +234,8 @@ async function upsertToSupabase(t) {
   const payload = toSupabaseRow(t);
   if (!payload) throw new Error("Therapist ID number must be 9 digits.");
 
-  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "national_id" });
+  if (!payload.username) throw new Error("Username is required to save therapist.");
+  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "username" });
   if (error) {
     setLastError(error.message || "Failed to save to cloud.");
     throw error;
@@ -359,12 +360,16 @@ export async function verifyTherapistCredentials(username, password) {
         .ilike("username", uName)
         .maybeSingle();
 
+      console.log('[auth] checking username:', uName);
+      console.log('[auth] Supabase found user:', byUsername ? 'yes' : 'no');
       if (!e1) {
         // Supabase responded cleanly
-        if (byUsername && normalizeString(byUsername.password) === pwd) {
-          return fromSupabaseRow(byUsername);
+        if (byUsername) {
+          const pwMatch = normalizeString(byUsername.password) === pwd;
+          console.log('[auth] password match:', pwMatch);
+          if (pwMatch) return fromSupabaseRow(byUsername);
         }
-        // User not found or wrong password — do not fall back to IDB
+        // User not found or wrong password -- do not fall back to IDB
         return null;
       }
       // e1 truthy = Supabase infrastructure error — fall through to IDB
@@ -384,4 +389,29 @@ export async function verifyTherapistCredentials(username, password) {
   });
 
   return match || null;
+}
+
+/**
+ * Ensures the hardcoded admin account exists in Supabase.
+ * Called on LoginPage mount so no manual SQL is required.
+ * Always overwrites password so the pilot credential is deterministic.
+ */
+export async function bootstrapAdminIfNeeded() {
+  if (!isSupabaseConfigured) return;
+  try {
+    const { error } = await supabase.from(TABLE).upsert(
+      {
+        username: 'admin',
+        password: '15951595',
+        role: 'admin',
+        active: true,
+        full_name: 'System Admin',
+        national_id: '000000000',
+      },
+      { onConflict: 'username' }
+    );
+    if (error) console.warn('[bootstrap] admin upsert skipped:', error.message);
+  } catch {
+    // Non-blocking -- do not prevent login page from rendering
+  }
 }
