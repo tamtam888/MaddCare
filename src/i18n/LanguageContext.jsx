@@ -16,7 +16,14 @@ export function LanguageProvider({ children }) {
   const [lang, setLangState] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && LANGUAGES.find((l) => l.code === stored)) return stored;
+      const match = stored && LANGUAGES.find((l) => l.code === stored);
+      if (match) {
+        // Stamp dir/lang on <html> before the first React paint so the
+        // CSS [dir="rtl"] .app-shell rule fires immediately on load.
+        document.documentElement.setAttribute('dir', match.dir);
+        document.documentElement.setAttribute('lang', match.code);
+        return stored;
+      }
     } catch {}
     return 'en';
   });
