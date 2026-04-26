@@ -24,6 +24,7 @@ body {
 /* Layout */
 .app-shell {
   display: flex;
+  flex-direction: row;
   min-height: 100vh;
   background-color: #f3f4f6;
 }
@@ -232,7 +233,7 @@ body {
 }
 
 /* RTL layout — sidebar slides to the right */
-[dir="rtl"] .app-shell {
+html[dir="rtl"] .app-shell {
   flex-direction: row-reverse;
 }
 
