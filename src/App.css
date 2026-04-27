@@ -234,7 +234,7 @@ body {
 
 /* RTL layout — sidebar slides to the right */
 html[dir="rtl"] .app-shell {
-  flex-direction: row-reverse;
+  flex-direction: row-reverse !important;
 }
 
 /* RTL text alignment for key containers */
