@@ -29,6 +29,10 @@ body {
   background-color: #f3f4f6;
 }
 
+html[dir="rtl"] .app-shell {
+  flex-direction: row-reverse !important;
+}
+
 .app-main-area {
   flex: 1;
   display: flex;
@@ -44,10 +48,18 @@ body {
   padding: 16px 28px;
 }
 
+html[dir="rtl"] .app-header {
+  justify-content: flex-start;
+}
+
 .app-header-right {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+html[dir="rtl"] .app-header-right {
+  flex-direction: row-reverse;
 }
 
 .app-main {
@@ -131,6 +143,10 @@ body {
   text-align: left;
 }
 
+html[dir="rtl"] .media-workflow-grid {
+  text-align: right;
+}
+
 .media-workflow-card {
   background-color: #f9fafb;
   border: 1px solid rgba(0, 0, 0, 0.07);
@@ -182,6 +198,11 @@ body {
   background: rgba(243, 244, 246, 0.95);
 }
 
+html[dir="rtl"] .app-footer {
+  justify-content: flex-end;
+  direction: rtl;
+}
+
 .app-footer-text {
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -191,16 +212,13 @@ body {
   opacity: 0.4;
 }
 
-/* ── RTL / i18n ─────────────────────────────────────────────── */
-
-/* Hebrew font support */
+/* RTL and i18n */
 :root:lang(he),
-[dir="rtl"] {
-  font-family: system-ui, -apple-system, "Segoe UI", Arial,
-    "Noto Sans Hebrew", "David", sans-serif;
+html[dir="rtl"],
+html[dir="rtl"] body {
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans Hebrew", "David", sans-serif;
 }
 
-/* Language toggle in Dashboard topbar */
 .lang-toggle {
   display: flex;
   gap: 2px;
@@ -232,52 +250,43 @@ body {
   color: #ffffff;
 }
 
-/* RTL layout — sidebar slides to the right */
-html[dir="rtl"] .app-shell {
-  flex-direction: row-reverse !important;
-}
-
-/* RTL text alignment for key containers */
-[dir="rtl"] .sidebar-nav,
-[dir="rtl"] .sidebar-footer,
-[dir="rtl"] .sidebar-brand {
+html[dir="rtl"] .sidebar-nav,
+html[dir="rtl"] .sidebar-footer,
+html[dir="rtl"] .sidebar-brand {
   direction: rtl;
   text-align: right;
 }
 
-[dir="rtl"] .sidebar-link {
+html[dir="rtl"] .sidebar-link {
   flex-direction: row-reverse;
   text-align: right;
 }
 
-[dir="rtl"] .sidebar-logout {
+html[dir="rtl"] .sidebar-logout {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .dashboard-topbar {
+html[dir="rtl"] .dashboard-topbar {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .dashboard-cards-row,
-[dir="rtl"] .dashboard-split-row {
+html[dir="rtl"] .dashboard-cards-row,
+html[dir="rtl"] .dashboard-split-row {
   direction: rtl;
 }
 
-[dir="rtl"] .topbar-right {
+html[dir="rtl"] .topbar-right {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .stat-card,
-[dir="rtl"] .panel-card {
+html[dir="rtl"] .stat-card,
+html[dir="rtl"] .panel-card,
+html[dir="rtl"] .quick-action-card {
   text-align: right;
 }
 
-[dir="rtl"] .distribution-item {
+html[dir="rtl"] .distribution-item {
   flex-direction: row-reverse;
-}
-
-[dir="rtl"] .quick-action-card {
-  text-align: right;
 }
 
 /* Responsive */
@@ -296,12 +305,20 @@ html[dir="rtl"] .app-shell {
 }
 
 @media (max-width: 768px) {
-  .app-shell {
+  html[dir="ltr"] .app-shell {
     flex-direction: column;
+  }
+
+  html[dir="rtl"] .app-shell {
+    flex-direction: row-reverse !important;
   }
 
   .app-header {
     padding: 14px;
+    justify-content: space-between;
+  }
+
+  html[dir="rtl"] .app-header {
     justify-content: space-between;
   }
 
