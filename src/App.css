@@ -330,3 +330,24 @@ html[dir="rtl"] .distribution-item {
     padding: 10px 14px 14px;
   }
 }
+/* FINAL RTL SHELL FIX */
+.app-shell {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+html[dir="ltr"] .app-sidebar {
+  order: 1 !important;
+}
+
+html[dir="ltr"] .app-main-area {
+  order: 2 !important;
+}
+
+html[dir="rtl"] .app-main-area {
+  order: 1 !important;
+}
+
+html[dir="rtl"] .app-sidebar {
+  order: 2 !important;
+}
