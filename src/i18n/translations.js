@@ -59,6 +59,15 @@ export const translations = {
     add: 'Add',
     search: 'Search',
     loading: 'Loading...',
+
+    // PatientsPage
+    patientDirectory: 'Patient Directory',
+    managePatientsSubtitle: 'Manage patients and their clinical details.',
+    import: 'Import',
+    exportJson: 'Export JSON',
+    syncAll: 'Sync All',
+    addPatient: 'Add Patient',
+    searchPatientsPlaceholder: 'Search by ID, name or condition...',
   },
 
   he: {
@@ -113,6 +122,15 @@ export const translations = {
     add: 'הוסף',
     search: 'חיפוש',
     loading: 'טוען...',
+
+    // PatientsPage
+    patientDirectory: 'ספריית מטופלים',
+    managePatientsSubtitle: 'נהל מטופלים ופרטיהם הקליניים.',
+    import: 'יבא',
+    exportJson: 'ייצא JSON',
+    syncAll: 'סנכרן הכל',
+    addPatient: 'הוסף מטופל',
+    searchPatientsPlaceholder: 'חפש לפי מזהה, שם או מצב...',
   },
 };
 

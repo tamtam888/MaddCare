@@ -5,6 +5,7 @@ import { Upload, Download, Plus, RefreshCw } from "lucide-react";
 import PatientList from "../components/PatientList";
 import PatientForm from "../components/PatientForm";
 import "./PatientsPage.css";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -61,6 +62,7 @@ function PatientsPage(props) {
   } = props;
 
   const { therapistId } = useAuthContext();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -257,11 +259,11 @@ function PatientsPage(props) {
   }
 
   return (
-    <div className="patients-page" dir="ltr">
+    <div className="patients-page">
       <div className="patients-page-header-row">
         <div className="patients-page-header-text">
-          <h1 className="patients-page-title">Patient Directory</h1>
-          <p className="patients-page-subtitle">Manage patients and their clinical details.</p>
+          <h1 className="patients-page-title">{t('patientDirectory')}</h1>
+          <p className="patients-page-subtitle">{t('managePatientsSubtitle')}</p>
         </div>
 
         <div className="patients-page-header-actions">
@@ -277,28 +279,28 @@ function PatientsPage(props) {
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
             </span>
-            <span>Import</span>
+            <span>{t('import')}</span>
           </button>
 
           <button type="button" className="patients-toolbar-button" onClick={callExportPatients}>
             <span className="patients-toolbar-button-icon">
               <Download size={16} />
             </span>
-            <span>Export JSON</span>
+            <span>{t('exportJson')}</span>
           </button>
 
           <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll}>
             <span className="patients-toolbar-button-icon">
               <RefreshCw size={16} />
             </span>
-            <span>Sync All</span>
+            <span>{t('syncAll')}</span>
           </button>
 
           <button type="button" className="patients-add-button" onClick={handleClickAdd}>
             <span className="patients-toolbar-button-icon patients-add-button-icon">
               <Plus size={16} />
             </span>
-            <span>Add Patient</span>
+            <span>{t('addPatient')}</span>
           </button>
         </div>
       </div>
@@ -308,7 +310,7 @@ function PatientsPage(props) {
         <input
           className="patients-search-input"
           type="text"
-          placeholder="Search by ID, name or condition..."
+          placeholder={t('searchPatientsPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
