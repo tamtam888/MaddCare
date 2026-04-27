@@ -11,16 +11,23 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function openIntakeForPatient(patient, therapistId) {
+function openIntakeForPatient(patient, therapistId, allPatients = []) {
   const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
   if (!patientId) return;
   const id = String(patientId).trim();
   const patientName = [patient?.firstName, patient?.lastName].filter(Boolean).join(" ");
   const params = new URLSearchParams();
+  params.set("patientId", id);
   if (patientName) params.set("patientName", patientName);
   params.set("mode", "intake");
   params.set("source", "medicalcare");
   if (therapistId) params.set("tid", String(therapistId).trim());
+  const activeIds = Array.from(new Set(
+    [...allPatients, patient]
+      .map((p) => String(p?.idNumber || p?.id || "").trim())
+      .filter(Boolean)
+  ));
+  if (activeIds.length > 0) params.set("activePatients", activeIds.join(","));
   const url = `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -227,7 +234,7 @@ function PatientsPage(props) {
     setEditingPatient(null);
     // Auto-open intake form only for newly added patients
     if (isNew) {
-      openIntakeForPatient(prepared, therapistId);
+      openIntakeForPatient(prepared, therapistId, patients);
     }
   }
 
