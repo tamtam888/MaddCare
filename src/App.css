@@ -29,8 +29,28 @@ body {
   background-color: #f3f4f6;
 }
 
+html[dir="ltr"] .app-shell {
+  flex-direction: row !important;
+}
+
+html[dir="ltr"] .app-sidebar {
+  order: 1 !important;
+}
+
+html[dir="ltr"] .app-main-area {
+  order: 2 !important;
+}
+
 html[dir="rtl"] .app-shell {
-  flex-direction: row-reverse !important;
+  flex-direction: row !important;
+}
+
+html[dir="rtl"] .app-main-area {
+  order: 1 !important;
+}
+
+html[dir="rtl"] .app-sidebar {
+  order: 2 !important;
 }
 
 .app-main-area {
@@ -250,6 +270,7 @@ html[dir="rtl"] body {
   color: #ffffff;
 }
 
+/* Sidebar RTL */
 html[dir="rtl"] .sidebar-nav,
 html[dir="rtl"] .sidebar-footer,
 html[dir="rtl"] .sidebar-brand {
@@ -258,14 +279,20 @@ html[dir="rtl"] .sidebar-brand {
 }
 
 html[dir="rtl"] .sidebar-link {
-  flex-direction: row-reverse;
+  flex-direction: row;
+  direction: rtl;
   text-align: right;
+  justify-content: flex-start;
 }
 
 html[dir="rtl"] .sidebar-logout {
-  flex-direction: row-reverse;
+  flex-direction: row;
+  direction: rtl;
+  text-align: right;
+  justify-content: flex-start;
 }
 
+/* Dashboard RTL */
 html[dir="rtl"] .dashboard-topbar {
   flex-direction: row-reverse;
 }
@@ -305,12 +332,16 @@ html[dir="rtl"] .distribution-item {
 }
 
 @media (max-width: 768px) {
-  html[dir="ltr"] .app-shell {
-    flex-direction: column;
+  html[dir="ltr"] .app-shell,
+  html[dir="rtl"] .app-shell {
+    flex-direction: column !important;
   }
 
-  html[dir="rtl"] .app-shell {
-    flex-direction: row-reverse !important;
+  html[dir="ltr"] .app-sidebar,
+  html[dir="rtl"] .app-sidebar,
+  html[dir="ltr"] .app-main-area,
+  html[dir="rtl"] .app-main-area {
+    order: initial !important;
   }
 
   .app-header {
@@ -329,25 +360,4 @@ html[dir="rtl"] .distribution-item {
   .app-footer {
     padding: 10px 14px 14px;
   }
-}
-/* FINAL RTL SHELL FIX */
-.app-shell {
-  display: flex !important;
-  flex-direction: row !important;
-}
-
-html[dir="ltr"] .app-sidebar {
-  order: 1 !important;
-}
-
-html[dir="ltr"] .app-main-area {
-  order: 2 !important;
-}
-
-html[dir="rtl"] .app-main-area {
-  order: 1 !important;
-}
-
-html[dir="rtl"] .app-sidebar {
-  order: 2 !important;
 }
