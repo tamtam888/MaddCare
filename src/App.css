@@ -33,24 +33,8 @@ html[dir="ltr"] .app-shell {
   flex-direction: row !important;
 }
 
-html[dir="ltr"] .app-sidebar {
-  order: 1 !important;
-}
-
-html[dir="ltr"] .app-main-area {
-  order: 2 !important;
-}
-
 html[dir="rtl"] .app-shell {
-  flex-direction: row !important;
-}
-
-html[dir="rtl"] .app-main-area {
-  order: 1 !important;
-}
-
-html[dir="rtl"] .app-sidebar {
-  order: 2 !important;
+  flex-direction: row-reverse !important;
 }
 
 .app-main-area {
@@ -335,13 +319,6 @@ html[dir="rtl"] .distribution-item {
   html[dir="ltr"] .app-shell,
   html[dir="rtl"] .app-shell {
     flex-direction: column !important;
-  }
-
-  html[dir="ltr"] .app-sidebar,
-  html[dir="rtl"] .app-sidebar,
-  html[dir="ltr"] .app-main-area,
-  html[dir="rtl"] .app-main-area {
-    order: initial !important;
   }
 
   .app-header {
