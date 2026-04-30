@@ -509,3 +509,11 @@
     padding-inline: 0.85rem;
   }
 }
+/* RTL: align section title to the right */
+[dir="rtl"] .section-title {
+  text-align: right;
+}
+
+html[dir="rtl"] .pd-header-btn {
+  text-align: right;
+}

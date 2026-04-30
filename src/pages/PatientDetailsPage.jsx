@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 import { useNavigate, useParams } from "react-router-dom";
 import "./PatientDetailsPage.css";
 
@@ -73,6 +74,7 @@ export default function PatientDetailsPage({
   const navigate = useNavigate();
   const { idNumber: idNumberParam = "" } = useParams();
   const { therapistId, isAdmin } = useAuthContext();
+  const { t } = useLanguage();
 
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
@@ -248,14 +250,14 @@ export default function PatientDetailsPage({
     return (
       <div className="patient-details-page">
         <div className="patient-card">
-          <h2 className="section-title">Patient profile</h2>
-          <div className="empty-state">Patient not found.</div>
+          <h2 className="section-title">{t('patientProfile')}</h2>
+          <div className="empty-state">{t('patientNotFound')}</div>
           <button
             type="button"
             className="patients-toolbar-button"
             onClick={() => navigate("/patients")}
           >
-            Back to patients list
+            {t('backToPatientsList')}
           </button>
         </div>
       </div>
@@ -274,7 +276,7 @@ export default function PatientDetailsPage({
   if (String(editablePatient.address || "").trim()) detailsSubtitleParts.push("address");
   const detailsSubtitle = detailsSubtitleParts.length
     ? detailsSubtitleParts.join(" • ")
-    : "Edit contact details";
+    : t('editContactDetails');
 
   return (
     <div className="patient-details-page">
@@ -291,13 +293,13 @@ export default function PatientDetailsPage({
       />
 
       <div className="patient-sections-stack">
-        <CollapsibleBlock title="Patient details" subtitle={detailsSubtitle} defaultOpen={false}>
+        <CollapsibleBlock title={t('patientDetailsSection')} subtitle={detailsSubtitle} defaultOpen={false}>
           <div className="patient-details-top-row">
             <div className="details-row-inline">
-              <span className="details-label">Phone</span>
+              <span className="details-label">{t('labelPhone')}</span>
               <InlineEditable
                 value={editablePatient.phone || ""}
-                placeholder="Add phone number"
+                placeholder={t('phAddPhone')}
                 inputType="tel"
                 onChange={(val) => updateField("phone", val)}
                 className="details-value"
@@ -305,20 +307,20 @@ export default function PatientDetailsPage({
             </div>
 
             <div className="details-row-inline">
-              <span className="details-label">Email</span>
+              <span className="details-label">{t('labelEmail')}</span>
               <InlineEditable
                 value={editablePatient.email || ""}
-                placeholder="Add email"
+                placeholder={t('phAddEmail')}
                 onChange={(val) => updateField("email", val)}
                 className="details-value"
               />
             </div>
 
             <div className="details-row-inline">
-              <span className="details-label">Address</span>
+              <span className="details-label">{t('labelAddress')}</span>
               <InlineEditable
                 value={editablePatient.address || ""}
-                placeholder="Street, city, country"
+                placeholder={t('phStreetCity')}
                 onChange={(val) => updateField("address", val)}
                 className="details-value"
               />
@@ -326,30 +328,28 @@ export default function PatientDetailsPage({
           </div>
 
           <div className="status-row">
-            <span className="details-label">Clinical status</span>
+            <span className="details-label">{t('clinicalStatus')}</span>
             <select
               className="inline-input status-select"
-              value={editablePatient.clinicalStatus || ""}
+              value={["Active", "Stable", "Disabled", "Not Active"].includes(editablePatient.clinicalStatus) ? editablePatient.clinicalStatus : "Not Active"}
               onChange={(e) => updateField("clinicalStatus", e.target.value)}
             >
-              <option value="">Not Active</option>
-              <option value="Active">Active</option>
-              <option value="Stable">Stable</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Disabled">Disabled</option>
-              <option value="Not Active">Not Active</option>
+              <option value="Active">{t('active')}</option>
+              <option value="Not Active">{t('notActive')}</option>
+              <option value="Stable">{t('stable')}</option>
+              <option value="Disabled">{t('disabled')}</option>
             </select>
           </div>
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Appointments" subtitle="Upcoming and past visits" defaultOpen={false}>
+        <CollapsibleBlock title={t('appointments')} subtitle={t('upcomingAndPast')} defaultOpen={false}>
           <div className="patients-page-header-actions">
             <button
               type="button"
               className="patients-toolbar-button"
               onClick={apptDrawer.openAdd}
             >
-              <span>Add appointment</span>
+              <span>{t('addAppointment')}</span>
             </button>
           </div>
 
@@ -365,45 +365,45 @@ export default function PatientDetailsPage({
           />
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Treatment session" subtitle="Record, dictate and improve visit notes" defaultOpen={true}>
+        <CollapsibleBlock title={t('treatmentSession')} subtitle={t('recordDictateImprove')} defaultOpen={false}>
           <div className="patients-page-header-actions">
             <button
               type="button"
               className="patients-toolbar-button"
               onClick={handleStartTreatment}
             >
-              <span>Open Treatment</span>
+              <span>{t('openTreatment')}</span>
             </button>
           </div>
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Video sessions" subtitle="Intake, progress comparison and exercise review" defaultOpen={false}>
+        <CollapsibleBlock title={t('videoSessions')} subtitle={t('videoSessionsSubtitle')} defaultOpen={false}>
           <div className="patients-page-header-actions">
             <button
               type="button"
               className="patients-toolbar-button"
               onClick={() => openVideoWorkflow("intake")}
             >
-              <span>🎥 Intake Video</span>
+              <span>{t('intakeVideo')}</span>
             </button>
             <button
               type="button"
               className="patients-toolbar-button"
               onClick={() => openVideoWorkflow("progress")}
             >
-              <span>📊 Progress Comparison</span>
+              <span>{t('progressComparison')}</span>
             </button>
             <button
               type="button"
               className="patients-toolbar-button"
               onClick={() => openVideoWorkflow("exercise")}
             >
-              <span>🏃 Exercise Review</span>
+              <span>{t('exerciseReview')}</span>
             </button>
           </div>
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="History" subtitle={historySubtitle} defaultOpen={false}>
+        <CollapsibleBlock title={t('historyTitle')} subtitle={historySubtitle} defaultOpen={false}>
           <PatientHistory
             patient={editablePatient}
             history={editablePatient.history || []}
@@ -413,7 +413,7 @@ export default function PatientDetailsPage({
           />
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Care plan" subtitle="Goals and exercises" defaultOpen={false}>
+        <CollapsibleBlock title={t('carePlanTitle')} subtitle={t('goalsAndExercises')} defaultOpen={false}>
           <CarePlanSection
             patient={editablePatient}
             onUpdatePatient={updatePatient}
@@ -421,11 +421,11 @@ export default function PatientDetailsPage({
           />
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Documents" subtitle="PDF, images and DOCX" defaultOpen={false}>
+        <CollapsibleBlock title={t('documentsTitle')} subtitle={t('documentsSubtitle')} defaultOpen={false}>
           <PatientDocuments patientKey={medplumPatientId} />
         </CollapsibleBlock>
 
-        <CollapsibleBlock title="Reports" subtitle={reportsSubtitle} defaultOpen={false}>
+        <CollapsibleBlock title={t('reportsTitle')} subtitle={reportsSubtitle} defaultOpen={false}>
           <AttachReports
             patient={editablePatient}
             patientId={editablePatient.idNumber}
@@ -460,9 +460,9 @@ export default function PatientDetailsPage({
         </CollapsibleBlock>
 
       {isAdmin && (
-        <CollapsibleBlock title="Shared access" subtitle="Therapists who can see this patient" defaultOpen={false}>
+        <CollapsibleBlock title={t('sharedAccess')} subtitle={t('sharedAccessSubtitle')} defaultOpen={false}>
           <div className="details-row-inline">
-            <span className="details-label">Add therapist</span>
+            <span className="details-label">{t('addTherapist')}</span>
             <select
               className="inline-input"
               defaultValue=""
@@ -505,13 +505,13 @@ export default function PatientDetailsPage({
                         updatePatient({ ...editablePatient, allowedTherapists: next });
                       }}
                     >
-                      Remove
+                      {t('removeTherapist')}
                     </button>
                   </div>
                 );
               })
             ) : (
-              <p className="empty-state">No additional therapists assigned.</p>
+              <p className="empty-state">{t('noAdditionalTherapists')}</p>
             )}
           </div>
         </CollapsibleBlock>
@@ -534,3 +534,4 @@ export default function PatientDetailsPage({
   );
 }
 
+                           

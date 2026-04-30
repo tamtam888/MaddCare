@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./CarePlanSection.css";
+import { useLanguage } from "../i18n/LanguageContext";
 import CarePlanGoals from "./CarePlanGoals";
 import CarePlanExercises from "./CarePlanExercises";
 import { formatDateTimeDMY } from "../utils/dateFormat";
@@ -66,7 +67,7 @@ function normalizeImportedCarePlan(obj) {
   };
 }
 
-function buildCarePlanDescription(draft) {
+function buildCarePlanDescription(draft, t) {
   const goalsCount = Array.isArray(draft?.goals) ? draft.goals.length : 0;
   const exercisesCount = Array.isArray(draft?.exercises) ? draft.exercises.length : 0;
 
@@ -86,7 +87,7 @@ function buildCarePlanDescription(draft) {
         .join("; ")
     : "";
 
-  const parts = [`Goals: ${goalsCount}`, `Exercises: ${exercisesCount}`];
+  const parts = [t('goals') + ': ' + goalsCount, t('exercises') + ': ' + exercisesCount];
   if (goalsPreview) parts.push(`Goal preview: ${goalsPreview}`);
   if (exPreview) parts.push(`Exercise preview: ${exPreview}`);
 
@@ -99,6 +100,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
 
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -219,7 +221,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
       id: draft.id || createId("cp"),
       title: String(draft.title || "Care plan"),
       name: String(draft.title || "Care plan"),
-      description: buildCarePlanDescription(draft),
+      description: buildCarePlanDescription(draft, t),
       status: "active",
       intent: "plan",
       createdAt: draft.updatedAt || new Date().toISOString(),
@@ -242,12 +244,12 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
         {draft ? (
           <>
             <button type="button" className="header-chip-btn" onClick={handleSaveCarePlan}>
-              Save
+              {t('save')}
             </button>
 
             <div className="export-dropdown" ref={exportRef}>
               <button type="button" className="header-chip-btn" onClick={() => setExportOpen((v) => !v)}>
-                Export ▾
+                {t('export')} ▾
               </button>
 
               {exportOpen && (
@@ -260,7 +262,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                       exportInternal();
                     }}
                   >
-                    Export as MedicalCare JSON
+                    {t('exportMedicalCareJson')}
                   </button>
 
                   <button
@@ -271,14 +273,14 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                       exportFhir();
                     }}
                   >
-                    Export as FHIR Bundle
+                    {t('exportFhirBundle')}
                   </button>
                 </div>
               )}
             </div>
 
             <label className="header-chip-btn careplan-import-label">
-              Import care plan
+                {t('importCarePlan')}
               <input
                 ref={fileRef}
                 type="file"
@@ -289,17 +291,17 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
             </label>
 
             <button type="button" className="header-chip-btn careplan-danger" onClick={clearDraft}>
-              Delete draft
+              {t('deleteDraft')}
             </button>
           </>
         ) : (
           <>
             <button type="button" className="header-chip-btn" onClick={createDraft}>
-              Create care plan
+              {t('createCarePlan')}
             </button>
 
             <label className="header-chip-btn careplan-import-label">
-              Import care plan
+                {t('importCarePlan')}
               <input
                 ref={fileRef}
                 type="file"
@@ -316,17 +318,17 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
         <>
           <div className="careplan-summary">
             <div className="careplan-summary-item">
-              <span className="careplan-summary-label">Goals</span>
+              <span className="careplan-summary-label">{t('goals')}</span>
               <span className="careplan-summary-value">{meta.goalsCount}</span>
             </div>
 
             <div className="careplan-summary-item">
-              <span className="careplan-summary-label">Exercises</span>
+              <span className="careplan-summary-label">{t('exercises')}</span>
               <span className="careplan-summary-value">{meta.exerciseCount}</span>
             </div>
 
             <div className="careplan-summary-item">
-              <span className="careplan-summary-label">Last update</span>
+              <span className="careplan-summary-label">{t('lastUpdate')}</span>
               <span className="careplan-summary-value">
                 <bdi dir="ltr">{meta.updatedText || "—"}</bdi>
               </span>
@@ -337,8 +339,5 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
           <CarePlanExercises value={draft.exercises || []} onChange={onExercisesChange} />
         </>
       ) : (
-        <div className="careplan-empty">No care plan draft yet.</div>
+        <div className="careplan-empty">{t('noCarePlanDraft')}</div>
       )}
-    </div>
-  );
-}

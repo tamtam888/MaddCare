@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "./CarePlanGoals.css";
 import { formatDateDMY, parseFlexibleDate } from "../utils/dateFormat";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function createId(prefix) {
   const id = globalThis.crypto?.randomUUID?.();
@@ -15,6 +16,7 @@ const emptyDraft = {
 };
 
 export default function CarePlanGoals({ value = [], onChange }) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(emptyDraft);
@@ -109,14 +111,14 @@ export default function CarePlanGoals({ value = [], onChange }) {
   return (
     <div className="careplan-goals">
       <div className="careplan-goals-header">
-        <div className="careplan-goals-title">Therapy goals</div>
+        <div className="careplan-goals-title">{t('therapyGoals')}</div>
         <button type="button" className="header-chip-btn" onClick={openAdd}>
-          + Add goal
+          {"+ " + t('addGoal')}
         </button>
       </div>
 
       {sorted.length === 0 ? (
-        <div className="careplan-goals-empty">No goals yet.</div>
+        <div className="careplan-goals-empty">{t('noGoalsYet')}</div>
       ) : (
         <div className="careplan-goals-list">
           {sorted.map((g) => {
@@ -134,7 +136,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
                     </span>
 
                     <span className="careplan-goal-pill">
-                      <strong>Target:</strong>{" "}
+                      <strong>{t('goalTarget')}:</strong>{" "}
                       <bdi dir="ltr">{td || "—"}</bdi>
                     </span>
                   </div>
@@ -150,14 +152,14 @@ export default function CarePlanGoals({ value = [], onChange }) {
                     className="careplan-goal-btn"
                     onClick={() => openEdit(g)}
                   >
-                    Edit
+                    {t('edit')}
                   </button>
                   <button
                     type="button"
                     className="careplan-goal-btn careplan-goal-danger"
                     onClick={() => remove(g.id)}
                   >
-                    Delete
+                    {t('delete')}
                   </button>
                 </div>
               </div>
@@ -178,7 +180,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
           <div className="careplan-goals-modal">
             <div className="careplan-goals-modal-header">
               <div className="careplan-goals-modal-title">
-                {isEditing ? "Edit goal" : "Add goal"}
+                {isEditing ? t('editGoal') : t('addGoal')}
               </div>
               <button
                 type="button"
@@ -191,7 +193,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
 
             <div className="careplan-goals-form">
               <label className="careplan-goals-field">
-                <span className="careplan-goals-label">Title *</span>
+                <span className="careplan-goals-label">{t('labelTitle') + ' *'}</span>
                 <input
                   className="inline-input"
                   value={draft.title}
@@ -203,7 +205,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
               </label>
 
               <label className="careplan-goals-field">
-                <span className="careplan-goals-label">Status</span>
+                <span className="careplan-goals-label">{t('labelStatus')}</span>
                 <select
                   className="inline-input"
                   value={draft.status}
@@ -211,15 +213,15 @@ export default function CarePlanGoals({ value = [], onChange }) {
                     setDraft((d) => ({ ...d, status: e.target.value }))
                   }
                 >
-                  <option value="Planned">Planned</option>
-                  <option value="In progress">In progress</option>
-                  <option value="Achieved">Achieved</option>
-                  <option value="On hold">On hold</option>
+                  <option value="Planned">{t('goalPlanned')}</option>
+                  <option value="In progress">{t('goalInProgress')}</option>
+                  <option value="Achieved">{t('goalAchieved')}</option>
+                  <option value="On hold">{t('goalOnHold')}</option>
                 </select>
               </label>
 
               <label className="careplan-goals-field">
-                <span className="careplan-goals-label">Target date</span>
+                <span className="careplan-goals-label">{t('goalTargetDate')}</span>
                 <input
                   className="inline-input"
                   type="text"
@@ -231,7 +233,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
               </label>
 
               <label className="careplan-goals-field">
-                <span className="careplan-goals-label">Notes</span>
+                <span className="careplan-goals-label">{t('goalNotes')}</span>
                 <textarea
                   className="careplan-goals-textarea"
                   rows={3}
@@ -244,16 +246,6 @@ export default function CarePlanGoals({ value = [], onChange }) {
 
               <div className="careplan-goals-actions-row">
                 <button type="button" className="header-chip-btn" onClick={close}>
-                  Cancel
+                  {t('cancel')}
                 </button>
-                <button type="button" className="header-chip-btn" onClick={save}>
-                  {isEditing ? "Save changes" : "Add"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+                <button type="button" class

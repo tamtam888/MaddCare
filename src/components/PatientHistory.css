@@ -359,3 +359,8 @@
     min-width: 140px;
   }
 }
+
+/* RTL: align history title to the right */
+[dir="rtl"] .patient-history-title {
+  text-align: right;
+}

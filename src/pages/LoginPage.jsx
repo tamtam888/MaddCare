@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { bootstrapAdminIfNeeded, verifyTherapistCredentials } from "../therapists/therapistsStore";
+import { useLanguage } from "../i18n/LanguageContext";
 import "./LoginPage.css";
 
 
@@ -22,6 +23,7 @@ function digitsOnly(value) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     bootstrapAdminIfNeeded();
@@ -105,33 +107,33 @@ export default function LoginPage() {
         </div>
 
         <h1 className="login-title">MedicalCare</h1>
-        <div className="login-subtitle">Therapist Login</div>
+        <div className="login-subtitle">{t('therapistLogin')}</div>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
             <label className="login-label" htmlFor="login_full_name">
-              Username
+              {t('loginUsername')}
             </label>
             <input
               id="login_full_name"
               className="login-input"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Username"
+              placeholder={t('loginUsername')}
               autoComplete="username"
             />
           </div>
 
           <div className="login-field">
             <label className="login-label" htmlFor="login_id_number">
-              Password
+              {t('loginPassword')}
             </label>
             <input
               id="login_id_number"
               className="login-input"
               value={idNumber}
               onChange={(e) => setIdNumber(e.target.value)}
-              placeholder="Password"
+              placeholder={t('loginPassword')}
               type="password"
               autoComplete="current-password"
             />
@@ -139,11 +141,4 @@ export default function LoginPage() {
 
           {error ? <div className="login-error">{error}</div> : null}
 
-          <button type="submit" className="login-submit" disabled={!canSubmit}>
-            {submitting ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
+          <button type="submit" className="login-submit" disabled={!canS

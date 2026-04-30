@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { formatDateDMY, formatDateTimeDMY, parseFlexibleDate } from "../utils/dateFormat";
+import { useLanguage } from "../i18n/LanguageContext";
 import "./AttachReports.css";
 
 function AttachReports({
@@ -14,6 +15,7 @@ function AttachReports({
   onSaveReportEntry,
   totalHistoryCount,
 }) {
+  const { t } = useLanguage();
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -480,10 +482,10 @@ function AttachReports({
     <div className="reports-surface">
       <div className="reports-top">
         <div className="reports-top-left">
-          <div className="reports-kicker">Insert / paste patient details (local only)</div>
+          <div className="reports-kicker">{t('reportInsertPatientDetails')}</div>
           <div className="reports-actions-row">
             <button type="button" className="reports-pill" onClick={fillPatientDetailsLocal}>
-              Fill Patient Details
+              {t('reportFillPatientDetails')}
             </button>
           </div>
         </div>
@@ -498,34 +500,34 @@ function AttachReports({
 
       <div className="reports-divider" />
 
-      <div className="reports-kicker">Generate AI report (no patient identifiers are sent)</div>
+      <div className="reports-kicker">{t('reportGenerateAi')}</div>
 
       <button
         type="button"
         className="reports-pill"
         onClick={handleGenerateAiReport}
         disabled={selectedCount === 0 || isGenerating}
-        title={selectedCount === 0 ? "Select visits from history first" : "Generate report from selected visits"}
+        title={selectedCount === 0 ? t('reportSelectVisitsFirst') : t('reportGenerateFromSelected')}
       >
-        {isGenerating ? "Generating..." : `Generate AI Report (${selectedCount})`}
+        {isGenerating ? t('reportGenerating') : t('reportGenerateWithCount').replace('{{count}}', selectedCount)}
       </button>
 
       <textarea
         className="reports-textarea reports-textarea-report"
         value={reportText}
         onChange={(e) => setReportText(e.target.value)}
-        placeholder="Write your report here, or generate it from selected visits..."
+        placeholder={t('reportPlaceholder')}
       />
 
       <div className="reports-actions-bottom">
         <button type="button" className="reports-pill" onClick={handleSaveToPatient} disabled={!canUseReport}>
-          Save to Patient
+          {t('reportSaveToPatient')}
         </button>
         <button type="button" className="reports-pill" onClick={handleDownloadPdf} disabled={!canUseReport}>
-          Download PDF
+          {t('reportDownloadPdf')}
         </button>
         <button type="button" className="reports-pill" onClick={handleSendEmail} disabled={!canUseReport}>
-          Send Email
+          {t('reportSendEmail')}
         </button>
         <button
           type="button"
@@ -540,10 +542,4 @@ function AttachReports({
       {aiError && (
         <div className="reports-errors">
           <div className="reports-error">{aiError}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default AttachReports;
+       

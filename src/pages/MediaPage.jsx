@@ -1,4 +1,5 @@
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -33,6 +34,7 @@ function openVideo(patient, mode, therapistId) {
 
 export default function MediaPage({ selectedPatient }) {
   const { therapistId } = useAuthContext();
+  const { t } = useLanguage();
   const hasPatient = Boolean(selectedPatient);
   const patientLabel = hasPatient
     ? [selectedPatient.firstName, selectedPatient.lastName]
@@ -42,7 +44,7 @@ export default function MediaPage({ selectedPatient }) {
 
   return (
     <div className="page-placeholder">
-      <h1 className="page-placeholder-title">Video Sessions</h1>
+      <h1 className="page-placeholder-title">{t('videoSessions')}</h1>
 
       <p className="page-placeholder-text">
         {hasPatient
@@ -53,7 +55,7 @@ export default function MediaPage({ selectedPatient }) {
       <div className="media-workflow-grid">
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">🎥</div>
-          <h3 className="media-workflow-card-title">Intake Assessment</h3>
+          <h3 className="media-workflow-card-title">{t('intakeAssessment')}</h3>
           <p className="media-workflow-card-desc">
             Record the initial video assessment to document baseline movement and function before treatment begins.
           </p>
@@ -68,7 +70,7 @@ export default function MediaPage({ selectedPatient }) {
 
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">📊</div>
-          <h3 className="media-workflow-card-title">Progress Comparison</h3>
+          <h3 className="media-workflow-card-title">{t('mediaProgressComparison')}</h3>
           <p className="media-workflow-card-desc">
             Compare recordings side-by-side to track functional improvement and share progress with the patient.
           </p>
@@ -84,7 +86,7 @@ export default function MediaPage({ selectedPatient }) {
 
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">🏃</div>
-          <h3 className="media-workflow-card-title">Exercise Review</h3>
+          <h3 className="media-workflow-card-title">{t('mediaExerciseReview')}</h3>
           <p className="media-workflow-card-desc">
             Review exercise and treatment session recordings to give clinical feedback and adjust the plan.
           </p>
@@ -101,9 +103,4 @@ export default function MediaPage({ selectedPatient }) {
 
       {!hasPatient && (
         <p className="media-workflow-hint">
-          Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
-        </p>
-      )}
-    </div>
-  );
-}
+          Progress Comparison and Exercise Review require a patient to

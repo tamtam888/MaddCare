@@ -1,5 +1,6 @@
 // src/pages/CarePlansPage.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import "./CarePlansPage.css";
 import { medplum } from "../medplumClient";
@@ -72,6 +73,7 @@ function extractSeedExercises(seedTemplates) {
 
 export default function CarePlansPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [activeFolder, setActiveFolder] = useState(null); // "templates" | "exercises" | null
 
@@ -477,13 +479,13 @@ export default function CarePlansPage() {
       <section className="patient-card careplans-card-outline">
         <div className="careplans-header">
           <div>
-            <h2 className="section-title">Care plans</h2>
-            <div className="careplans-subtitle">Templates & exercise library. Patients are managed in Patients pages.</div>
+            <h2 className="section-title">{t('carePlansTitle')}</h2>
+            <div className="careplans-subtitle">{t('carePlansSubtitleExact')}</div>
           </div>
 
           <div className="careplans-header-actions">
             <button type="button" className="header-chip-btn" onClick={() => navigate("/patients")}>
-              Patients
+              {t('patients')}
             </button>
           </div>
         </div>
@@ -498,7 +500,7 @@ export default function CarePlansPage() {
               setExercisesOpen(false);
             }}
           >
-            <div className="careplans-folder-card-title">Templates</div>
+            <div className="careplans-folder-card-title">{t('templates')}</div>
             <div className="careplans-folder-card-meta">{templatesMerged.length}</div>
           </button>
 
@@ -511,7 +513,7 @@ export default function CarePlansPage() {
               setExercisesOpen(true);
             }}
           >
-            <div className="careplans-folder-card-title">Exercise Library</div>
+            <div className="careplans-folder-card-title">{t('exerciseLibrary')}</div>
             <div className="careplans-folder-card-meta">{filteredExercises.length}</div>
           </button>
         </div>
@@ -523,7 +525,7 @@ export default function CarePlansPage() {
           className={"careplans-folder-head" + (templatesOpen ? " is-open" : "")}
           onClick={() => setTemplatesOpen((v) => !v)}
         >
-          <span className="careplans-folder-title">Templates Library</span>
+          <span className="careplans-folder-title">{t('templatesLibrary')}</span>
           <span className="careplans-folder-meta">{templatesMerged.length}</span>
           <span className="careplans-folder-caret" aria-hidden="true">
             ▾
@@ -534,11 +536,11 @@ export default function CarePlansPage() {
           <div className="careplans-folder-body">
             <div className="careplans-folder-actions">
               <button type="button" className="header-chip-btn" onClick={openNewTemplate}>
-                New template
+                {t('newTemplate')}
               </button>
 
               <button type="button" className="header-chip-btn" onClick={syncSeedNow} disabled={seedSyncing}>
-                {seedSyncing ? "Syncing..." : "Sync seed to Medplum"}
+                {seedSyncing ? t('syncing') : t('syncSeed')}
               </button>
             </div>
 
@@ -546,46 +548,46 @@ export default function CarePlansPage() {
             {templateSyncMsg ? <div className="careplans-empty">{templateSyncMsg}</div> : null}
 
             {templatesLoading ? (
-              <div className="careplans-empty">Loading templates...</div>
+              <div className="careplans-empty">{t('loadingTemplates')}</div>
             ) : templatesError ? (
               <div className="careplans-empty">{templatesError}</div>
             ) : templatesMerged.length === 0 ? (
-              <div className="careplans-empty">No templates found.</div>
+              <div className="careplans-empty">{t('noTemplatesFound')}</div>
             ) : (
               <div className="careplans-templates-grid">
-                {templatesMerged.map((t) => (
-                  <div className="careplans-template-tile" key={t.id}>
+                {templatesMerged.map((tpl) => (
+                  <div className="careplans-template-tile" key={tpl.id}>
                     <div className="careplans-tile-top">
-                      <div className="careplans-tile-title">{t.title}</div>
-                      <div className="careplans-mini-meta">Exercises: {t.count}</div>
-                      <div className="careplans-mini-meta">Source: {t.source}</div>
+                      <div className="careplans-tile-title">{tpl.title}</div>
+                      <div className="careplans-mini-meta">{t('exercises') + ': ' + tpl.count}</div>
+                      <div className="careplans-mini-meta">{t('careplansSource') + ': ' + tpl.source}</div>
                     </div>
 
                     <div className="careplans-tile-actions">
-                      <button type="button" className="header-chip-btn careplans-link" onClick={() => downloadTemplate(t)}>
-                        Download
+                      <button type="button" className="header-chip-btn careplans-link" onClick={() => downloadTemplate(tpl)}>
+                        {t('download')}
                       </button>
 
-                      <button type="button" className="header-chip-btn" onClick={() => duplicateTemplate(t)}>
-                        Duplicate
+                      <button type="button" className="header-chip-btn" onClick={() => duplicateTemplate(tpl)}>
+                        {t('duplicate')}
                       </button>
 
-                      <button type="button" className="header-chip-btn" onClick={() => openEditTemplate(t)}>
-                        Edit
+                      <button type="button" className="header-chip-btn" onClick={() => openEditTemplate(tpl)}>
+                        {t('edit')}
                       </button>
 
-                      <button type="button" className="header-chip-btn" onClick={() => deleteTemplate(t)}>
-                        Delete
+                      <button type="button" className="header-chip-btn" onClick={() => deleteTemplate(tpl)}>
+                        {t('delete')}
                       </button>
 
-                      {t.source === "local-custom" ? (
+                      {tpl.source === "local-custom" ? (
                         <button
                           type="button"
                           className="header-chip-btn"
-                          onClick={() => syncCustomTemplate(t)}
-                          disabled={templateSyncingId === String(t.id)}
+                          onClick={() => syncCustomTemplate(tpl)}
+                          disabled={templateSyncingId === String(tpl.id)}
                         >
-                          {templateSyncingId === String(t.id) ? "Syncing..." : "Sync to Medplum"}
+                          {templateSyncingId === String(tpl.id) ? t('syncing') : t('syncToMedplum')}
                         </button>
                       ) : null}
                     </div>
@@ -603,7 +605,7 @@ export default function CarePlansPage() {
           className={"careplans-folder-head" + (exercisesOpen ? " is-open" : "")}
           onClick={() => setExercisesOpen((v) => !v)}
         >
-          <span className="careplans-folder-title">Exercise Library</span>
+          <span className="careplans-folder-title">{t('exerciseLibrary')}</span>
           <span className="careplans-folder-meta">{filteredExercises.length}</span>
           <span className="careplans-folder-caret" aria-hidden="true">
             ▾
@@ -617,7 +619,7 @@ export default function CarePlansPage() {
                 className="inline-input careplans-ex-search"
                 value={exerciseQuery}
                 onChange={(e) => setExerciseQuery(e.target.value)}
-                placeholder="Search exercises by name or tag..."
+                placeholder={t('searchExercisesPlaceholder')}
               />
 
               <div className="careplans-ex-actions">
@@ -626,21 +628,21 @@ export default function CarePlansPage() {
                   className={"header-chip-btn" + (showArchivedExercises ? " careplans-chip-active" : "")}
                   onClick={() => setShowArchivedExercises((v) => !v)}
                 >
-                  Archived
+                  {t('archived')}
                 </button>
 
                 <button type="button" className="header-chip-btn" onClick={openNewExercise}>
-                  New exercise
+                  {t('newExercise')}
                 </button>
               </div>
             </div>
 
             {exercisesLoading ? (
-              <div className="careplans-empty">Loading exercises...</div>
+              <div className="careplans-empty">{t('loadingExercises')}</div>
             ) : exercisesError ? (
               <div className="careplans-empty">{exercisesError}</div>
             ) : filteredExercises.length === 0 ? (
-              <div className="careplans-empty">No exercises yet.</div>
+              <div className="careplans-empty">{t('noExercisesYet')}</div>
             ) : (
               <div className="careplans-ex-groups">
                 {exerciseGroups.map((g) => (
@@ -653,7 +655,7 @@ export default function CarePlansPage() {
                           <div className="careplans-ex-main">
                             <div className="careplans-ex-name">{ex.name}</div>
                             <div className="careplans-ex-meta">
-                              <span className="careplans-ex-pill">{ex.scope === "user" ? "My" : "Global"}</span>
+                              <span className="careplans-ex-pill">{ex.scope === "user" ? t('myScope') : t('globalScope')}</span>
                               {Array.isArray(ex.tags) && ex.tags.length > 0 ? (
                                 <span className="careplans-ex-tags">{ex.tags.join(", ")}</span>
                               ) : (
@@ -664,16 +666,16 @@ export default function CarePlansPage() {
 
                           <div className="careplans-ex-row-actions">
                             <button type="button" className="header-chip-btn" onClick={() => openEditExercise(ex)}>
-                              Edit
+                              {t('edit')}
                             </button>
 
                             {!ex.archived ? (
                               <button type="button" className="header-chip-btn" onClick={() => archiveExercise(ex)}>
-                                Archive
+                                {t('archive')}
                               </button>
                             ) : (
                               <button type="button" className="header-chip-btn" onClick={() => restoreExercise(ex)}>
-                                Restore
+                                {t('restore')}
                               </button>
                             )}
                           </div>
@@ -699,7 +701,7 @@ export default function CarePlansPage() {
         >
           <div className="careplans-modal careplans-card-outline">
             <div className="careplans-modal-header">
-              <div className="careplans-modal-title">{templateEditorMode === "edit" ? "Edit template" : "New template"}</div>
+              <div className="careplans-modal-title">{templateEditorMode === "edit" ? t('editTemplate') : t('newTemplate')}</div>
               <button type="button" className="careplans-modal-close" onClick={closeTemplateEditor}>
                 ✕
               </button>
@@ -707,20 +709,20 @@ export default function CarePlansPage() {
 
             <div className="careplans-modal-body">
               <div className="careplans-field">
-                <div className="careplans-label">Title</div>
+                <div className="careplans-label">{t('labelTitle')}</div>
                 <input
                   className="inline-input"
                   value={templateEditorTitle}
                   onChange={(e) => setTemplateEditorTitle(e.target.value)}
-                  placeholder="Template title..."
+                  placeholder={t('templateTitlePlaceholder')}
                 />
               </div>
 
               <div className="careplans-field">
-                <div className="careplans-label">Selected exercises</div>
+                <div className="careplans-label">{t('selectedExercises')}</div>
 
                 {templateSelected.length === 0 ? (
-                  <div className="careplans-empty">No exercises selected yet.</div>
+                  <div className="careplans-empty">{t('noExercisesSelected')}</div>
                 ) : (
                   <div className="careplans-selected-list">
                     {templateSelected.map((x) => (
@@ -732,7 +734,7 @@ export default function CarePlansPage() {
                           </div>
                         </div>
                         <button type="button" className="header-chip-btn" onClick={() => removeExerciseFromTemplate(x.name)}>
-                          Remove
+                          {t('remove')}
                         </button>
                       </div>
                     ))}
@@ -741,12 +743,12 @@ export default function CarePlansPage() {
               </div>
 
               <div className="careplans-field">
-                <div className="careplans-label">Add exercises from library</div>
+                <div className="careplans-label">{t('addFromLibrary')}</div>
                 <input
                   className="inline-input"
                   value={templatePickerQuery}
                   onChange={(e) => setTemplatePickerQuery(e.target.value)}
-                  placeholder="Search exercises..."
+                  placeholder={t('searchExercisesPlaceholder')}
                 />
 
                 <div className="careplans-picker-list">
@@ -768,7 +770,7 @@ export default function CarePlansPage() {
                           onClick={() => addExerciseToTemplate(ex)}
                           disabled={already}
                         >
-                          {already ? "Added" : "Add"}
+                          {already ? t('added') : t('add')}
                         </button>
                       </div>
                     );
@@ -780,10 +782,10 @@ export default function CarePlansPage() {
 
               <div className="careplans-modal-actions">
                 <button type="button" className="header-chip-btn" onClick={closeTemplateEditor}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="button" className="header-chip-btn" onClick={saveTemplateEditor}>
-                  Save
+                  {t('save')}
                 </button>
               </div>
             </div>
@@ -802,7 +804,7 @@ export default function CarePlansPage() {
         >
           <div className="careplans-modal careplans-card-outline">
             <div className="careplans-modal-header">
-              <div className="careplans-modal-title">{exerciseEditorMode === "edit" ? "Edit exercise" : "New exercise"}</div>
+              <div className="careplans-modal-title">{exerciseEditorMode === "edit" ? t('editExercise') : t('newExercise')}</div>
               <button type="button" className="careplans-modal-close" onClick={closeExerciseEditor}>
                 ✕
               </button>
@@ -810,12 +812,12 @@ export default function CarePlansPage() {
 
             <div className="careplans-modal-body">
               <div className="careplans-field">
-                <div className="careplans-label">Name</div>
+                <div className="careplans-label">{t('labelName')}</div>
                 <input className="inline-input" value={exerciseName} onChange={(e) => setExerciseName(e.target.value)} />
               </div>
 
               <div className="careplans-field">
-                <div className="careplans-label">Instructions</div>
+                <div className="careplans-label">{t('labelInstructions')}</div>
                 <textarea
                   className="inline-input careplans-textarea"
                   value={exerciseInstructions}
@@ -824,19 +826,19 @@ export default function CarePlansPage() {
               </div>
 
               <div className="careplans-field">
-                <div className="careplans-label">Tags (comma separated)</div>
+                <div className="careplans-label">{t('labelTagsComma')}</div>
                 <input
                   className="inline-input"
                   value={exerciseTags}
                   onChange={(e) => setExerciseTags(e.target.value)}
-                  placeholder="knee, rehab, strength"
+                  placeholder={t('tagsPlaceholder')}
                 />
               </div>
 
               <div className="careplans-field">
-                <div className="careplans-label">Scope</div>
+                <div className="careplans-label">{t('labelScope')}</div>
                 <select className="inline-input" value={exerciseScope} onChange={(e) => setExerciseScope(e.target.value)}>
-                  <option value="global">Global</option>
+                  <option value="global">{t('globalScope')}</option>
                   <option value="user">My</option>
                 </select>
               </div>
@@ -845,16 +847,12 @@ export default function CarePlansPage() {
 
               <div className="careplans-modal-actions">
                 <button type="button" className="header-chip-btn" onClick={closeExerciseEditor}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="button" className="header-chip-btn" onClick={saveExerciseEditor}>
-                  Save
+                  {t('save')}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+  

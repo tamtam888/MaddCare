@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "./CarePlanExercises.css";
 import { formatDateDMY, fromISODateInput, toISODateInput } from "../utils/dateFormat";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function toNumberOrUndefined(v) {
   const s = String(v ?? "").trim();
@@ -26,6 +27,7 @@ const emptyDraft = {
 };
 
 export default function CarePlanExercises({ value = [], onChange }) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(emptyDraft);
@@ -119,14 +121,14 @@ export default function CarePlanExercises({ value = [], onChange }) {
   return (
     <div className="careplan-exercises">
       <div className="careplan-exercises-header">
-        <div className="careplan-exercises-title">Exercises</div>
+        <div className="careplan-exercises-title">{t('exercises')}</div>
         <button type="button" className="header-chip-btn" onClick={openAdd}>
-          + Add exercise
+          {"+ " + t('addExercise')}
         </button>
       </div>
 
       {sorted.length === 0 ? (
-        <div className="careplan-empty">No exercises yet.</div>
+        <div className="careplan-empty">{t('noExercisesYet')}</div>
       ) : (
         <div className="careplan-exercises-list">
           {sorted.map((ex) => {
@@ -141,10 +143,10 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
                   <div className="careplan-exercise-meta">
                     <span className="careplan-pill">{ex.frequency}</span>
-                    {typeof ex.sets === "number" && <span className="careplan-pill">Sets: {ex.sets}</span>}
-                    {typeof ex.reps === "number" && <span className="careplan-pill">Reps: {ex.reps}</span>}
+                    {typeof ex.sets === "number" && <span className="careplan-pill">{t('exerciseSets') + ': ' + ex.sets}</span>}
+                    {typeof ex.reps === "number" && <span className="careplan-pill">{t('exerciseReps') + ': ' + ex.reps}</span>}
                     {typeof ex.durationMin === "number" && (
-                      <span className="careplan-pill">Duration: {ex.durationMin} min</span>
+                      <span className="careplan-pill">{t('exerciseDuration') + ': ' + ex.durationMin}</span>
                     )}
                     {range && (
                       <span className="careplan-pill">
@@ -158,14 +160,14 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
                 <div className="careplan-exercise-actions">
                   <button type="button" className="careplan-action-btn" onClick={() => openEdit(ex)}>
-                    Edit
+                    {t('edit')}
                   </button>
                   <button
                     type="button"
                     className="careplan-action-btn careplan-action-danger"
                     onClick={() => remove(ex.id)}
                   >
-                    Delete
+                    {t('delete')}
                   </button>
                 </div>
               </div>
@@ -180,7 +182,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
         }}>
           <div className="careplan-modal">
             <div className="careplan-modal-header">
-              <div className="careplan-modal-title">{isEditing ? "Edit exercise" : "Add exercise"}</div>
+              <div className="careplan-modal-title">{isEditing ? t('editExercise') : t('addExercise')}</div>
               <button type="button" className="careplan-modal-close" onClick={close}>
                 ✕
               </button>
@@ -188,17 +190,17 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
             <div className="careplan-form">
               <label className="careplan-field">
-                <span className="careplan-label">Name *</span>
+                <span className="careplan-label">{t('labelName') + ' *'}</span>
                 <input
                   className="inline-input"
                   value={draft.name}
                   onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                  placeholder="e.g. Wall Squats"
+                  placeholder={t('exerciseNamePlaceholder')}
                 />
               </label>
 
               <label className="careplan-field">
-                <span className="careplan-label">Frequency *</span>
+                <span className="careplan-label">{t('labelFrequency') + ' *'}</span>
                 <input
                   className="inline-input"
                   value={draft.frequency}
@@ -208,19 +210,19 @@ export default function CarePlanExercises({ value = [], onChange }) {
               </label>
 
               <label className="careplan-field">
-                <span className="careplan-label">Instructions</span>
+                <span className="careplan-label">{t('labelInstructions')}</span>
                 <textarea
                   className="careplan-textarea"
                   value={draft.instructions}
                   onChange={(e) => setDraft((d) => ({ ...d, instructions: e.target.value }))}
                   rows={4}
-                  placeholder="Notes, precautions, how to perform..."
+                  placeholder={t('exerciseInstructionsPlaceholder')}
                 />
               </label>
 
               <div className="careplan-grid-3">
                 <label className="careplan-field">
-                  <span className="careplan-label">Sets</span>
+                  <span className="careplan-label">{t('exerciseSets')}</span>
                   <input
                     className="inline-input"
                     inputMode="numeric"
@@ -231,7 +233,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
                 </label>
 
                 <label className="careplan-field">
-                  <span className="careplan-label">Reps</span>
+                  <span className="careplan-label">{t('exerciseReps')}</span>
                   <input
                     className="inline-input"
                     inputMode="numeric"
@@ -242,7 +244,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
                 </label>
 
                 <label className="careplan-field">
-                  <span className="careplan-label">Duration (min)</span>
+                  <span className="careplan-label">{t('exerciseDuration')}</span>
                   <input
                     className="inline-input"
                     inputMode="numeric"
@@ -255,7 +257,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
               <div className="careplan-grid-2">
                 <label className="careplan-field">
-                  <span className="careplan-label">Start date</span>
+                  <span className="careplan-label">{t('exerciseStartDate')}</span>
                   <input
                     className="inline-input"
                     type="date"
@@ -265,7 +267,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
                 </label>
 
                 <label className="careplan-field">
-                  <span className="careplan-label">End date</span>
+                  <span className="careplan-label">{t('exerciseEndDate')}</span>
                   <input
                     className="inline-input"
                     type="date"
@@ -277,16 +279,4 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
               <div className="careplan-form-actions">
                 <button type="button" className="header-chip-btn" onClick={close}>
-                  Cancel
-                </button>
-                <button type="button" className="header-chip-btn" onClick={save}>
-                  {isEditing ? "Save changes" : "Add"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+                  {t('
