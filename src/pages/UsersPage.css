@@ -284,3 +284,29 @@
     padding: 1rem;
   }
 }
+
+.users-password-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.users-password-field .users-input {
+  flex: 1;
+}
+
+.users-password-toggle {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  color: inherit;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+}
+
+.users-password-toggle:hover {
+  opacity: 1;
+}

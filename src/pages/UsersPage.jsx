@@ -1,7 +1,7 @@
 // src/pages/UsersPage.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Pencil, Trash2, X, RefreshCw, Link2, Upload, Download } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, X, RefreshCw, Link2, Upload, Download, Eye, EyeOff } from "lucide-react";
 
 const APP_URL = typeof window !== 'undefined'
   ? window.location.origin
@@ -233,7 +233,7 @@ function validateForm(draft, workDaysText, isCreate = true) {
 
   const username = normalizeString(draft.username).toLowerCase();
   if (!username) errors.username = "Username is required.";
-  else if (!/^[a-z0-9_-]{2,32}$/.test(username)) errors.username = "Username: 2–32 characters, letters/numbers/hyphens/underscores only.";
+  else if (!/^[\p{L}\p{N}_-]{2,32}$/u.test(username)) errors.username = "Username: 2–32 characters, letters/numbers/hyphens/underscores only.";
 
   if (isCreate && !normalizeString(draft.password)) errors.password = "Password is required.";
 
@@ -340,6 +340,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
   const [workDaysText, setWorkDaysText] = useState(() => formatWorkDays(defaultDraft().workDays));
   const [errors, setErrors] = useState({});
 
+  const [showPassword, setShowPassword] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
   const importFileRef = useRef(null);
@@ -473,7 +474,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     }
 
     if (field === "username") {
-      const v = normalizeString(draft.username).toLowerCase().replace(/[^a-z0-9_-]/g, "");
+      const v = normalizeString(draft.username).toLowerCase().replace(/[^\p{L}\p{N}_-]/gu, "");
       setDraft((p) => ({ ...p, username: v }));
       setErrors((p) => ({ ...p, username: validateForm({ ...draft, username: v }, workDaysText, mode === "create").username }));
       return;
@@ -530,7 +531,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
       fullName: normalizeFullName(draft.fullName),
       idNumber: idNumberDigits,
       id: idNumberDigits || normalizeString(draft.id) || uid(),
-      username: normalizeString(draft.username).toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      username: normalizeString(draft.username).toLowerCase().replace(/[^\p{L}\p{N}_-]/gu, ""),
       phone: normalizePhone(draft.phone),
       email: normalizeString(draft.email),
       address: normalizeString(draft.address),
@@ -829,14 +830,24 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
 
                 <label className="users-field">
                   <span className="users-label">{mode === "create" ? t('labelPassword') : t('labelPasswordEdit')}</span>
-                  <input
-                    className={errors.password ? "users-input users-input-error" : "users-input"}
-                    value={draft.password}
-                    onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))}
-                    placeholder={mode === "create" ? t('phPasswordCreate') : t('phPasswordEdit')}
-                    type="password"
-                    autoComplete="new-password"
-                  />
+                  <div className="users-password-field">
+                    <input
+                      className={errors.password ? "users-input users-input-error" : "users-input"}
+                      value={draft.password}
+                      onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))}
+                      placeholder={mode === "create" ? t('phPasswordCreate') : t('phPasswordEdit')}
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="users-password-toggle"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                   {errors.password ? <div className="users-error">{errors.password}</div> : null}
                 </label>
 
