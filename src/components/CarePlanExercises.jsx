@@ -279,4 +279,16 @@ export default function CarePlanExercises({ value = [], onChange }) {
 
               <div className="careplan-form-actions">
                 <button type="button" className="header-chip-btn" onClick={close}>
-                  {t('
+                  {t('cancel')}
+                </button>
+                <button type="button" className="header-chip-btn" onClick={save}>
+                  {isEditing ? t('saveChanges') : t('add')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

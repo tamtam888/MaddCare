@@ -542,4 +542,10 @@ function AttachReports({
       {aiError && (
         <div className="reports-errors">
           <div className="reports-error">{aiError}</div>
-       
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default AttachReports;

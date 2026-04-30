@@ -248,4 +248,14 @@ export default function CarePlanGoals({ value = [], onChange }) {
                 <button type="button" className="header-chip-btn" onClick={close}>
                   {t('cancel')}
                 </button>
-                <button type="button" class
+                <button type="button" className="header-chip-btn" onClick={save}>
+                  {isEditing ? t('saveChanges') : t('add')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
