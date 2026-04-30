@@ -103,4 +103,9 @@ export default function MediaPage({ selectedPatient }) {
 
       {!hasPatient && (
         <p className="media-workflow-hint">
-          Progress Comparison and Exercise Review require a patient to
+          Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
+        </p>
+      )}
+    </div>
+  );
+}

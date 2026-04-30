@@ -141,4 +141,11 @@ export default function LoginPage() {
 
           {error ? <div className="login-error">{error}</div> : null}
 
-          <button type="submit" className="login-submit" disabled={!canS
+          <button type="submit" className="login-submit" disabled={!canSubmit}>
+            {submitting ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
