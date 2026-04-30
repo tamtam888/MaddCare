@@ -582,4 +582,61 @@ export const translations = {
     historyDate: 'תאריך',
     historySummary: 'סיכום',
     historySummaryPlaceholder: 'סיכום',
-    historyAudioUrl: 'כתובת שמע'
+    historyAudioUrl: 'כתובת שמע',
+    historyAudioId: 'מזהה שמע',
+    audioFileNotFound: 'קובץ שמע לא נמצא.',
+    audioLoadFailed: 'טעינת השמע נכשלה.',
+
+    // AttachReports
+    reportInsertPatientDetails: 'הוסף / הדבק פרטי מטופל (מקומי בלבד)',
+    reportFillPatientDetails: 'מלא פרטי מטופל',
+    reportGenerateAi: 'צור דוח AI (ללא מזהי מטופל)',
+    reportSelectVisitsFirst: 'בחר ביקורים מההיסטוריה תחילה',
+    reportGenerateFromSelected: 'צור דוח מהביקורים שנבחרו',
+    reportGenerating: 'מייצר...',
+    reportGenerateWithCount: 'צור דוח AI ({{count}})',
+    reportPlaceholder: 'כתוב את הדוח כאן, או צור אותו מהביקורים שנבחרו...',
+    reportSaveToPatient: 'שמור למטופל',
+    reportDownloadPdf: 'הורד PDF',
+    reportSendEmail: 'שלח אימייל',
+
+    // LoginPage
+    loginUsername: 'שם משתמש',
+    loginPassword: 'סיסמה',
+
+    // MediaPage
+    intakeAssessment: 'הערכת קבלה',
+    mediaProgressComparison: 'השוואת התקדמות',
+    mediaExerciseReview: 'סקירת תרגילים',
+
+    // CarePlanGoals
+    therapyGoals: 'יעדי טיפול',
+    noGoalsYet: 'אין יעדים עדיין.',
+    goalTarget: 'יעד',
+    goalPlanned: 'מתוכנן',
+    goalInProgress: 'בתהליך',
+    goalAchieved: 'הושג',
+    goalOnHold: 'בהמתנה',
+    goalTargetDate: 'תאריך יעד',
+    goalNotes: 'הערות',
+
+    // CarePlanExercises / CarePlansPage
+    careplansSource: 'מקור',
+    exerciseSets: 'סטים',
+    exerciseReps: 'חזרות',
+    exerciseDuration: 'משך',
+    exerciseStartDate: 'תאריך התחלה',
+    exerciseEndDate: 'תאריך סיום',
+    exerciseNamePlaceholder: 'לדוגמא: סקוואט לקיר',
+    exerciseInstructionsPlaceholder: 'הערות, אזהרות ואופן ביצוע...',
+    addGoal: 'הוסף יעד',
+    editGoal: 'ערוך יעד',
+    addExercise: 'הוסף תרגיל',
+    saveChanges: 'שמור שינויים',
+    labelFrequency: 'תדירות',
+  },
+};
+
+export function t(lang, key) {
+  return translations[lang]?.[key] ?? translations['en']?.[key] ?? key;
+}
