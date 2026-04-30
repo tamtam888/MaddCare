@@ -1,5 +1,6 @@
 // src/pages/TreatmentPage.jsx
 import { useMemo, useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import RecordAudio from "../components/RecordAudio";
 import "./TreatmentPage.css";
@@ -31,6 +32,7 @@ function getGenderClass(p) {
 export default function TreatmentPage({ patients = [], onSaveTranscription }) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
 
   const patientId = String(params.get("patientId") || "").trim();
@@ -68,12 +70,12 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
   // ── No patient selected — show search list ────────────────────────────────
   if (!selectedPatient) {
     return (
-      <div className="treatment-page" dir="ltr">
+      <div className="treatment-page">
         <div className="treatment-header-row">
           <div className="treatment-header-text">
-            <h1 className="treatment-title">Treatment Session</h1>
+            <h1 className="treatment-title">{t('treatmentSession')}</h1>
             <p className="treatment-subtitle">
-              Select a patient below to start recording their session notes.
+              {t('treatmentSelectPatient')}
             </p>
           </div>
         </div>
@@ -84,7 +86,7 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
             className="treatment-search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or ID number..."
+            placeholder={t('treatmentSearchPlaceholder')}
             autoFocus
           />
         </div>
@@ -103,13 +105,13 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
 
                   <div className="treatment-item-text">
                     <div className="treatment-item-name">{name}</div>
-                    <div className="treatment-item-meta">{id ? `ID ${id}` : "No ID"}</div>
+                    <div className="treatment-item-meta">{id ? `ID ${id}` : t('noId')}</div>
                   </div>
                 </div>
 
                 <div className="treatment-item-right">
                   <button type="button" className="treatment-start-btn" onClick={() => openPatient(p)}>
-                    Start Session
+                    {t('startSession')}
                   </button>
                 </div>
               </div>
@@ -119,8 +121,8 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
           {!filtered?.length ? (
             <div className="treatment-empty">
               {search
-                ? "No patients match your search."
-                : "No patients yet. Add patients from the Patients section first."}
+                ? t('noPatientMatch')
+                : t('noPatientsYet')}
             </div>
           ) : null}
         </div>
@@ -132,21 +134,21 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
   const name = getPatientName(selectedPatient);
 
   return (
-    <div className="treatment-page" dir="ltr">
+    <div className="treatment-page">
       <div className="treatment-header-row">
         <div className="treatment-header-text">
-          <h1 className="treatment-title">Treatment Session</h1>
+          <h1 className="treatment-title">{t('treatmentSession')}</h1>
           <p className="treatment-subtitle">
             {name}{patientId ? ` · ID ${patientId}` : ""}
           </p>
           <p className="treatment-hint">
-            Record audio or dictate live · then use <strong>Improve with AI</strong> to refine the note · save to patient history when ready.
+            {t('treatmentHint')}
           </p>
         </div>
 
         <div className="treatment-header-actions">
           <button type="button" className="patients-toolbar-button" onClick={clearPatient}>
-            Change patient
+            {t('changePatient')}
           </button>
 
           <button
@@ -154,7 +156,7 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
             className="patients-toolbar-button"
             onClick={() => navigate(`/patients/${encodeURIComponent(patientId)}`)}
           >
-            Back to patient
+            {t('backToPatient')}
           </button>
         </div>
       </div>

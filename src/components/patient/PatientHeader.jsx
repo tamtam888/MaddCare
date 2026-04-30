@@ -6,6 +6,7 @@ import {
   getHeaderStatusClass,
   getStatusPillClass,
 } from "../../utils/patientUtils";
+import { useLanguage } from "../../i18n/LanguageContext";
 
 export default function PatientHeader({
   patient,
@@ -18,6 +19,7 @@ export default function PatientHeader({
   onImportPatients,
   onClose,
 }) {
+  const { t } = useLanguage();
   const headerClass = `patient-header-wrapper ${getHeaderStatusClass(patient)}`;
   const statusPill = getStatusPillClass(patient);
   const dobFormatted = formatDobForHeader(patient);
@@ -44,15 +46,15 @@ export default function PatientHeader({
 
           <div className="patient-details-meta">
             <span className="meta-chip">
-              <strong>ID:</strong> {patient?.idNumber || "-"}
+              <strong>{t('labelId')}:</strong> {patient?.idNumber || "-"}
             </span>
 
             <span className="meta-chip">
-              <strong>DOB:</strong> <bdi dir="ltr">{dobFormatted}</bdi>
+              <strong>{t('labelDob')}:</strong> <bdi dir="ltr">{dobFormatted}</bdi>
             </span>
 
             <span className="meta-chip">
-              <strong>Gender:</strong> {patient?.gender || "Not set"}
+              <strong>{t('labelGender')}:</strong> {patient?.gender || t('notSet')}
             </span>
 
             <span className={statusPill}>
@@ -72,7 +74,7 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <FileText size={16} />
             </span>
-            <span>Start Intake</span>
+            <span>{t('startIntake')}</span>
           </button>
 
           <button
@@ -80,7 +82,7 @@ export default function PatientHeader({
             className="patients-toolbar-button"
             onClick={onStartTreatment}
           >
-            <span>Start Treatment</span>
+            <span>{t('startTreatment')}</span>
           </button>
 
           <button
@@ -92,7 +94,7 @@ export default function PatientHeader({
               onOpenMedia?.();
             }}
           >
-            <span>Open in Media</span>
+            <span>{t('openInMedia')}</span>
           </button>
         </div>
 
@@ -105,14 +107,14 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <Download size={16} />
             </span>
-            <span>Export JSON</span>
+            <span>{t('exportJson')}</span>
           </button>
 
           <label className="patients-toolbar-button">
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
             </span>
-            <span>Import</span>
+            <span>{t('import')}</span>
             <input
               type="file"
               accept="application/json"
@@ -129,7 +131,7 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <RefreshCw size={16} />
             </span>
-            <span>Sync Patient</span>
+            <span>{t('syncPatient')}</span>
           </button>
         </div>
 
@@ -142,7 +144,7 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <X size={16} />
             </span>
-            <span>Close</span>
+            <span>{t('close')}</span>
           </button>
         </div>
       </div>

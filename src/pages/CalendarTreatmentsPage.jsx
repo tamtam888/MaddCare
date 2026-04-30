@@ -23,6 +23,7 @@ import {
   subscribeNotifications,
 } from "../notifications/notificationsStore";
 import "./CalendarTreatmentsPage.css";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const CLINIC_START_TIME = "07:00:00";
 const CLINIC_END_TIME = "22:00:00";
@@ -255,6 +256,7 @@ function normalizeStatus(value) {
 export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }) {
   const navigate = useNavigate();
   const { isAdmin, therapistId } = useAuthContext();
+  const { t } = useLanguage();
   const { appointments, loading, addAppointment, updateAppointment, deleteAppointment, refresh } = useAppointments();
 
   const [therapists, setTherapists] = useState([]);
@@ -930,10 +932,10 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     <div className="mc-calendar-page">
       <div className="mc-calendar-header">
         <div className="mc-calendar-title-wrap">
-          <h1 className="mc-calendar-title">Appointments</h1>
+          <h1 className="mc-calendar-title">{t('appointments')}</h1>
           <p className="mc-calendar-subtitle">
-            {loading ? "Loading appointments..." : `${visibleAppointments.length} appointment${visibleAppointments.length === 1 ? "" : "s"}`}
-            {!loading && " · click to edit · double-click to open patient"}
+            {loading ? t('loadingAppointments') : t('appointmentsCount').replace('{{count}}', visibleAppointments.length)}
+            {!loading && t('calendarHint')}
           </p>
         </div>
 
@@ -943,8 +945,8 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
               type="button"
               className="mc-icon-button mc-bell-button"
               onClick={toggleNotifications}
-              aria-label="Notifications"
-              title="Notifications"
+              aria-label={t('notifications')}
+              title={t('notifications')}
             >
               <Bell size={18} />
               {notifCount > 0 ? <span className="mc-notification-badge">{notifCount}</span> : null}
@@ -953,9 +955,9 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
             {notifOpen ? (
               <div className="mc-notifications-popover" role="dialog" aria-modal="false">
                 <div className="mc-notifications-head">
-                  <div className="mc-notifications-title">Notifications</div>
+                  <div className="mc-notifications-title">{t('notifications')}</div>
                   <button type="button" className="mc-notifications-clear" onClick={clearNotifications} disabled={notifCount === 0}>
-                    Clear
+                    {t('clearAll')}
                   </button>
                 </div>
 
@@ -978,7 +980,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
                       </div>
                     ))
                   ) : (
-                    <div className="mc-notifications-empty">No notifications</div>
+                    <div className="mc-notifications-empty">{t('noNotifications')}</div>
                   )}
                 </div>
               </div>
@@ -991,14 +993,14 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
               className="mc-icon-button"
               onClick={handleSyncAppointments}
               disabled={syncing}
-              title={medplum.isAuthenticated() ? "Sync to Medplum" : "Connect to Medplum first"}
+              title={medplum.isAuthenticated() ? t('syncToMedplum') : t('connectMedplumFirst')}
             >
               <RefreshCw size={18} />
             </button>
           ) : null}
 
           <button type="button" className="mc-calendar-add" onClick={handleAddClick}>
-            + Add Appointment
+            {'+ ' + t('addAppointment')}
           </button>
         </div>
       </div>

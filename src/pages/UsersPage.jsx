@@ -23,6 +23,7 @@ function copyInvite(therapist) {
     prompt('Copy this invite:', text);
   });
 }
+import { useLanguage } from "../i18n/LanguageContext";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { getAllTherapists, upsertTherapist, deleteTherapist } from "../therapists/therapistsStore";
 import "./UsersPage.css";
@@ -328,6 +329,7 @@ function normalizeTherapistRecord(raw) {
 export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
   const navigate = useNavigate();
   const { isAdmin, therapistId } = useAuthContext();
+  const { t } = useLanguage();
 
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
@@ -628,8 +630,8 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
     }
   };
 
-  const pageTitle = isAdmin ? "Users" : "My Profile";
-  const pageSubtitle = isAdmin ? "Manage therapists" : "Edit your profile";
+  const pageTitle = isAdmin ? t('usersTitle') : t('myProfile');
+  const pageSubtitle = isAdmin ? t('manageTherapistsSubtitle') : t('editProfileSubtitle');
 
   return (
     <div className="patients-page users-page">
@@ -651,12 +653,12 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                 <span className="patients-toolbar-button-icon">
                   <RefreshCw size={16} />
                 </span>
-                <span>{syncing ? "Syncing..." : "Sync All"}</span>
+                <span>{syncing ? t('syncing') : t('syncAll')}</span>
               </button>
 
               <button type="button" className="patients-toolbar-button" onClick={() => importFileRef.current?.click()}>
                 <span className="patients-toolbar-button-icon"><Upload size={16} /></span>
-                <span>Import</span>
+                <span>{t('import')}</span>
               </button>
               <input
                 ref={importFileRef}
@@ -668,14 +670,14 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
 
               <button type="button" className="patients-toolbar-button" onClick={handleExportUsers}>
                 <span className="patients-toolbar-button-icon"><Download size={16} /></span>
-                <span>Export</span>
+                <span>{t('export')}</span>
               </button>
 
               <button type="button" className="patients-add-button" onClick={openCreate}>
                 <span className="patients-add-button-icon">
                   <Plus size={18} />
                 </span>
-                <span>Add user</span>
+                <span>{t('addUser')}</span>
               </button>
             </>
           ) : null}
@@ -690,7 +692,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
           className="patients-search-input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, ID, phone, email..."
+          placeholder={t('searchUsersPlaceholder')}
           inputMode="search"
           autoComplete="off"
         />
@@ -700,39 +702,39 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
         <table className="users-table" role="table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Username</th>
-              <th>Work days</th>
-              <th>Status</th>
-              <th className="users-actions-col">Actions</th>
+              <th>{t('colName')}</th>
+              <th>{t('colUsername')}</th>
+              <th>{t('colWorkDays')}</th>
+              <th>{t('colStatus')}</th>
+              <th className="users-actions-col">{t('colActions')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={5} className="users-empty-row">
-                  Loading...
+                  {t('loading')}
                 </td>
               </tr>
             ) : filtered.length ? (
-              filtered.map((t) => (
-                <tr key={t.id}>
+              filtered.map((usr) => (
+                <tr key={usr.id}>
                   <td className="users-main-cell">
                     <div className="users-main">
-                      <div className={`users-main-title ${genderNameClass(t.gender)}`}>
-                        {normalizeString(t.fullName) || "—"}
+                      <div className={`users-main-title ${genderNameClass(usr.gender)}`}>
+                        {normalizeString(usr.fullName) || "—"}
                       </div>
-                      <div className="users-main-subtitle">{normalizeString(t.email) || ""}</div>
+                      <div className="users-main-subtitle">{normalizeString(usr.email) || ""}</div>
                     </div>
                   </td>
 
-                  <td>{normalizeString(t.username) || <span className="users-muted">—</span>}</td>
+                  <td>{normalizeString(usr.username) || <span className="users-muted">—</span>}</td>
 
                   <td>
                     <div className="users-chips">
-                      {normalizeWorkDays(t.workDays).length ? (
-                        normalizeWorkDays(t.workDays).map((d) => (
-                          <span key={`${t.id}-${d}`} className="users-chip">
+                      {normalizeWorkDays(usr.workDays).length ? (
+                        normalizeWorkDays(usr.workDays).map((d) => (
+                          <span key={`${usr.id}-${d}`} className="users-chip">
                             {d}
                           </span>
                         ))
@@ -743,8 +745,8 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                   </td>
 
                   <td>
-                    <span className={t.active ? "users-status users-status-on" : "users-status users-status-off"}>
-                      {t.active ? "Active" : "Inactive"}
+                    <span className={usr.active ? "users-status users-status-on" : "users-status users-status-off"}>
+                      {usr.active ? t('statusActive') : t('statusInactive')}
                     </span>
                   </td>
 
@@ -753,21 +755,21 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                       <button
                         type="button"
                         className="users-icon-btn"
-                        onClick={() => copyInvite(t)}
-                        aria-label="Copy invite"
-                        title="Copy invite link"
+                        onClick={() => copyInvite(usr)}
+                        aria-label={t('copyInvite')}
+                        title={t('copyInviteLink')}
                       >
                         <Link2 size={16} />
                       </button>
                     ) : null}
-                    <button type="button" className="users-icon-btn" onClick={() => openEdit(t)} aria-label="Edit">
+                    <button type="button" className="users-icon-btn" onClick={() => openEdit(usr)} aria-label="Edit">
                       <Pencil size={16} />
                     </button>
                     {isAdmin ? (
                       <button
                         type="button"
                         className="users-icon-btn users-icon-btn-danger"
-                        onClick={() => onDelete(t.idNumber || t.id)}
+                        onClick={() => onDelete(usr.idNumber || usr.id)}
                         aria-label="Delete"
                       >
                         <Trash2 size={16} />
@@ -779,7 +781,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
             ) : (
               <tr>
                 <td colSpan={5} className="users-empty-row">
-                  No users found
+                  {t('noUsersFound')}
                 </td>
               </tr>
             )}
@@ -791,7 +793,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
         <div className="users-modal-backdrop" role="dialog" aria-modal="true">
           <div className="users-modal">
             <div className="users-modal-header">
-              <div className="users-modal-title">{mode === "create" ? "Add user" : "Edit user"}</div>
+              <div className="users-modal-title">{mode === "create" ? t('addUserModal') : t('editUserModal')}</div>
               <button type="button" className="users-modal-close" onClick={closeModal} aria-label="Close">
                 <X size={18} />
               </button>
@@ -800,38 +802,38 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
             <form className="users-modal-body" onSubmit={onSubmit}>
               <div className="users-form-grid">
                 <label className="users-field">
-                  <span className="users-label">Full name</span>
+                  <span className="users-label">{t('labelFullName')}</span>
                   <input
                     className={errors.fullName ? "users-input users-input-error" : "users-input"}
                     value={draft.fullName}
                     onChange={(e) => setDraft((p) => ({ ...p, fullName: e.target.value }))}
                     onBlur={() => onBlurNormalize("fullName")}
-                    placeholder="First Last"
+                    placeholder={t('phFirstLast')}
                     autoComplete="name"
                   />
                   {errors.fullName ? <div className="users-error">{errors.fullName}</div> : null}
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">Username</span>
+                  <span className="users-label">{t('colUsername')}</span>
                   <input
                     className={errors.username ? "users-input users-input-error" : "users-input"}
                     value={draft.username}
                     onChange={(e) => setDraft((p) => ({ ...p, username: e.target.value }))}
                     onBlur={() => onBlurNormalize("username")}
-                    placeholder="e.g. hydro1"
+                    placeholder={t('phUsername')}
                     autoComplete="off"
                   />
                   {errors.username ? <div className="users-error">{errors.username}</div> : null}
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">{mode === "create" ? "Password" : "Password (leave blank to keep)"}</span>
+                  <span className="users-label">{mode === "create" ? t('labelPassword') : t('labelPasswordEdit')}</span>
                   <input
                     className={errors.password ? "users-input users-input-error" : "users-input"}
                     value={draft.password}
                     onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))}
-                    placeholder={mode === "create" ? "Set a password" : "Leave blank to keep current"}
+                    placeholder={mode === "create" ? t('phPasswordCreate') : t('phPasswordEdit')}
                     type="password"
                     autoComplete="new-password"
                   />
@@ -839,13 +841,13 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">ID number</span>
+                  <span className="users-label">{t('labelIdNumber')}</span>
                   <input
                     className={errors.idNumber ? "users-input users-input-error" : "users-input"}
                     value={draft.idNumber}
                     onChange={(e) => setDraft((p) => ({ ...p, idNumber: e.target.value }))}
                     onBlur={() => onBlurNormalize("idNumber")}
-                    placeholder="9 digits"
+                    placeholder={t('ph9Digits')}
                     inputMode="numeric"
                     autoComplete="off"
                     disabled={!isAdmin && mode === "edit"}
@@ -854,13 +856,13 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">Phone</span>
+                  <span className="users-label">{t('labelPhone')}</span>
                   <input
                     className={errors.phone ? "users-input users-input-error" : "users-input"}
                     value={draft.phone}
                     onChange={(e) => setDraft((p) => ({ ...p, phone: e.target.value }))}
                     onBlur={() => onBlurNormalize("phone")}
-                    placeholder="05XXXXXXXX"
+                    placeholder={t('phPhone')}
                     inputMode="tel"
                     autoComplete="tel"
                   />
@@ -868,13 +870,13 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">Email</span>
+                  <span className="users-label">{t('labelEmail')}</span>
                   <input
                     className={errors.email ? "users-input users-input-error" : "users-input"}
                     value={draft.email}
                     onChange={(e) => setDraft((p) => ({ ...p, email: e.target.value }))}
                     onBlur={() => onBlurNormalize("email")}
-                    placeholder="name@example.com"
+                    placeholder={t('phEmail')}
                     inputMode="email"
                     autoComplete="email"
                   />
@@ -882,65 +884,65 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                 </label>
 
                 <label className="users-field users-field-full">
-                  <span className="users-label">Address</span>
+                  <span className="users-label">{t('labelAddress')}</span>
                   <input
                     className={errors.address ? "users-input users-input-error" : "users-input"}
                     value={draft.address}
                     onChange={(e) => setDraft((p) => ({ ...p, address: e.target.value }))}
                     onBlur={() => onBlurNormalize("address")}
-                    placeholder="Street 12 City"
+                    placeholder={t('phAddress')}
                     autoComplete="street-address"
                   />
                   {errors.address ? <div className="users-error">{errors.address}</div> : null}
                 </label>
 
                 <label className="users-field users-field-full">
-                  <span className="users-label">Work days</span>
+                  <span className="users-label">{t('labelWorkDays')}</span>
                   <input
                     className={errors.workDays ? "users-input users-input-error" : "users-input"}
                     value={workDaysText}
                     onChange={(e) => setWorkDaysText(e.target.value)}
                     onBlur={onWorkDaysBlur}
-                    placeholder="Sun, Mon, Wed"
+                    placeholder={t('phWorkDays')}
                     autoComplete="off"
                   />
                   {errors.workDays ? <div className="users-error">{errors.workDays}</div> : null}
-                  <div className="users-hint">Allowed: Sun, Mon, Tue, Wed, Thu, Fri</div>
+                  <div className="users-hint">{t('workDaysHint')}</div>
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">Status</span>
+                  <span className="users-label">{t('labelStatus')}</span>
                   <select
                     className="users-input"
                     value={draft.active ? "active" : "inactive"}
                     onChange={(e) => setDraft((p) => ({ ...p, active: e.target.value === "active" }))}
                     disabled={!isAdmin}
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="active">{t('statusActive')}</option>
+                    <option value="inactive">{t('statusInactive')}</option>
                   </select>
                 </label>
 
                 <label className="users-field">
-                  <span className="users-label">Gender</span>
+                  <span className="users-label">{t('labelGender')}</span>
                   <select
                     className="users-input"
                     value={draft.gender}
                     onChange={(e) => setDraft((p) => ({ ...p, gender: e.target.value }))}
                   >
-                    <option value="not_specified">Not specified</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="not_specified">{t('genderNotSpecified')}</option>
+                    <option value="male">{t('genderMale')}</option>
+                    <option value="female">{t('genderFemale')}</option>
                   </select>
                 </label>
               </div>
 
               <div className="users-modal-footer">
                 <button type="button" className="patients-toolbar-button" onClick={closeModal}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="patients-add-button">
-                  Save
+                  {t('save')}
                 </button>
               </div>
             </form>

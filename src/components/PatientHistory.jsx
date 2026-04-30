@@ -3,6 +3,7 @@ import "./PatientHistory.css";
 import { loadAudioBlob } from "../utils/audioStorage";
 import { formatDateDMY, toISODateInput, fromISODateInput } from "../utils/dateFormat";
 import { capitalizeSentences } from "../utils/textFormatters";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function normalizeEntries(history) {
   return Array.isArray(history) ? history : [];
@@ -136,6 +137,7 @@ function asAudioIdMaybe(value) {
 function AudioFromId({ audioId }) {
   const [src, setSrc] = useState("");
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   useEffect(() => {
     let revokeUrl = "";
@@ -148,14 +150,14 @@ function AudioFromId({ audioId }) {
       try {
         const blob = await loadAudioBlob(audioId);
         if (!blob) {
-          setError("Audio file not found.");
+          setError(t('audioFileNotFound'));
           return;
         }
         const url = URL.createObjectURL(blob);
         revokeUrl = url;
         setSrc(url);
       } catch {
-        setError("Failed to load audio.");
+        setError(t('audioLoadFailed'));
       }
     }
 
@@ -177,6 +179,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   const [searchText, setSearchText] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(null);
+  const { t } = useLanguage();
 
   const allEntries = useMemo(() => {
     const source = history ?? patient?.history ?? [];
@@ -289,11 +292,11 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
 
         <div className="patient-history-filters">
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="history-filter-select">
-            <option value="all">All types</option>
-            <option value="transcription">Transcriptions</option>
-            <option value="session">Sessions</option>
-            <option value="note">Notes</option>
-            <option value="careplan">Care plans</option>
+            <option value="all">{t('historyAllTypes')}</option>
+            <option value="transcription">{t('historyTranscriptions')}</option>
+            <option value="session">{t('historySessions')}</option>
+            <option value="note">{t('historyNotes')}</option>
+            <option value="careplan">{t('historyCarePlans')}</option>
             <option value="report">Reports</option>
           </select>
 
@@ -302,21 +305,21 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
             <input
               type="text"
               className="history-search-input"
-              placeholder="Search in history"
+              placeholder={t('historySearchPlaceholder')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
 
           <button type="button" className="history-add-button" onClick={handleAdd}>
-            Add entry
+            {t('historyAddEntry')}
           </button>
         </div>
       </div>
 
       {allEntries.length === 0 && (
         <div className="empty-history">
-          <p className="history-empty-text">No history available yet.</p>
+          <p className="history-empty-text">{t('historyEmpty')}</p>
         </div>
       )}
 
@@ -348,7 +351,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSelected(entry?.id)}
-                    aria-label="Select visit"
+                    aria-label={t('selectVisit')}
                     className="history-select-circle"
                   />
 
@@ -365,8 +368,8 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                       <button
                         type="button"
                         className="history-icon-btn"
-                        aria-label="Edit entry"
-                        title="Edit"
+                        aria-label={t('editEntry')}
+                        title={t('edit')}
                         onClick={() => handleEdit(entry)}
                       >
                         <IconPencil className="history-icon" />
@@ -375,8 +378,8 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                       <button
                         type="button"
                         className="history-icon-btn danger"
-                        aria-label="Delete entry"
-                        title="Delete"
+                        aria-label={t('deleteEntry')}
+                        title={t('delete')}
                         onClick={() => handleDelete(entry?.id)}
                       >
                         <IconTrash className="history-icon" />
@@ -385,10 +388,10 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                   ) : (
                     <>
                       <button type="button" className="history-pill-btn primary" onClick={handleSaveEdit}>
-                        Save
+                        {t('save')}
                       </button>
                       <button type="button" className="history-pill-btn" onClick={handleCancelEdit}>
-                        Cancel
+                        {t('cancel')}
                       </button>
                     </>
                   )}
@@ -397,7 +400,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
 
               {!isEditing ? (
                 <>
-                  <div className="history-title-line">{entry?.title || "(No title)"}</div>
+                  <div className="history-title-line">{entry?.title || t('noTitle')}</div>
 
                   {entry?.summary && (
                     <div
@@ -412,7 +415,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                       <audio controls preload="metadata" src={directUrl} />
                       {!entry?.summary && (
                         <div className="history-summary history-summary-audio-only">
-                          Audio-only visit (no text transcription).
+                          {t('audioOnlyVisit')}
                         </div>
                       )}
                     </div>
@@ -421,7 +424,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                       <AudioFromId audioId={effectiveAudioId} />
                       {!entry?.summary && (
                         <div className="history-summary history-summary-audio-only">
-                          Audio-only visit (no text transcription).
+                          {t('audioOnlyVisit')}
                         </div>
                       )}
                     </div>
@@ -430,22 +433,22 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
               ) : (
                 <div className="history-edit-form">
                   <div className="history-edit-row">
-                    <label className="history-edit-label">Type</label>
+                    <label className="history-edit-label">{t('historyType')}</label>
                     <select
                       className="history-edit-input"
                       value={draft?.type || "note"}
                       onChange={(e) => handleDraftChange("type", e.target.value)}
                     >
-                      <option value="transcription">Transcription</option>
-                      <option value="session">Session</option>
-                      <option value="note">Note</option>
-                      <option value="careplan">CarePlan</option>
-                      <option value="report">Report</option>
+                      <option value="transcription">{t('historyTypeTranscription')}</option>
+                      <option value="session">{t('historyTypeSession')}</option>
+                      <option value="note">{t('historyTypeNote')}</option>
+                      <option value="careplan">{t('historyTypeCarePlan')}</option>
+                      <option value="report">{t('historyTypeReport')}</option>
                     </select>
                   </div>
 
                   <div className="history-edit-row">
-                    <label className="history-edit-label">Date</label>
+                    <label className="history-edit-label">{t('historyDate')}</label>
                     <input
                       className="history-edit-input"
                       type="date"
@@ -466,19 +469,19 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                   </div>
 
                   <div className="history-edit-row">
-                    <label className="history-edit-label">Summary</label>
+                    <label className="history-edit-label">{t('historySummary')}</label>
                     <textarea
                       className="history-edit-textarea"
                       value={draft?.summary || ""}
                       onChange={(e) => handleDraftChange("summary", e.target.value)}
                       onBlur={() => handleDraftBlurCapitalize("summary")}
-                      placeholder="Summary"
+                      placeholder={t('historySummaryPlaceholder')}
                       rows={3}
                     />
                   </div>
 
                   <div className="history-edit-row">
-                    <label className="history-edit-label">Audio URL</label>
+                    <label className="history-edit-label">{t('historyAudioUrl')}</label>
                     <input
                       className="history-edit-input"
                       value={draft?.audioUrl || ""}
@@ -488,7 +491,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                   </div>
 
                   <div className="history-edit-row">
-                    <label className="history-edit-label">Audio ID</label>
+                    <label className="history-edit-label">{t('historyAudioId')}</label>
                     <input
                       className="history-edit-input"
                       value={draft?.audioId || ""}

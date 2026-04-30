@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./PatientDocuments.css";
+import { useLanguage } from "../i18n/LanguageContext";
 import {
   addDocument,
   deleteDocument,
@@ -44,6 +45,7 @@ function kindIcon(kind) {
 function DocPreviewModal({ doc, onClose }) {
   const [url, setUrl] = useState(null);
   const kind = inferDocKind(doc);
+  const { t } = useLanguage();
 
   useEffect(() => {
     let objectUrl = null;
@@ -86,7 +88,7 @@ function DocPreviewModal({ doc, onClose }) {
             type="button"
             className="doc-modal-close"
             onClick={onClose}
-            aria-label="Close preview"
+            aria-label={t('closePreview')}
           >
             ✕
           </button>
@@ -107,7 +109,7 @@ function DocPreviewModal({ doc, onClose }) {
 
           {(kind === "docx" || kind === "file") && (
             <p className="doc-modal-unavailable">
-              Preview not available for this file type.
+              {t('previewNotAvailable')}
             </p>
           )}
 
@@ -126,6 +128,7 @@ export default function PatientDocuments({ patientKey }) {
   const [error, setError] = useState("");
   const [previewDoc, setPreviewDoc] = useState(null);
   const fileInputRef = useRef(null);
+  const { t } = useLanguage();
 
   const refresh = useCallback(() => {
     if (!patientKey) return;
@@ -142,7 +145,7 @@ export default function PatientDocuments({ patientKey }) {
     if (!file) return;
 
     if (!isSupportedDocumentFile(file)) {
-      setError("Unsupported file type. Please upload a PDF, PNG, JPG or DOCX.");
+      setError(t('unsupportedFileType'));
       return;
     }
 
@@ -157,7 +160,7 @@ export default function PatientDocuments({ patientKey }) {
   };
 
   const handleDelete = async (docId) => {
-    const ok = window.confirm("Delete this document?");
+    const ok = window.confirm(t('deleteDocumentConfirm'));
     if (!ok) return;
     await deleteDocument(docId);
     refresh();
@@ -178,7 +181,7 @@ export default function PatientDocuments({ patientKey }) {
     return (
       <div className="doc-surface">
         <p className="doc-empty">
-          Sync patient to Medplum to enable Documents.
+          {t('syncPatientForDocuments')}
         </p>
       </div>
     );
@@ -188,7 +191,7 @@ export default function PatientDocuments({ patientKey }) {
     <div className="doc-surface">
       <div className="doc-toolbar">
         <label className="doc-upload-btn">
-          {uploading ? "Uploading…" : "Upload document"}
+          {uploading ? t('uploading') : t('uploadDocument')}
           <input
             ref={fileInputRef}
             type="file"
@@ -203,7 +206,7 @@ export default function PatientDocuments({ patientKey }) {
       {error && <p className="doc-error">{error}</p>}
 
       {docs.length === 0 ? (
-        <p className="doc-empty">No documents uploaded yet.</p>
+        <p className="doc-empty">{t('noDocuments')}</p>
       ) : (
         <ul className="doc-list">
           {docs.map((doc) => {
@@ -229,7 +232,7 @@ export default function PatientDocuments({ patientKey }) {
                     className="doc-action-btn"
                     onClick={() => setPreviewDoc(doc)}
                   >
-                    Preview
+                    {t('preview')}
                   </button>
 
                   <button
