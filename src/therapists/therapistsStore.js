@@ -235,7 +235,7 @@ async function upsertToSupabase(t) {
   if (!payload) throw new Error("Therapist ID number must be 9 digits.");
 
   if (!payload.username) throw new Error("Username is required to save therapist.");
-  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "username" });
+  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "national_id" });
   if (error) {
     setLastError(error.message || "Failed to save to cloud.");
     throw error;
@@ -408,7 +408,7 @@ export async function bootstrapAdminIfNeeded() {
         full_name: 'System Admin',
         national_id: '000000000',
       },
-      { onConflict: 'username' }
+      { onConflict: 'national_id' }
     );
     if (error) console.warn('[bootstrap] admin upsert skipped:', error.message);
   } catch {
