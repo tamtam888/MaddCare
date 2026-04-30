@@ -213,8 +213,8 @@ function isValidAddress(value) {
   const v = normalizeString(value);
   if (!v) return true;
   if (v.length < 6) return false;
-  const hasLetter = /[A-Za-z]/.test(v);
-  const hasNumber = /\d/.test(v);
+  const hasLetter = /\p{L}/u.test(v);
+  const hasNumber = /\p{N}/u.test(v);
   return hasLetter && hasNumber;
 }
 
