@@ -341,3 +341,6 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
       ) : (
         <div className="careplan-empty">{t('noCarePlanDraft')}</div>
       )}
+    </div>
+  );
+}
