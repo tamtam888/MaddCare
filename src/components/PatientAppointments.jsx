@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAppointments } from "../appointments/useAppointments";
 import { formatDateTimeDMY } from "../utils/dateFormat";
+import { useLanguage } from "../i18n/LanguageContext";
 import "./PatientAppointments.css";
 
 function digitsOnly(value) {
@@ -23,6 +24,7 @@ export default function PatientAppointments({
   onOpenAppointment,
   previousLimit = 3,
 }) {
+  const { t } = useLanguage();
   const { appointments, loading } = useAppointments();
   const patientId = digitsOnly(patient?.idNumber);
 
@@ -51,13 +53,13 @@ export default function PatientAppointments({
 
   return (
     <section className="pa">
-      {loading ? <div className="pa-loading">Loading…</div> : null}
+      {loading ? <div className="pa-loading">{t('loading')}</div> : null}
 
       <div className="pa-section">
-        <div className="pa-section-title">Next</div>
+        <div className="pa-section-title">{t('appointmentsNext')}</div>
 
         {!nextAppointment ? (
-          <div className="pa-empty">No upcoming appointment.</div>
+          <div className="pa-empty">{t('noUpcomingAppointments')}</div>
         ) : (
           <button
             type="button"
@@ -70,10 +72,10 @@ export default function PatientAppointments({
       </div>
 
       <div className="pa-section">
-        <div className="pa-section-title">Previous</div>
+        <div className="pa-section-title">{t('appointmentsPrevious')}</div>
 
         {previousAppointments.length === 0 ? (
-          <div className="pa-empty">No previous appointments.</div>
+          <div className="pa-empty">{t('noPreviousAppointments')}</div>
         ) : (
           <ul className="pa-list">
             {previousAppointments.map((a) => (

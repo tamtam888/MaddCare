@@ -86,13 +86,13 @@ function getPatientId(patient, fallbackId) {
     .trim();
 }
 
-function buildEventTitle(patient, appointment) {
+function buildEventTitle(patient, appointment, t) {
   const name = getPatientFullName(patient);
   const id = getPatientId(patient, appointment?.patientId);
   if (name && id) return `${name} · ${id}`;
   if (name) return name;
   if (id) return `Patient · ${id}`;
-  return "Appointment";
+  return t('appointment');
 }
 
 function hashToIndex(str, modulo) {
@@ -147,13 +147,13 @@ function hasTherapistConflict(allAppointments, candidate, ignoreId = null) {
   });
 }
 
-function getTherapistNameById(map, id) {
+function getTherapistNameById(map, id, t) {
   const key = String(id || "").trim();
-  if (!key) return "another therapist";
+  if (!key) return t('anotherTherapist');
   return map.get(key) || key;
 }
 
-function checkPatientSameDayAndOverlap({ allAppointments, candidate, ignoreId = null, therapistNameById }) {
+function checkPatientSameDayAndOverlap({ allAppointments, candidate, ignoreId = null, therapistNameById, t }) {
   const patientId = digitsOnly(candidate?.patientId);
   const therapistId = String(candidate?.therapistId || "").trim();
   if (!patientId || !therapistId) return { ok: true, warned: false };
@@ -171,21 +171,21 @@ function checkPatientSameDayAndOverlap({ allAppointments, candidate, ignoreId = 
 
   const overlapHit = others.find((a) => overlaps(a.start, a.end, candidate.start, candidate.end));
   if (overlapHit) {
-    const otherName = getTherapistNameById(therapistNameById, overlapHit.therapistId);
+    const otherName = getTherapistNameById(therapistNameById, overlapHit.therapistId, t);
     return {
       ok: false,
       warned: false,
-      reason: `Cannot create/update: this patient already has an appointment at the same time with ${otherName}.`,
+      reason: t('sameTimePatientConflict').replace('{{therapist}}', otherName),
     };
   }
 
   const sameDayHit = others.find((a) => sameDay(a.start, candidate.start));
   if (sameDayHit) {
     const dmy = formatDMY(candidate.start);
-    const otherName = getTherapistNameById(therapistNameById, sameDayHit.therapistId);
-    const msg = `Warning: this patient already has an appointment on ${dmy} with ${otherName}.\n\nDo you want to continue?`;
+    const otherName = getTherapistNameById(therapistNameById, sameDayHit.therapistId, t);
+    const msg = t('sameDayPatientWarning').replace('{{date}}', dmy).replace('{{therapist}}', otherName);
     const ok = window.confirm(msg);
-    if (!ok) return { ok: false, warned: true, reason: "Cancelled by user." };
+    if (!ok) return { ok: false, warned: true, reason: t('cancelledByUser') };
     return { ok: true, warned: true };
   }
 
@@ -406,7 +406,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
 
       return {
         id: a.id,
-        title: buildEventTitle(patient, a),
+        title: buildEventTitle(patient, a, t),
         start: a.start,
         end: a.end,
         extendedProps: {
@@ -416,15 +416,15 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
         },
       };
     });
-  }, [visibleAppointments, patientsById, currentTherapistId]);
+  }, [visibleAppointments, patientsById, currentTherapistId, t]);
 
   const getLabel = useMemo(() => {
     return (apptLike) => {
       const pid = digitsOnly(apptLike?.patientId);
       const patient = pid ? patientsById.get(pid) : null;
-      return buildEventTitle(patient, apptLike);
+      return buildEventTitle(patient, apptLike, t);
     };
-  }, [patientsById]);
+  }, [patientsById, t]);
 
   useEffect(() => {
     if (!appointments) return;
@@ -503,7 +503,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     const { start, end } = getDefaultSlot();
 
     if (!isRangeWithinClinicHours(start, end)) {
-      alert("Appointments can only be created during clinic hours (07:00–22:00).");
+      alert(t('clinicHoursError'));
       return;
     }
 
@@ -554,7 +554,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     };
 
     if (hasTherapistConflict(appointments, candidate, info.event.id)) {
-      alert("This time is not available for the selected therapist (double booking).");
+      alert(t('doubleBookingError'));
       info.revert();
       return;
     }
@@ -564,10 +564,11 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
       candidate,
       ignoreId: info.event.id,
       therapistNameById,
+      t,
     });
 
     if (!patientCheck.ok) {
-      if (patientCheck.reason && patientCheck.reason !== "Cancelled by user.") alert(patientCheck.reason);
+      if (patientCheck.reason && patientCheck.reason !== t('cancelledByUser')) alert(patientCheck.reason);
       info.revert();
       return;
     }
@@ -604,7 +605,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     };
 
     if (hasTherapistConflict(appointments, candidate, info.event.id)) {
-      alert("This time is not available for the selected therapist (double booking).");
+      alert(t('doubleBookingError'));
       info.revert();
       return;
     }
@@ -614,10 +615,11 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
       candidate,
       ignoreId: info.event.id,
       therapistNameById,
+      t,
     });
 
     if (!patientCheck.ok) {
-      if (patientCheck.reason && patientCheck.reason !== "Cancelled by user.") alert(patientCheck.reason);
+      if (patientCheck.reason && patientCheck.reason !== t('cancelledByUser')) alert(patientCheck.reason);
       info.revert();
       return;
     }
@@ -635,14 +637,14 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     const e = new Date(values.end);
 
     if (!isRangeWithinClinicHours(s, e)) {
-      alert("Appointments can only be saved during clinic hours (07:00–22:00).");
+      alert(t('clinicHoursError'));
       return;
     }
 
     const therapistIdLocal = isAdmin ? String(values.therapistId || "").trim() : String(currentTherapistId || "").trim();
 
     if (isAdmin && !therapistIdLocal) {
-      alert("Therapist is required.");
+      alert(t('therapistRequired'));
       return;
     }
 
@@ -656,7 +658,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     const ignoreId = drawerMode === "edit" ? activeId : null;
 
     if (hasTherapistConflict(appointments, candidate, ignoreId)) {
-      alert("This time is not available for the selected therapist (double booking).");
+      alert(t('doubleBookingError'));
       return;
     }
 
@@ -665,10 +667,11 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
       candidate,
       ignoreId,
       therapistNameById,
+      t,
     });
 
     if (!patientCheck.ok) {
-      if (patientCheck.reason && patientCheck.reason !== "Cancelled by user.") alert(patientCheck.reason);
+      if (patientCheck.reason && patientCheck.reason !== t('cancelledByUser')) alert(patientCheck.reason);
       return;
     }
 
@@ -697,7 +700,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
     if (syncing) return;
 
     if (!medplum.isAuthenticated()) {
-      alert("Not connected to Medplum. Please connect first.");
+      alert(t('notConnectedMedplum'));
       return;
     }
 
@@ -734,10 +737,10 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
 
       await refresh();
 
-      if (errorCount === 0) alert(`Successfully synced ${successCount} appointments!`);
-      else alert(`Synced ${successCount} appointments. ${errorCount} failed.`);
+      if (errorCount === 0) alert(t('syncSuccess').replace('{{count}}', successCount));
+      else alert(t('syncPartial').replace('{{success}}', successCount).replace('{{failed}}', errorCount));
     } catch (err) {
-      alert(`Sync failed: ${err?.message || "Unknown error"}`);
+      alert(t('syncFailed').replace('{{error}}', err?.message || 'Unknown error'));
     } finally {
       setSyncing(false);
     }
@@ -760,8 +763,8 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
         list.push({
           id: "sync-errors",
           type: "error",
-          title: "Sync issues",
-          message: `${failed.length} appointment(s) failed to sync.`,
+          title: t('syncIssuesTitle'),
+          message: t('syncIssuesMessage').replace('{{count}}', failed.length),
         });
       }
 
@@ -769,8 +772,8 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
         list.push({
           id: "sync-pending",
           type: "info",
-          title: "Pending sync",
-          message: `${pending.length} appointment(s) pending sync.`,
+          title: t('pendingSyncTitle'),
+          message: t('pendingSyncMessage').replace('{{count}}', pending.length),
         });
       }
 
@@ -778,8 +781,8 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
         list.push({
           id: "system-ok",
           type: "success",
-          title: "System",
-          message: "No sync issues detected.",
+          title: t('systemTitle'),
+          message: t('noSyncIssues'),
         });
       }
 
@@ -798,23 +801,23 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
       list.push({
         id: "daily-summary",
         type: "info",
-        title: "Today",
+        title: t('todayTitle'),
         message: firstTime
-          ? `You have ${count} appointment(s). First at ${firstTime}.`
-          : `You have ${count} appointment(s) today.`,
+          ? t('todayAppointments').replace('{{count}}', count) + ' ' + t('todayFirst').replace('{{time}}', firstTime)
+          : t('todayAppointments').replace('{{count}}', count),
       });
     } else {
       list.push({
         id: "daily-empty",
         type: "success",
-        title: "Today",
-        message: "No appointments today.",
+        title: t('todayTitle'),
+        message: t('noAppointmentsToday'),
       });
     }
 
     const merged = [...medplumNotifs, ...storedNotifications, ...list];
     return merged.filter((n) => n && !dismissedNotifs.includes(n.id));
-  }, [isAdmin, visibleAppointments, dismissedNotifs, storedNotifications, medplumNotifs]);
+  }, [isAdmin, visibleAppointments, dismissedNotifs, storedNotifications, medplumNotifs, t]);
 
   const notifCount = notifications.length;
 
@@ -878,7 +881,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
 
       const patientIdLocal = String(appointment.patientId || "").replace(/\D/g, "").trim();
       if (!patientIdLocal) {
-        alert("No patient ID found for this appointment.");
+        alert(t('noPatientId'));
         return;
       }
       navigate(`/patients/${patientIdLocal}`);
@@ -1017,7 +1020,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
               center: "title",
               right: "timeGridWeek,timeGridDay,dayGridMonth",
             }}
-            buttonText={{ today: "today", week: "week", day: "day", month: "month" }}
+            buttonText={{ today: t('calendarToday'), week: t('calendarWeek'), day: t('calendarDay'), month: t('calendarMonth') }}
             titleFormat={{ year: "numeric", month: "2-digit", day: "2-digit" }}
             dayHeaderFormat={{ weekday: "short", day: "2-digit", month: "2-digit" }}
             slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}

@@ -5,6 +5,7 @@ import { appointmentInputSchema, AppointmentStatus } from "./appointmentSchema";
 import { toISODateTimeLocalInput, fromISODateTimeLocalInput } from "../utils/dateFormat";
 import { capitalizeWords, isProbablyId, capitalizeSentences } from "../utils/textFormatters";
 import "./AppointmentDrawer.css";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -78,7 +79,7 @@ function looksLikeId(input) {
   return allDigits || d.length >= 5;
 }
 
-function resolvePatient(list, input) {
+function resolvePatient(list, input, t) {
   const raw = normalize(input);
   const d = digitsOnly(raw);
 
@@ -90,7 +91,7 @@ function resolvePatient(list, input) {
       kind: "id",
       patient: match,
       idNumber: match ? getPatientIdNumber(match) : d,
-      message: match ? null : "Patient not found. Enter a valid ID.",
+      message: match ? null : t('patientNotFoundDrawer'),
     };
   }
 
@@ -103,10 +104,10 @@ function resolvePatient(list, input) {
   }
 
   if (matches.length > 1) {
-    return { kind: "ambiguous", patient: null, idNumber: "", message: "Multiple matches. Enter the patient's ID." };
+    return { kind: "ambiguous", patient: null, idNumber: "", message: t('multipleMatches') };
   }
 
-  return { kind: "not_found", patient: null, idNumber: "", message: "Patient not found. Enter a valid ID." };
+  return { kind: "not_found", patient: null, idNumber: "", message: t('patientNotFoundDrawer') };
 }
 
 function buildSuggestions(list, query) {
@@ -149,10 +150,11 @@ export default function AppointmentDrawer({
   therapistOptions = [],
   therapists = [],
 }) {
+  const { t } = useLanguage();
   const list = Array.isArray(patients) ? patients : [];
   const safeTherapists = Array.isArray(therapistOptions) ? therapistOptions : [];
   const activeTherapists = Array.isArray(therapists)
-    ? therapists.filter((t) => t.active !== false)
+    ? therapists.filter((th) => th.active !== false)
     : [];
 
   const form = useForm({
@@ -188,7 +190,7 @@ export default function AppointmentDrawer({
 
   const [query, setQuery] = useState("");
 
-  const resolution = useMemo(() => resolvePatient(list, query), [list, query]);
+  const resolution = useMemo(() => resolvePatient(list, query, t), [list, query, t]);
   const suggestions = useMemo(() => buildSuggestions(list, query), [list, query]);
 
   const datalistId = "mc-patient-datalist";
@@ -286,7 +288,7 @@ export default function AppointmentDrawer({
     const pid = digitsOnly(values.patientId);
 
     if (!pid || !resolution.patient) {
-      setError("patientId", { type: "manual", message: resolution.message || "Patient is required." });
+      setError("patientId", { type: "manual", message: resolution.message || t('patientRequired') });
       return;
     }
 
@@ -295,7 +297,7 @@ export default function AppointmentDrawer({
       : String(currentTherapistId || values.therapistId || "").trim();
 
     if (isAdmin && !therapistId) {
-      setError("therapistId", { type: "manual", message: "Therapist is required." });
+      setError("therapistId", { type: "manual", message: t('therapistRequired') });
       return;
     }
 
@@ -317,8 +319,8 @@ export default function AppointmentDrawer({
       <aside className="mc-drawer" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
         <header className="mc-drawer-header">
           <div className="mc-drawer-titlewrap">
-            <h2 className="mc-drawer-title">{mode === "edit" ? "Edit appointment" : "Add appointment"}</h2>
-            <p className="mc-drawer-subtitle">Schedule and manage treatments in your calendar.</p>
+            <h2 className="mc-drawer-title">{mode === "edit" ? t('editAppointment') : t('addAppointment')}</h2>
+            <p className="mc-drawer-subtitle">{t('scheduleManage')}</p>
           </div>
 
           <button type="button" className="mc-drawer-close" onClick={onClose}>
@@ -329,10 +331,10 @@ export default function AppointmentDrawer({
         <form className="mc-drawer-body" onSubmit={handleSubmit(submit)}>
           <div className="mc-field">
             <div className="mc-field-row">
-              <label className="mc-label">Patient</label>
+              <label className="mc-label">{t('patient')}</label>
               {(query || patientIdValue) && (
                 <button type="button" className="mc-field-clear" onClick={clearPatient}>
-                  Clear
+                  {t('clear')}
                 </button>
               )}
             </div>
@@ -342,7 +344,7 @@ export default function AppointmentDrawer({
             <div className="mc-combobox">
               <input
                 className="mc-input"
-                placeholder="Type name or ID…"
+                {...{placeholder: t('typeNameOrId')}}
                 value={query}
                 autoComplete="off"
                 list={datalistId}
@@ -356,7 +358,7 @@ export default function AppointmentDrawer({
               </datalist>
 
               {showLinked ? (
-                <div className="mc-combobox-empty">Linked: {getPatientLabel(resolution.patient)}</div>
+                <div className="mc-combobox-empty">{t('linked')}: {getPatientLabel(resolution.patient)}</div>
               ) : resolution.message ? (
                 <div className="mc-combobox-empty">{resolution.message}</div>
               ) : null}
@@ -367,7 +369,7 @@ export default function AppointmentDrawer({
 
           <div className="mc-grid2">
             <div className="mc-field">
-              <label className="mc-label">Start</label>
+              <label className="mc-label">{t('start')}</label>
               <input
                 className="mc-input"
                 type="datetime-local"
@@ -379,7 +381,7 @@ export default function AppointmentDrawer({
             </div>
 
             <div className="mc-field">
-              <label className="mc-label">End</label>
+              <label className="mc-label">{t('end')}</label>
               <input
                 className="mc-input"
                 type="datetime-local"
@@ -393,7 +395,7 @@ export default function AppointmentDrawer({
 
           <div className="mc-grid2">
             <div className="mc-field">
-              <label className="mc-label">Therapist</label>
+              <label className="mc-label">{t('therapist')}</label>
 
               {therapists.length > 0 ? (
                 <select
@@ -402,27 +404,27 @@ export default function AppointmentDrawer({
                   disabled={activeTherapists.length === 0}
                 >
                   <option value="">
-                    {activeTherapists.length === 0 ? "No therapists available" : "Select therapist…"}
+                    {activeTherapists.length === 0 ? t('noTherapists') : t('selectTherapist')}
                   </option>
-                  {activeTherapists.map((t) => (
-                    <option key={t.idNumber} value={t.idNumber}>
-                      {t.fullName}
+                  {activeTherapists.map((th) => (
+                    <option key={th.idNumber} value={th.idNumber}>
+                      {th.fullName}
                     </option>
                   ))}
                 </select>
               ) : isAdmin ? (
                 <select className="mc-input" {...register("therapistId", { required: true })} disabled={therapistsEmpty}>
-                  <option value="">{therapistsEmpty ? "No therapists available" : "Select therapist…"}</option>
-                  {safeTherapists.map((t) => (
-                    <option key={String(t.value)} value={String(t.value)}>
-                      {String(t.label)}
+                  <option value="">{therapistsEmpty ? t('noTherapists') : t('selectTherapist')}</option>
+                  {safeTherapists.map((th) => (
+                    <option key={String(th.value)} value={String(th.value)}>
+                      {String(th.label)}
                     </option>
                   ))}
                 </select>
               ) : (
                 <>
                   <input className="mc-input" {...register("therapistId")} disabled />
-                  <p className="mc-combobox-empty">Therapists unavailable — cloud sync may be offline.</p>
+                  <p className="mc-combobox-empty">{t('therapistsUnavailable')}</p>
                 </>
               )}
 
@@ -430,23 +432,23 @@ export default function AppointmentDrawer({
             </div>
 
             <div className="mc-field">
-              <label className="mc-label">Status</label>
+              <label className="mc-label">{t('status')}</label>
               <select className="mc-input" {...register("status")}>
-                <option value={AppointmentStatus.scheduled}>Scheduled</option>
-                <option value={AppointmentStatus.completed}>Completed</option>
-                <option value={AppointmentStatus.cancelled}>Cancelled</option>
+                <option value={AppointmentStatus.scheduled}>{t('scheduled')}</option>
+                <option value={AppointmentStatus.completed}>{t('completed')}</option>
+                <option value={AppointmentStatus.cancelled}>{t('cancelled')}</option>
               </select>
             </div>
           </div>
 
           <div className="mc-field">
-            <label className="mc-label">Notes</label>
+            <label className="mc-label">{t('notes')}</label>
             <textarea className="mc-textarea" rows={4} {...register("notes")} onBlur={handleNotesBlur} />
           </div>
 
           {showLinked && resolution.patient && (
             <div className="mc-video-section">
-              <span className="mc-video-label">Video workflow</span>
+              <span className="mc-video-label">{t('videoWorkflow')}</span>
               <div className="mc-video-buttons">
                 <button
                   type="button"
@@ -454,7 +456,7 @@ export default function AppointmentDrawer({
                   onClick={() => openVideo(resolution.patient, "intake", currentTherapistId)}
                   title="Open intake video for this patient"
                 >
-                  🎥 Intake Video
+                  {t('intakeVideo')}
                 </button>
                 <button
                   type="button"
@@ -462,7 +464,7 @@ export default function AppointmentDrawer({
                   onClick={() => openVideo(resolution.patient, "progress", currentTherapistId)}
                   title="Open progress comparison for this patient"
                 >
-                  📊 Progress
+                  📊 {t('progress')}
                 </button>
               </div>
             </div>
@@ -476,7 +478,7 @@ export default function AppointmentDrawer({
                 onClick={onDelete}
                 disabled={loading || isSubmitting}
               >
-                Delete
+                {t('delete')}
               </button>
             ) : (
               <span />
@@ -484,10 +486,10 @@ export default function AppointmentDrawer({
 
             <div className="mc-drawer-footer-actions">
               <button type="button" className="mc-button" onClick={onClose}>
-                Cancel
+                {t('cancel')}
               </button>
               <button type="submit" className="mc-button mc-button--primary" disabled={loading || isSubmitting}>
-                {mode === "edit" ? "Save changes" : "Create appointment"}
+                {mode === "edit" ? t('saveChanges') : t('createAppointment')}
               </button>
             </div>
           </footer>
