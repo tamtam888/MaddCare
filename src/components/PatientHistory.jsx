@@ -297,7 +297,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
             <option value="session">{t('historySessions')}</option>
             <option value="note">{t('historyNotes')}</option>
             <option value="careplan">{t('historyCarePlans')}</option>
-            <option value="report">Reports</option>
+            <option value="report">{t('historyReports')}</option>
           </select>
 
           <div className="history-search-wrapper">
@@ -355,7 +355,14 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                     className="history-select-circle"
                   />
 
-                  <span className={getTypeClass(entry?.type)}>{formatType(entry?.type)}</span>
+                  <span className={getTypeClass(entry?.type)}>{({
+                      transcription: t('historyTypeTranscription'),
+                      session: t('historyTypeSession'),
+                      note: t('historyTypeNote'),
+                      careplan: t('historyTypeCarePlan'),
+                      'care plan': t('historyTypeCarePlan'),
+                      report: t('historyTypeReport'),
+                    })[normalizeType(entry?.type)] || formatType(entry?.type)}</span>
                   <span className="history-meta-separator">•</span>
                   <span className="history-meta-date" dir="ltr">
                     {formatDateDMY(entry?.date)}
