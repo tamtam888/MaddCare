@@ -18,7 +18,7 @@
 }
 
 .users-table thead th {
-  text-align: left;
+  text-align: center;
   font-size: 0.8rem;
   font-weight: 700;
   color: #374151;
@@ -33,6 +33,12 @@
   color: #111827;
   vertical-align: middle;
   font-size: 0.9rem;
+  text-align: center;
+}
+
+.users-table thead th.users-name-col,
+.users-table tbody td.users-main-cell {
+  text-align: start;
 }
 
 .users-table tbody tr:hover td {
@@ -41,12 +47,12 @@
 
 .users-actions-col {
   width: 140px;
-  text-align: right;
+  text-align: center;
 }
 
 .users-row-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.5rem;
 }
 
@@ -86,6 +92,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  justify-content: center;
 }
 
 .users-chip {

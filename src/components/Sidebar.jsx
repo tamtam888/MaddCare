@@ -8,6 +8,7 @@ import {
   Mic,
   LogOut,
   Clapperboard,
+  Settings,
 } from "lucide-react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -96,6 +97,11 @@ function Sidebar() {
         <NavLink to="/data/appointment" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
           <span className="sidebar-link-icon"><CalendarDays size={18} /></span>
           <span className="sidebar-link-label">{t('appointments')}</span>
+        </NavLink>
+
+        <NavLink to="/settings" className={({ isActive }) => "sidebar-link" + (isActive ? " sidebar-link-active" : "")}>
+          <span className="sidebar-link-icon"><Settings size={18} /></span>
+          <span className="sidebar-link-label">{t('settings')}</span>
         </NavLink>
       </nav>
 

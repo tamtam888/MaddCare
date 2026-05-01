@@ -256,7 +256,7 @@ function normalizeStatus(value) {
 export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }) {
   const navigate = useNavigate();
   const { isAdmin, therapistId } = useAuthContext();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { appointments, loading, addAppointment, updateAppointment, deleteAppointment, refresh } = useAppointments();
 
   const [therapists, setTherapists] = useState([]);
@@ -1023,6 +1023,14 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
             buttonText={{ today: t('calendarToday'), week: t('calendarWeek'), day: t('calendarDay'), month: t('calendarMonth') }}
             titleFormat={{ year: "numeric", month: "2-digit", day: "2-digit" }}
             dayHeaderFormat={{ weekday: "short", day: "2-digit", month: "2-digit" }}
+            views={{ dayGridMonth: { dayHeaderFormat: { weekday: 'short' } } }}
+            dayHeaderContent={(arg) => {
+              if (lang !== 'he') return arg.text;
+              const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+              const label = t('dayAbbr_' + days[arg.date.getDay()]);
+              const dateOnly = arg.text.replace(/^[A-Za-z]+\s*/, '');
+              return dateOnly ? label + ' ' + dateOnly : label;
+            }}
             slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
             eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
             nowIndicator
