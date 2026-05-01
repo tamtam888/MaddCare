@@ -703,7 +703,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
         <table className="users-table" role="table">
           <thead>
             <tr>
-              <th>{t('colName')}</th>
+              <th className="users-name-col">{t('colName')}</th>
               <th>{t('colUsername')}</th>
               <th>{t('colWorkDays')}</th>
               <th>{t('colStatus')}</th>
@@ -736,7 +736,7 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
                       {normalizeWorkDays(usr.workDays).length ? (
                         normalizeWorkDays(usr.workDays).map((d) => (
                           <span key={`${usr.id}-${d}`} className="users-chip">
-                            {d}
+                            {t('dayAbbr_' + d)}
                           </span>
                         ))
                       ) : (
