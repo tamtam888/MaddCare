@@ -12,6 +12,7 @@ import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
 import TreatmentPage from "./pages/TreatmentPage";
 import MediaPage from "./pages/MediaPage";
+import SettingsPage from "./pages/SettingsPage";
 import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
@@ -349,7 +350,7 @@ function App() {
 
             <Route
               path="/settings"
-              element={<RequireAuth element={<SimplePage title="Settings" text="Application settings." />} />}
+              element={<RequireAuth element={<SettingsPage />} />}
             />
 
             <Route path="*" element={<Navigate to={loggedIn ? "/patients" : "/login"} replace />} />

@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./RecordAudio.css";
 import { saveAudioBlob, deleteAudioBlob } from "../utils/audioStorage";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function pickMimeType() {
   const types = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/ogg"];
@@ -108,6 +109,7 @@ async function improveTranscriptionViaServer(text, { signal } = {}) {
 }
 
 export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
+  const { t } = useLanguage();
   const [isRecording, setIsRecording] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
@@ -474,7 +476,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
             onClick={handleClear}
             disabled={!transcription && !audioId}
           >
-            Clear
+            {t('clear')}
           </button>
         </div>
       </div>

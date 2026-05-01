@@ -535,7 +535,7 @@ function AttachReports({
           onClick={clearReportOnly}
           disabled={!canUseReport}
         >
-          Clear
+          {t('clear')}
         </button>
       </div>
 
