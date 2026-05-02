@@ -153,3 +153,39 @@
 .login-password-toggle:hover {
   color: rgba(17, 24, 39, 0.85);
 }
+
+.login-lang-toggle {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.login-lang-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(17, 24, 39, 0.45);
+  padding: 2px 5px;
+  border-radius: 6px;
+  transition: color 0.12s ease;
+}
+
+.login-lang-btn:hover {
+  color: rgba(17, 24, 39, 0.78);
+}
+
+.login-lang-btn.active {
+  color: #7c3aed;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-lang-sep {
+  color: rgba(17, 24, 39, 0.25);
+  font-size: 13px;
+  user-select: none;
+}

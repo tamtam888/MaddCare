@@ -24,7 +24,7 @@ function digitsOnly(value) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
 
   useEffect(() => {
     bootstrapAdminIfNeeded();
@@ -102,6 +102,24 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
+        <div className="login-lang-toggle">
+          <button
+            type="button"
+            className={`login-lang-btn${lang === 'en' ? ' active' : ''}`}
+            onClick={() => setLang('en')}
+          >
+            English
+          </button>
+          <span className="login-lang-sep" aria-hidden="true">|</span>
+          <button
+            type="button"
+            className={`login-lang-btn${lang === 'he' ? ' active' : ''}`}
+            onClick={() => setLang('he')}
+          >
+            עברית
+          </button>
+        </div>
+
         <div className="login-logo-wrap" aria-hidden="true">
           <div className="login-logo-ring">
             <img src="/icon.png" alt="MedicalCare" className="login-logo" />
@@ -154,7 +172,7 @@ export default function LoginPage() {
           {error ? <div className="login-error">{error}</div> : null}
 
           <button type="submit" className="login-submit" disabled={!canSubmit}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {submitting ? t('signingIn') : t('signIn')}
           </button>
         </form>
       </div>
