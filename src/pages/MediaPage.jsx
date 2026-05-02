@@ -9,7 +9,10 @@ const MEDIA_APP_BASE_URL =
 function buildVideoUrl(patient, mode, therapistId, allPatients, lang) {
   const base = MEDIA_APP_BASE_URL;
   if (!patient) {
-    return `${base}/patients`;
+    const params = new URLSearchParams();
+    if (lang) params.set('lang', lang);
+    const qs = params.toString();
+    return `${base}/patients${qs ? `?${qs}` : ''}`;
   }
 
   const patientId = patient.idNumber || patient.id || patient.medplumId || "";
