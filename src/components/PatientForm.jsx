@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./PatientForm.css";
 import { formatDateDMY } from "../utils/dateFormat";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const defaultValues = {
   idNumber: "",
@@ -118,6 +119,7 @@ function normalizeInitialValues(initialValues) {
 }
 
 function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
+  const { t } = useLanguage();
   const [values, setValues] = useState(defaultValues);
   const [errors, setErrors] = useState({});
 
@@ -163,29 +165,29 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
     const phone = (v.phone || "").trim();
     const email = (v.email || "").trim();
 
-    if (!id) e.idNumber = "ID number is required.";
-    else if (!/^\d{9}$/.test(id)) e.idNumber = "ID number must be 9 digits.";
+    if (!id) e.idNumber = t('errIdRequired');
+    else if (!/^\d{9}$/.test(id)) e.idNumber = t('errIdFormat');
 
-    if (!fn) e.firstName = "First name is required.";
-    if (!ln) e.lastName = "Last name is required.";
+    if (!fn) e.firstName = t('errFirstNameRequired');
+    if (!ln) e.lastName = t('errLastNameRequired');
 
-    if (!phone) e.phone = "Phone number is required.";
+    if (!phone) e.phone = t('errPhoneRequired');
     else {
       const digits = phone.replace(/\D/g, "");
       if (digits.length < 7 || digits.length > 15) {
-        e.phone = "Phone must contain 7–15 digits.";
+        e.phone = t('errPhoneFormat');
       }
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      e.email = "Email format is invalid.";
+      e.email = t('errEmailFormat');
     }
 
     const dobISO = v.dob || parseDMYToISODateOnly(v.dobText);
     if (v.dobText && !dobISO) {
-      e.dob = "Date of birth must be DD/MM/YYYY.";
+      e.dob = t('errDobFormat');
     } else if (dobISO && dobISO > todayISO) {
-      e.dob = "Date of birth cannot be in the future.";
+      e.dob = t('errDobFuture');
     }
 
     setErrors(e);
@@ -246,7 +248,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
       <div className="modal-container">
         <div className="modal-header">
           <h2 className="modal-title">
-            {initialValues ? "Edit Patient" : "New Patient Registration"}
+            {initialValues ? t('editPatient') : t('newPatientRegistration')}
           </h2>
           <button
             type="button"
@@ -259,14 +261,14 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
         </div>
 
         {Object.keys(errors).length > 0 && (
-          <div className="form-error">Please fix the highlighted fields.</div>
+          <div className="form-error">{t('formError')}</div>
         )}
 
         <form className="patient-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className={`form-field ${errors.idNumber ? "has-error" : ""}`}>
               <label>
-                ID Number <span className="required-marker">*</span>
+                {t('idNumber')} <span className="required-marker">*</span>
               </label>
               <input
                 name="idNumber"
@@ -280,7 +282,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
 
             <div className={`form-field ${errors.firstName ? "has-error" : ""}`}>
               <label>
-                First Name <span className="required-marker">*</span>
+                {t('labelFirstName')} <span className="required-marker">*</span>
               </label>
               <input
                 name="firstName"
@@ -294,7 +296,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
 
             <div className={`form-field ${errors.lastName ? "has-error" : ""}`}>
               <label>
-                Last Name <span className="required-marker">*</span>
+                {t('labelLastName')} <span className="required-marker">*</span>
               </label>
               <input
                 name="lastName"
@@ -309,7 +311,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
 
           <div className="form-row">
             <div className={`form-field ${errors.dob ? "has-error" : ""}`}>
-              <label>Date of Birth</label>
+              <label>{t('dateOfBirth')}</label>
 
               <input
                 type="text"
@@ -317,7 +319,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
                 value={values.dobText}
                 onChange={handleDobTextChange}
                 onBlur={handleDobBlur}
-                placeholder="DD/MM/YYYY"
+                placeholder={t('phDDMMYYYY')}
                 inputMode="numeric"
                 dir="ltr"
               />
@@ -334,39 +336,39 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
             </div>
 
             <div className="form-field">
-              <label>Gender</label>
+              <label>{t('labelGender')}</label>
               <select name="gender" value={values.gender} onChange={handleChange}>
-                <option value="Other">Other</option>
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
+                <option value="Other">{t('genderOther')}</option>
+                <option value="Female">{t('genderFemale')}</option>
+                <option value="Male">{t('genderMale')}</option>
               </select>
             </div>
 
             <div className="form-field">
-              <label>Status</label>
+              <label>{t('status')}</label>
               <select name="status" value={values.status} onChange={handleChange}>
-                <option value="Active">Active</option>
-                <option value="Stable">Stable</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Disabled">Disabled</option>
-                <option value="Not Active">Not Active</option>
+                <option value="Active">{t('statusActive')}</option>
+                <option value="Stable">{t('stable')}</option>
+                <option value="Inactive">{t('statusInactive')}</option>
+                <option value="Disabled">{t('disabled')}</option>
+                <option value="Not Active">{t('statusNotActive')}</option>
               </select>
             </div>
           </div>
 
           <div className="form-full-width form-field">
-            <label>Street</label>
+            <label>{t('labelStreet')}</label>
             <input name="street" value={values.street} onChange={handleChange} />
           </div>
 
           <div className="form-row">
             <div className="form-field">
-              <label>City</label>
+              <label>{t('labelCity')}</label>
               <input name="city" value={values.city} onChange={handleChange} />
             </div>
 
             <div className="form-field">
-              <label>Zip Code</label>
+              <label>{t('labelZipCode')}</label>
               <input
                 name="zipCode"
                 value={values.zipCode}
@@ -378,21 +380,21 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
           <div className="form-row">
             <div className={`form-field ${errors.phone ? "has-error" : ""}`}>
               <label>
-                Phone <span className="required-marker">*</span>
+                {t('labelPhone')} <span className="required-marker">*</span>
               </label>
               <input name="phone" value={values.phone} onChange={handleChange} />
               {errors.phone && <div className="field-error">{errors.phone}</div>}
             </div>
 
             <div className={`form-field ${errors.email ? "has-error" : ""}`}>
-              <label>Email</label>
+              <label>{t('labelEmail')}</label>
               <input name="email" value={values.email} onChange={handleChange} />
               {errors.email && <div className="field-error">{errors.email}</div>}
             </div>
           </div>
 
           <div className="form-full-width form-field">
-            <label>Conditions</label>
+            <label>{t('labelConditions')}</label>
             <input
               name="conditions"
               value={values.conditions}
@@ -402,11 +404,11 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
 
           <div className="form-actions">
             <button type="button" className="form-cancel-btn" onClick={onClose}>
-              Cancel
+              {t('cancel')}
             </button>
 
             <button type="submit" className="form-submit-btn">
-              {initialValues ? "Save Changes" : "Add Patient"}
+              {initialValues ? t('saveChanges') : t('addPatient')}
             </button>
           </div>
         </form>
