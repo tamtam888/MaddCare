@@ -314,7 +314,7 @@ function App() {
               element={
                 <RequireAuth
                   element={
-                    <MediaPage selectedPatient={patientsState.selectedPatient} />
+                    <MediaPage selectedPatient={patientsState.selectedPatient} patients={patientsState.patients} />
                   }
                 />
               }

@@ -12,7 +12,7 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function buildVideoUrl(patient, mode, therapistId) {
+function buildVideoUrl(patient, mode, therapistId, allPatients) {
   const patientId = String(
     patient?.idNumber ?? patient?.patientId ?? patient?.id ?? ""
   ).replace(/\D/g, "");
@@ -30,12 +30,18 @@ function buildVideoUrl(patient, mode, therapistId) {
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
   if (therapistId) params.set("tid", String(therapistId).trim());
+  if (Array.isArray(allPatients) && allPatients.length > 0) {
+    const activeIds = allPatients
+      .map((p) => String(p?.idNumber || p?.id || "").trim())
+      .filter(Boolean);
+    if (activeIds.length > 0) params.set("activePatients", activeIds.join(","));
+  }
 
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(patientId)}?${params.toString()}`;
 }
 
-function openVideo(patient, mode, therapistId) {
-  const url = buildVideoUrl(patient, mode, therapistId);
+function openVideo(patient, mode, therapistId, allPatients) {
+  const url = buildVideoUrl(patient, mode, therapistId, allPatients);
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
@@ -453,7 +459,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "intake", currentTherapistId)}
+                  onClick={() => openVideo(resolution.patient, "intake", currentTherapistId, list)}
                   title="Open intake video for this patient"
                 >
                   {t('intakeVideo')}
@@ -461,7 +467,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "progress", currentTherapistId)}
+                  onClick={() => openVideo(resolution.patient, "progress", currentTherapistId, list)}
                   title="Open progress comparison for this patient"
                 >
                   📊 {t('progress')}
