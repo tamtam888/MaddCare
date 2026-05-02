@@ -12,7 +12,7 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function openIntakeForPatient(patient, therapistId, allPatients = []) {
+function openIntakeForPatient(patient, therapistId, allPatients = [], lang) {
   const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
   if (!patientId) return;
   const id = String(patientId).trim();
@@ -22,6 +22,7 @@ function openIntakeForPatient(patient, therapistId, allPatients = []) {
   if (patientName) params.set("patientName", patientName);
   params.set("mode", "intake");
   params.set("source", "medicalcare");
+  if (lang) params.set("lang", lang);
   if (therapistId) params.set("tid", String(therapistId).trim());
   const activeIds = Array.from(new Set(
     [...allPatients, patient]
@@ -62,7 +63,7 @@ function PatientsPage(props) {
   } = props;
 
   const { therapistId } = useAuthContext();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -236,7 +237,7 @@ function PatientsPage(props) {
     setEditingPatient(null);
     // Auto-open intake form only for newly added patients
     if (isNew) {
-      openIntakeForPatient(prepared, therapistId, patients);
+      openIntakeForPatient(prepared, therapistId, patients, lang);
     }
   }
 

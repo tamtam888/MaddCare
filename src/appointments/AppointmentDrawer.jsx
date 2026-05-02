@@ -12,7 +12,7 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
-function buildVideoUrl(patient, mode, therapistId, allPatients) {
+function buildVideoUrl(patient, mode, therapistId, allPatients, lang) {
   const patientId = String(
     patient?.idNumber ?? patient?.patientId ?? patient?.id ?? ""
   ).replace(/\D/g, "");
@@ -29,6 +29,7 @@ function buildVideoUrl(patient, mode, therapistId, allPatients) {
   if (patientName) params.set("patientName", patientName);
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
+  if (lang) params.set("lang", lang);
   if (therapistId) params.set("tid", String(therapistId).trim());
   if (Array.isArray(allPatients) && allPatients.length > 0) {
     const activeIds = allPatients
@@ -40,8 +41,8 @@ function buildVideoUrl(patient, mode, therapistId, allPatients) {
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(patientId)}?${params.toString()}`;
 }
 
-function openVideo(patient, mode, therapistId, allPatients) {
-  const url = buildVideoUrl(patient, mode, therapistId, allPatients);
+function openVideo(patient, mode, therapistId, allPatients, lang) {
+  const url = buildVideoUrl(patient, mode, therapistId, allPatients, lang);
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
@@ -156,7 +157,7 @@ export default function AppointmentDrawer({
   therapistOptions = [],
   therapists = [],
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const list = Array.isArray(patients) ? patients : [];
   const safeTherapists = Array.isArray(therapistOptions) ? therapistOptions : [];
   const activeTherapists = Array.isArray(therapists)
@@ -459,7 +460,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "intake", currentTherapistId, list)}
+                  onClick={() => openVideo(resolution.patient, "intake", currentTherapistId, list, lang)}
                   title="Open intake video for this patient"
                 >
                   {t('intakeVideo')}
@@ -467,7 +468,7 @@ export default function AppointmentDrawer({
                 <button
                   type="button"
                   className="mc-button mc-button--video"
-                  onClick={() => openVideo(resolution.patient, "progress", currentTherapistId, list)}
+                  onClick={() => openVideo(resolution.patient, "progress", currentTherapistId, list, lang)}
                   title="Open progress comparison for this patient"
                 >
                   📊 {t('progress')}

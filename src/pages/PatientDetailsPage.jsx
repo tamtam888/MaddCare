@@ -24,29 +24,31 @@ import { useAuthContext } from "../hooks/useAuthContext";
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "https://maddvideo.vercel.app";
 
-function buildMediaUrl({ medplumPatientId, patientId }) {
+function buildMediaUrl({ medplumPatientId, patientId, lang }) {
   const params = new URLSearchParams();
 
   if (patientId) params.set("patientId", String(patientId).trim());
   if (medplumPatientId) params.set("medplumPatientId", String(medplumPatientId).trim());
+  if (lang) params.set("lang", lang);
 
   const qs = params.toString();
   return `${MEDIA_APP_BASE_URL}/patients${qs ? `?${qs}` : ""}`;
 }
 
-function buildIntakeUrl(patientId, patientName, therapistId, activeIds = []) {
+function buildIntakeUrl(patientId, patientName, therapistId, activeIds = [], lang) {
   if (!patientId) return null;
   const id = String(patientId).trim();
   const params = new URLSearchParams();
   if (patientName) params.set("patientName", String(patientName).trim());
   params.set("mode", "intake");
   params.set("source", "medicalcare");
+  if (lang) params.set("lang", lang);
   if (therapistId) params.set("tid", String(therapistId).trim());
   if (activeIds.length > 0) params.set("activePatients", activeIds.join(','));
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
 }
 
-function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId, activeIds = [] }) {
+function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId, activeIds = [], lang }) {
   const id = String(patientId || "").trim();
   if (!id) return `${MEDIA_APP_BASE_URL}/patients`;
   const params = new URLSearchParams();
@@ -54,6 +56,7 @@ function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId, acti
   if (patientName) params.set("patientName", String(patientName).trim());
   if (mode) params.set("mode", mode);
   params.set("source", "medicalcare");
+  if (lang) params.set("lang", lang);
   if (therapistId) params.set("tid", String(therapistId).trim());
   if (activeIds.length > 0) params.set("activePatients", activeIds.join(','));
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}?${params.toString()}`;
@@ -74,7 +77,7 @@ export default function PatientDetailsPage({
   const navigate = useNavigate();
   const { idNumber: idNumberParam = "" } = useParams();
   const { therapistId, isAdmin } = useAuthContext();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
@@ -199,12 +202,13 @@ export default function PatientDetailsPage({
       buildMediaUrl({
         medplumPatientId,
         patientId: localPatientId,
+        lang,
       }),
-    [medplumPatientId, localPatientId]
+    [medplumPatientId, localPatientId, lang]
   );
 
   const handleStartIntake = () => {
-    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds);
+    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds, lang);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
   };
@@ -216,6 +220,7 @@ export default function PatientDetailsPage({
       patientName: patientFullName,
       therapistId,
       activeIds: activePatientIds,
+      lang,
     });
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -233,10 +238,11 @@ export default function PatientDetailsPage({
         mode,
         therapistId,
         activeIds: activePatientIds,
+        lang,
       });
       window.open(url, "_blank", "noopener,noreferrer");
     },
-    [localPatientId, patientFullName, therapistId, activePatientIds]
+    [localPatientId, patientFullName, therapistId, activePatientIds, lang]
   );
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
