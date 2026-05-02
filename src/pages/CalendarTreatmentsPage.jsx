@@ -1025,11 +1025,16 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
             dayHeaderFormat={{ weekday: "short", day: "2-digit", month: "2-digit" }}
             views={{ dayGridMonth: { dayHeaderFormat: { weekday: 'short' } } }}
             dayHeaderContent={(arg) => {
-              if (lang !== 'he') return arg.text;
               const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-              const label = t('dayAbbr_' + days[arg.date.getDay()]);
-              const dateOnly = arg.text.replace(/^[A-Za-z]+\s*/, '');
-              return dateOnly ? label + ' ' + dateOnly : label;
+              const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+              if (lang === 'he') {
+                const label = t('dayAbbr_' + days[arg.date.getDay()]);
+                if (isMobile) return label;
+                const dateOnly = arg.text.replace(/^[A-Za-z]+\s*/, '');
+                return dateOnly ? label + ' ' + dateOnly : label;
+              }
+              if (isMobile) return days[arg.date.getDay()];
+              return arg.text;
             }}
             slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
             eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}

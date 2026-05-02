@@ -127,3 +127,29 @@
   transform: none;
   box-shadow: none;
 }
+
+.login-password-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login-password-wrap .login-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.login-password-toggle {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  color: rgba(17, 24, 39, 0.5);
+  display: inline-flex;
+  align-items: center;
+}
+
+.login-password-toggle:hover {
+  color: rgba(17, 24, 39, 0.85);
+}

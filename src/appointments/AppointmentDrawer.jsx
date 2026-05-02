@@ -364,7 +364,7 @@ export default function AppointmentDrawer({
               ) : null}
             </div>
 
-            {errors.patientId && <p className="mc-error">{String(errors.patientId.message)}</p>}
+            {errors.patientId && <p className="mc-error">{errors.patientId.type === 'manual' ? String(errors.patientId.message) : t('patientRequired')}</p>}
           </div>
 
           <div className="mc-grid2">
@@ -428,7 +428,7 @@ export default function AppointmentDrawer({
                 </>
               )}
 
-              {errors.therapistId && <p className="mc-error">{String(errors.therapistId.message)}</p>}
+              {errors.therapistId && <p className="mc-error">{errors.therapistId.type === 'manual' ? String(errors.therapistId.message) : t('therapistRequired')}</p>}
             </div>
 
             <div className="mc-field">

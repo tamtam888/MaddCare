@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { bootstrapAdminIfNeeded, verifyTherapistCredentials } from "../therapists/therapistsStore";
 import { useLanguage } from "../i18n/LanguageContext";
 import "./LoginPage.css";
@@ -33,6 +34,7 @@ export default function LoginPage() {
   const [idNumber, setIdNumber] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const canSubmit = useMemo(() => {
     return normalize(fullName).length > 0 && normalize(idNumber).length > 0 && !submitting;
@@ -128,15 +130,25 @@ export default function LoginPage() {
             <label className="login-label" htmlFor="login_id_number">
               {t('loginPassword')}
             </label>
-            <input
-              id="login_id_number"
-              className="login-input"
-              value={idNumber}
-              onChange={(e) => setIdNumber(e.target.value)}
-              placeholder={t('loginPassword')}
-              type="password"
-              autoComplete="current-password"
-            />
+            <div className="login-password-wrap">
+              <input
+                id="login_id_number"
+                className="login-input"
+                value={idNumber}
+                onChange={(e) => setIdNumber(e.target.value)}
+                placeholder={t('loginPassword')}
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {error ? <div className="login-error">{error}</div> : null}

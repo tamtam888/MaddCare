@@ -444,6 +444,27 @@
   }
 
   .mc-calendar-shell {
-    padding: 10px;
+    padding: 6px 2px;
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.72rem;
+    padding: 4px 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+  }
+
+  .fc .fc-col-header-cell {
+    overflow: hidden;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 13px;
+  }
+
+  .fc .fc-button {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.78rem;
   }
 }
