@@ -319,6 +319,18 @@ function PatientsPage(props) {
         </div>
       )}
 
+      {isDemo && (
+        <div className="demo-ai-banner">
+          <div className="demo-ai-banner-title">🚀 AI-Powered Clinical Assistant</div>
+          <ul className="demo-ai-banner-list">
+            <li>Generate treatment summaries automatically</li>
+            <li>AI-powered reports from patient data</li>
+            <li>Smart clinical insights for therapists</li>
+          </ul>
+          <div className="demo-ai-banner-footer">👉 Try it in Reports</div>
+        </div>
+      )}
+
       <div className="patients-search-wrapper">
         <div className="patients-search-icon">🔍</div>
         <input

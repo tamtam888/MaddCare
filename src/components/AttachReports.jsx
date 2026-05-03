@@ -506,6 +506,12 @@ function AttachReports({
 
       <div className="reports-kicker">{t('reportGenerateAi')}</div>
 
+      {isDemo && (
+        <div className="reports-ai-hint">
+          This feature uses AI to generate clinical reports from patient data.
+        </div>
+      )}
+
       <button
         type="button"
         className="reports-pill"
