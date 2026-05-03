@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./PatientForm.css";
 import { formatDateDMY } from "../utils/dateFormat";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 const defaultValues = {
   idNumber: "",
@@ -120,6 +121,7 @@ function normalizeInitialValues(initialValues) {
 
 function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
   const [values, setValues] = useState(defaultValues);
   const [errors, setErrors] = useState({});
 
@@ -196,6 +198,7 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (isDemo) return;
 
     const dobISO = values.dob || parseDMYToISODateOnly(values.dobText);
     const nextValues = { ...values, dob: dobISO };

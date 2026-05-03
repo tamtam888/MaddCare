@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { formatDateDMY, formatDateTimeDMY, parseFlexibleDate } from "../utils/dateFormat";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 import "./AttachReports.css";
 
 function AttachReports({
@@ -16,6 +17,7 @@ function AttachReports({
   totalHistoryCount,
 }) {
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -139,6 +141,7 @@ function AttachReports({
   };
 
   const handleGenerateAiReport = async () => {
+    if (isDemo) return;
     if (selectedCount === 0) return;
 
     setIsGenerating(true);
@@ -452,6 +455,7 @@ function AttachReports({
   };
 
   const handleSaveToPatient = () => {
+    if (isDemo) return;
     const content = String(reportText || "").trim();
     if (!content) return;
 
@@ -506,7 +510,7 @@ function AttachReports({
         type="button"
         className="reports-pill"
         onClick={handleGenerateAiReport}
-        disabled={selectedCount === 0 || isGenerating}
+        disabled={selectedCount === 0 || isGenerating || isDemo}
         title={selectedCount === 0 ? t('reportSelectVisitsFirst') : t('reportGenerateFromSelected')}
       >
         {isGenerating ? t('reportGenerating') : t('reportGenerateWithCount').replace('{{count}}', selectedCount)}
@@ -520,7 +524,7 @@ function AttachReports({
       />
 
       <div className="reports-actions-bottom">
-        <button type="button" className="reports-pill" onClick={handleSaveToPatient} disabled={!canUseReport}>
+        <button type="button" className="reports-pill" onClick={handleSaveToPatient} disabled={!canUseReport || isDemo}>
           {t('reportSaveToPatient')}
         </button>
         <button type="button" className="reports-pill" onClick={handleDownloadPdf} disabled={!canUseReport}>

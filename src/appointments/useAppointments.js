@@ -5,6 +5,7 @@ import {
   deleteAppointment as deleteAppointmentFromStore,
   updateAppointment as updateAppointmentInStore,
 } from "./appointmentsStore";
+import { DEMO_APPOINTMENTS } from "../data/demoData.js";
 
 export function useAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -16,6 +17,13 @@ export function useAppointments() {
   }, []);
 
   useEffect(() => {
+    // Demo mode: skip IDB loading entirely.
+    if (localStorage.getItem("mc_demo_mode") === "true") {
+      setAppointments(DEMO_APPOINTMENTS);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function init() {

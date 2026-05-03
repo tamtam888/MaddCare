@@ -4,6 +4,7 @@ import { loadAudioBlob } from "../utils/audioStorage";
 import { formatDateDMY, toISODateInput, fromISODateInput } from "../utils/dateFormat";
 import { capitalizeSentences } from "../utils/textFormatters";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 function normalizeEntries(history) {
   return Array.isArray(history) ? history : [];
@@ -180,6 +181,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(null);
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
 
   const allEntries = useMemo(() => {
     const source = history ?? patient?.history ?? [];
@@ -222,6 +224,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   };
 
   const handleAdd = () => {
+    if (isDemo) return;
     const entry = createEntry();
     emitChange([entry, ...allEntries]);
     setEditingId(entry.id);
@@ -229,6 +232,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   };
 
   const handleDelete = (id) => {
+    if (isDemo) return;
     emitChange(allEntries.filter((e) => e?.id !== id));
     if (editingId === id) {
       setEditingId(null);
@@ -237,6 +241,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   };
 
   const handleEdit = (entry) => {
+    if (isDemo) return;
     setEditingId(entry.id);
     setDraft({ ...entry, dateInput: toISODateInput(entry.date) });
   };
@@ -247,6 +252,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
   };
 
   const handleSaveEdit = () => {
+    if (isDemo) return;
     if (!draft || !editingId) return;
 
     const updatedEntry = {
@@ -311,7 +317,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
             />
           </div>
 
-          <button type="button" className="history-add-button" onClick={handleAdd}>
+          <button type="button" className="history-add-button" onClick={handleAdd} disabled={isDemo}>
             {t('historyAddEntry')}
           </button>
         </div>
@@ -378,6 +384,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                         aria-label={t('editEntry')}
                         title={t('edit')}
                         onClick={() => handleEdit(entry)}
+                        disabled={isDemo}
                       >
                         <IconPencil className="history-icon" />
                       </button>
@@ -388,13 +395,14 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                         aria-label={t('deleteEntry')}
                         title={t('delete')}
                         onClick={() => handleDelete(entry?.id)}
+                        disabled={isDemo}
                       >
                         <IconTrash className="history-icon" />
                       </button>
                     </>
                   ) : (
                     <>
-                      <button type="button" className="history-pill-btn primary" onClick={handleSaveEdit}>
+                      <button type="button" className="history-pill-btn primary" onClick={handleSaveEdit} disabled={isDemo}>
                         {t('save')}
                       </button>
                       <button type="button" className="history-pill-btn" onClick={handleCancelEdit}>

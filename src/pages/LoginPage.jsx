@@ -10,6 +10,7 @@ const LOGGED_IN_KEY = "mc_logged_in";
 const ROLE_KEY = "mc_role";
 const THERAPIST_ID_KEY = "mc_therapistId";
 const DISPLAY_NAME_KEY = "mc_therapistName";
+const DEMO_MODE_KEY = "mc_demo_mode";
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_ID = "15951595";
@@ -39,6 +40,17 @@ export default function LoginPage() {
   const canSubmit = useMemo(() => {
     return normalize(fullName).length > 0 && normalize(idNumber).length > 0 && !submitting;
   }, [fullName, idNumber, submitting]);
+
+  const handleTryDemo = () => {
+    try {
+      localStorage.setItem(LOGGED_IN_KEY, "1");
+      localStorage.setItem(ROLE_KEY, "therapist");
+      localStorage.setItem(THERAPIST_ID_KEY, "demo");
+      localStorage.setItem(DISPLAY_NAME_KEY, "Demo User");
+      localStorage.setItem(DEMO_MODE_KEY, "true");
+    } catch {}
+    window.location.replace("/dashboard");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -175,6 +187,13 @@ export default function LoginPage() {
             {submitting ? t('signingIn') : t('signIn')}
           </button>
         </form>
+
+        <div className="login-demo-divider">
+          <span className="login-demo-divider-text">{t('demoModeNotice')}</span>
+        </div>
+        <button type="button" className="login-demo-btn" onClick={handleTryDemo}>
+          {t('tryDemo')}
+        </button>
       </div>
     </div>
   );

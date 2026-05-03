@@ -316,6 +316,8 @@ export const translations = {
     // LoginPage
     loginUsername: 'Username',
     loginPassword: 'Password',
+    tryDemo: 'Try Demo',
+    demoModeNotice: 'Explore the app — no account needed',
 
     // MediaPage
     intakeAssessment: 'Intake Assessment',
@@ -761,6 +763,8 @@ export const translations = {
     // LoginPage
     loginUsername: 'שם משתמש',
     loginPassword: 'סיסמה',
+    tryDemo: 'נסה דמו',
+    demoModeNotice: 'גלה את האפליקציה — ללא צורך בחשבון',
 
     // MediaPage
     intakeAssessment: 'הערכת קבלה',

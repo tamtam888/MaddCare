@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { DEMO_PATIENTS } from "../data/demoData.js";
 import {
   ensureArray,
   trimId,
@@ -637,6 +638,12 @@ export function usePatients() {
   }, []);
 
   useEffect(() => {
+    // Demo mode: skip all IDB and Supabase loading entirely.
+    if (localStorage.getItem("mc_demo_mode") === "true") {
+      setPatients(DEMO_PATIENTS.map(normalizePatientPreserve));
+      return;
+    }
+
     let cancelled = false;
 
     async function loadFromIdbOrMigrate() {

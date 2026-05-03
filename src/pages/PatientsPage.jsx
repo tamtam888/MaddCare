@@ -6,6 +6,7 @@ import PatientList from "../components/PatientList";
 import PatientForm from "../components/PatientForm";
 import "./PatientsPage.css";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode, DEMO_READONLY_MSG } from "../hooks/useDemoMode";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -64,6 +65,7 @@ function PatientsPage(props) {
 
   const { therapistId } = useAuthContext();
   const { t, lang } = useLanguage();
+  const isDemo = useDemoMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -102,6 +104,7 @@ function PatientsPage(props) {
   }
 
   function callDeletePatient(patient) {
+    if (isDemo) return;
     const id = patient?.idNumber || patient?.id || patient?.medplumId || null;
 
     if (typeof handleDeletePatient === "function") {
@@ -212,11 +215,13 @@ function PatientsPage(props) {
   }, [sortedPatients, searchTerm]);
 
   function handleClickAdd() {
+    if (isDemo) return;
     setEditingPatient(null);
     setShowForm(true);
   }
 
   function handleEditPatient(patient) {
+    if (isDemo) return;
     setEditingPatient(patient);
     setShowForm(true);
   }
@@ -242,6 +247,7 @@ function PatientsPage(props) {
   }
 
   function handleClickImport() {
+    if (isDemo) return;
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
@@ -256,6 +262,7 @@ function PatientsPage(props) {
   }
 
   function handleClickSyncAll() {
+    if (isDemo) return;
     if (typeof handleSyncAllToMedplum === "function") handleSyncAllToMedplum();
   }
 
@@ -276,7 +283,7 @@ function PatientsPage(props) {
             onChange={handleFileChange}
           />
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClickImport}>
+          <button type="button" className="patients-toolbar-button" onClick={handleClickImport} disabled={isDemo}>
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
             </span>
@@ -290,14 +297,14 @@ function PatientsPage(props) {
             <span>{t('exportJson')}</span>
           </button>
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll}>
+          <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll} disabled={isDemo}>
             <span className="patients-toolbar-button-icon">
               <RefreshCw size={16} />
             </span>
             <span>{t('syncAll')}</span>
           </button>
 
-          <button type="button" className="patients-add-button" onClick={handleClickAdd}>
+          <button type="button" className="patients-add-button" onClick={handleClickAdd} disabled={isDemo}>
             <span className="patients-toolbar-button-icon patients-add-button-icon">
               <Plus size={16} />
             </span>
@@ -305,6 +312,12 @@ function PatientsPage(props) {
           </button>
         </div>
       </div>
+
+      {isDemo && (
+        <div className="demo-readonly-banner">
+          {DEMO_READONLY_MSG[lang] || DEMO_READONLY_MSG.en}
+        </div>
+      )}
 
       <div className="patients-search-wrapper">
         <div className="patients-search-icon">🔍</div>

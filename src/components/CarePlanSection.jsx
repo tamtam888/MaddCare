@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./CarePlanSection.css";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 import CarePlanGoals from "./CarePlanGoals";
 import CarePlanExercises from "./CarePlanExercises";
 import { formatDateTimeDMY } from "../utils/dateFormat";
@@ -101,6 +102,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef(null);
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -121,6 +123,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
   }, [draft]);
 
   function updateDraft(nextDraft) {
+    if (isDemo) return;
     onUpdatePatient?.({
       ...patient,
       carePlanDraft: nextDraft,
@@ -143,6 +146,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
   }
 
   async function onImportFile(e) {
+    if (isDemo) { if (e.target) e.target.value = ""; return; }
     const file = e?.target?.files?.[0];
     if (!file) return;
 
@@ -210,6 +214,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
   }
 
   function handleSaveCarePlan() {
+    if (isDemo) return;
     if (!draft) return;
     const patientId = patient?.idNumber || "";
     if (!patientId) {
@@ -243,7 +248,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
       <div className="careplan-actions">
         {draft ? (
           <>
-            <button type="button" className="header-chip-btn" onClick={handleSaveCarePlan}>
+            <button type="button" className="header-chip-btn" onClick={handleSaveCarePlan} disabled={isDemo}>
               {t('save')}
             </button>
 
@@ -287,16 +292,17 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                 accept="application/json"
                 className="careplan-import-input"
                 onChange={onImportFile}
+                disabled={isDemo}
               />
             </label>
 
-            <button type="button" className="header-chip-btn careplan-danger" onClick={clearDraft}>
+            <button type="button" className="header-chip-btn careplan-danger" onClick={clearDraft} disabled={isDemo}>
               {t('deleteDraft')}
             </button>
           </>
         ) : (
           <>
-            <button type="button" className="header-chip-btn" onClick={createDraft}>
+            <button type="button" className="header-chip-btn" onClick={createDraft} disabled={isDemo}>
               {t('createCarePlan')}
             </button>
 
@@ -308,6 +314,7 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                 accept="application/json"
                 className="careplan-import-input"
                 onChange={onImportFile}
+                disabled={isDemo}
               />
             </label>
           </>

@@ -41,6 +41,7 @@ function Sidebar() {
   const handleSignOut = () => {
     try {
       localStorage.removeItem("mc_logged_in");
+      localStorage.removeItem("mc_demo_mode");
     } catch {}
     setRole("therapist");
     setTherapistId("local-therapist");

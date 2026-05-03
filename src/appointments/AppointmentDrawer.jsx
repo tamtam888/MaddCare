@@ -6,6 +6,7 @@ import { toISODateTimeLocalInput, fromISODateTimeLocalInput } from "../utils/dat
 import { capitalizeWords, isProbablyId, capitalizeSentences } from "../utils/textFormatters";
 import "./AppointmentDrawer.css";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -158,6 +159,7 @@ export default function AppointmentDrawer({
   therapists = [],
 }) {
   const { t, lang } = useLanguage();
+  const isDemo = useDemoMode();
   const list = Array.isArray(patients) ? patients : [];
   const safeTherapists = Array.isArray(therapistOptions) ? therapistOptions : [];
   const activeTherapists = Array.isArray(therapists)
@@ -292,6 +294,7 @@ export default function AppointmentDrawer({
   };
 
   const submit = async (values) => {
+    if (isDemo) return;
     const pid = digitsOnly(values.patientId);
 
     if (!pid || !resolution.patient) {
@@ -483,7 +486,7 @@ export default function AppointmentDrawer({
                 type="button"
                 className="mc-button mc-button--danger"
                 onClick={onDelete}
-                disabled={loading || isSubmitting}
+                disabled={loading || isSubmitting || isDemo}
               >
                 {t('delete')}
               </button>
@@ -495,7 +498,7 @@ export default function AppointmentDrawer({
               <button type="button" className="mc-button" onClick={onClose}>
                 {t('cancel')}
               </button>
-              <button type="submit" className="mc-button mc-button--primary" disabled={loading || isSubmitting}>
+              <button type="submit" className="mc-button mc-button--primary" disabled={loading || isSubmitting || isDemo}>
                 {mode === "edit" ? t('saveChanges') : t('createAppointment')}
               </button>
             </div>
