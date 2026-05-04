@@ -5,6 +5,27 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { useDemoMode } from "../hooks/useDemoMode";
 import "./AttachReports.css";
 
+const DEMO_REPORT_TEXT = `Clinical Summary Report
+
+Patient Overview:
+The patient presents with chronic lower back pain with intermittent radiating symptoms to the right leg. Symptoms have been ongoing for approximately 6 weeks, with gradual improvement noted.
+
+Clinical Findings:
+- Reduced lumbar range of motion
+- Mild muscle guarding in the lower back
+- No neurological deficits observed
+
+Treatment Summary:
+The patient has undergone a combination of manual therapy, mobility exercises, and strengthening routines targeting the core and lumbar region.
+
+Progress:
+The patient reports decreased pain intensity and improved functional mobility. Compliance with the home exercise program is high.
+
+Recommendations:
+- Continue current exercise program
+- Gradually increase activity intensity
+- Follow-up assessment in 2 weeks`;
+
 function AttachReports({
   patient,
   patientId,
@@ -22,7 +43,7 @@ function AttachReports({
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [patientHeader, setPatientHeader] = useState("");
-  const [reportText, setReportText] = useState("");
+  const [reportText, setReportText] = useState(isDemo ? DEMO_REPORT_TEXT : "");
   const [kpi, setKpi] = useState(null);
 
   const selected = Array.isArray(selectedEntries) ? selectedEntries : [];
@@ -522,11 +543,16 @@ function AttachReports({
         {isGenerating ? t('reportGenerating') : t('reportGenerateWithCount').replace('{{count}}', selectedCount)}
       </button>
 
+      {isDemo && reportText && (
+        <div className="reports-ai-label">✨ AI Generated Report</div>
+      )}
+
       <textarea
         className="reports-textarea reports-textarea-report"
         value={reportText}
         onChange={(e) => setReportText(e.target.value)}
         placeholder={t('reportPlaceholder')}
+        readOnly={isDemo}
       />
 
       <div className="reports-actions-bottom">

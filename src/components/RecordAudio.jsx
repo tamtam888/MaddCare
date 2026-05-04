@@ -43,6 +43,13 @@ function getAiServerUrl() {
   return null;
 }
 
+/** Strip emails and digit sequences before sending text to an external AI server. */
+function scrubForAI(text) {
+  return String(text || "")
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "[redacted]")
+    .replace(/\b\d{6,}\b/g, "[redacted]");
+}
+
 /** Simple local formatter used only when the AI server is truly unavailable. */
 function improveTranscriptionLocal(text) {
   if (!text) return "";
@@ -325,7 +332,7 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
 
       let improvedText = "";
       try {
-        improvedText = await improveTranscriptionViaServer(t, { signal: controller.signal });
+        improvedText = await improveTranscriptionViaServer(scrubForAI(t), { signal: controller.signal });
         setStatusMessage("Improved with AI.");
       } catch (err) {
         // User navigated away or timed out — clear quietly

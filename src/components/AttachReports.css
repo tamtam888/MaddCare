@@ -127,6 +127,13 @@
   margin-bottom: 8px;
 }
 
+.reports-ai-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0e7490;
+  margin-bottom: 4px;
+}
+
 .reports-actions-bottom {
   display: flex;
   flex-wrap: wrap;
