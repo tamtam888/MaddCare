@@ -15,6 +15,8 @@ import MediaPage from "./pages/MediaPage";
 import SettingsPage from "./pages/SettingsPage";
 import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
+import { useTrialStatus } from "./hooks/useTrialStatus";
+import TrialExpired from "./components/TrialExpired";
 import "./App.css";
 
 const LOGGED_IN_KEY = "mc_logged_in";
@@ -102,6 +104,8 @@ function App() {
 
   const [medplumProfile, setMedplumProfile] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+
+  const { isExpired: trialExpired, daysLeft: trialDaysLeft } = useTrialStatus();
 
   useEffect(() => {
     let cancelled = false;
@@ -214,10 +218,17 @@ function App() {
 
   return (
     <LanguageProvider>
+    {trialExpired && <TrialExpired />}
     <div className="app-shell">
       {loggedIn && !isLoginRoute ? <Sidebar /> : null}
 
       <div className="app-main-area">
+        {loggedIn && !isLoginRoute && trialDaysLeft !== null && trialDaysLeft <= 7 && !trialExpired ? (
+          <div className="trial-warning-banner">
+            ⏳ Trial: {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left — contact us to continue your subscription.
+          </div>
+        ) : null}
+
         {loggedIn && !isLoginRoute ? (
           <header className="app-header">
             <div className="app-header-right">

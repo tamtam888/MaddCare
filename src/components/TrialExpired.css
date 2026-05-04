@@ -1,0 +1,56 @@
+/* TrialExpired.css */
+
+.trial-expired-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.trial-expired-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.trial-expired-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.trial-expired-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 14px 0;
+}
+
+.trial-expired-body {
+  font-size: 1rem;
+  color: #4b5563;
+  line-height: 1.55;
+  margin: 0 0 28px 0;
+}
+
+.trial-expired-btn {
+  display: inline-block;
+  background: #7c3aed;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 12px 32px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.trial-expired-btn:hover {
+  background: #6d28d9;
+}
