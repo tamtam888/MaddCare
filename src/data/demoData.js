@@ -65,8 +65,8 @@ export const DEMO_THERAPISTS = [
 
 export const DEMO_PATIENTS = [
   {
-    id: '000100001',
-    idNumber: '000100001',
+    id: '102030401',
+    idNumber: '102030401',
     firstName: 'Yael',
     lastName: 'Cohen',
     fullName: 'Yael Cohen',
@@ -148,8 +148,8 @@ export const DEMO_PATIENTS = [
   },
 
   {
-    id: '000100002',
-    idNumber: '000100002',
+    id: '204060802',
+    idNumber: '204060802',
     firstName: 'Moshe',
     lastName: 'Levi',
     fullName: 'Moshe Levi',
@@ -222,8 +222,8 @@ export const DEMO_PATIENTS = [
   },
 
   {
-    id: '000100003',
-    idNumber: '000100003',
+    id: '306091203',
+    idNumber: '306091203',
     firstName: 'Noa',
     lastName: 'Goldberg',
     fullName: 'Noa Goldberg',
@@ -289,8 +289,8 @@ export const DEMO_PATIENTS = [
   },
 
   {
-    id: '000100004',
-    idNumber: '000100004',
+    id: '408121604',
+    idNumber: '408121604',
     firstName: 'David',
     lastName: 'Ben-David',
     fullName: 'David Ben-David',
@@ -356,8 +356,8 @@ export const DEMO_PATIENTS = [
   },
 
   {
-    id: '000100005',
-    idNumber: '000100005',
+    id: '510152005',
+    idNumber: '510152005',
     firstName: 'Ruth',
     lastName: 'Shapiro',
     fullName: 'Ruth Shapiro',
@@ -413,7 +413,7 @@ export const DEMO_PATIENTS = [
 export const DEMO_APPOINTMENTS = [
   {
     id: 'demo-appt-001',
-    patientId: '000100001',
+    patientId: '102030401',
     therapistId: 'demo',
     start: '2026-04-28T09:00:00.000Z',
     end: '2026-04-28T10:00:00.000Z',
@@ -422,7 +422,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-002',
-    patientId: '000100001',
+    patientId: '102030401',
     therapistId: 'demo',
     start: '2026-04-30T09:00:00.000Z',
     end: '2026-04-30T10:00:00.000Z',
@@ -431,7 +431,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-003',
-    patientId: '000100002',
+    patientId: '204060802',
     therapistId: 'demo',
     start: '2026-05-04T11:00:00.000Z',
     end: '2026-05-04T12:00:00.000Z',
@@ -440,7 +440,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-004',
-    patientId: '000100001',
+    patientId: '102030401',
     therapistId: 'demo',
     start: '2026-05-05T09:00:00.000Z',
     end: '2026-05-05T10:00:00.000Z',
@@ -449,7 +449,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-005',
-    patientId: '000100003',
+    patientId: '306091203',
     therapistId: 'demo',
     start: '2026-05-05T14:00:00.000Z',
     end: '2026-05-05T14:30:00.000Z',
@@ -458,7 +458,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-006',
-    patientId: '000100004',
+    patientId: '408121604',
     therapistId: 'demo',
     start: '2026-05-06T10:00:00.000Z',
     end: '2026-05-06T10:30:00.000Z',
@@ -467,7 +467,7 @@ export const DEMO_APPOINTMENTS = [
   },
   {
     id: 'demo-appt-007',
-    patientId: '000100002',
+    patientId: '204060802',
     therapistId: 'demo',
     start: '2026-05-11T11:00:00.000Z',
     end: '2026-05-11T12:00:00.000Z',
