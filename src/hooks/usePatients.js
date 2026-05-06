@@ -26,6 +26,31 @@ const APP_IDENTIFIER_SYSTEM = "https://medicalcare.app/identifiers";
 const SUPABASE_TABLE = "mc_patients";
 const SUPABASE_UPSERT_DEBOUNCE_MS = 900;
 
+// ── Identity helpers ──────────────────────────────────────────────────────────
+// Always read from localStorage — same source as useAuthContext and LoginPage.
+function getCurrentIdentity() {
+  try {
+    const therapistId = (localStorage.getItem("mc_therapistId") || "").trim();
+    const role        = (localStorage.getItem("mc_role") || "therapist").trim();
+    return { therapistId, isAdmin: role === "admin" };
+  } catch {
+    return { therapistId: "", isAdmin: false };
+  }
+}
+
+// Client-side mirror of the Supabase OR filter in loadPatientsFromSupabase.
+// Used to filter IDB/localStorage data before it is shown or merged.
+// "local-therapist" and empty string are offline/demo sentinels — pass through.
+function filterPatientsByIdentity(list, therapistId, isAdmin) {
+  if (isAdmin) return list;
+  if (!therapistId || therapistId === "local-therapist") return list;
+  return list.filter((p) => {
+    const owner   = (p?.therapistId || "").trim();
+    const allowed = ensureArray(p?.allowedTherapists).map((x) => String(x).trim());
+    return owner === therapistId || allowed.includes(therapistId);
+  });
+}
+
 const safeUuid = () => {
   try {
     return crypto.randomUUID();
@@ -547,10 +572,19 @@ async function upsertPatientToSupabase(patient) {
   if (error) throw error;
 }
 
-async function deletePatientFromSupabase(idNumber) {
+async function deletePatientFromSupabase(idNumber, therapistId, isAdmin) {
   const id = trimId(idNumber);
   if (!id) return;
-  const { error } = await supabase.from(SUPABASE_TABLE).delete().eq("id_number", id);
+
+  let query = supabase.from(SUPABASE_TABLE).delete().eq("id_number", id);
+
+  // Non-admin: add therapist_id guard so a therapist cannot delete another
+  // therapist's patient even via a direct API call.
+  if (!isAdmin && therapistId && therapistId !== "local-therapist") {
+    query = query.eq("therapist_id", therapistId);
+  }
+
+  const { error } = await query;
   if (error) throw error;
 }
 
@@ -640,20 +674,25 @@ export function usePatients() {
     let cancelled = false;
 
     async function loadFromIdbOrMigrate() {
+      // Determine identity once — used to filter cached data from previous sessions.
+      const { therapistId: tid, isAdmin: adm } = getCurrentIdentity();
+
       try {
         const fromIdb = await idbGet(KV_PATIENTS);
         const arr = Array.isArray(fromIdb) ? fromIdb : null;
 
         if (arr && arr.length > 0) {
-          console.log(`[patients] loaded ${arr.length} from IndexedDB`);
-          if (!cancelled) setPatients(arr.map(normalizePatientPreserve));
+          const filtered = filterPatientsByIdentity(arr.map(normalizePatientPreserve), tid, adm);
+          console.log(`[patients] IDB: ${arr.length} total → ${filtered.length} visible for therapist "${tid}"`);
+          if (!cancelled) setPatients(filtered);
         } else {
           const fromLocal = loadPatientsFromLocalStorage();
           if (fromLocal.length > 0) {
-            console.log(`[patients] loaded ${fromLocal.length} from localStorage (migrating to IDB)`);
+            const filtered = filterPatientsByIdentity(fromLocal.map(normalizePatientPreserve), tid, adm);
+            console.log(`[patients] localStorage: ${fromLocal.length} total → ${filtered.length} visible (migrating to IDB)`);
             await idbSet(KV_PATIENTS, fromLocal.map(normalizePatientPreserve));
             safeWriteLocalBackup(fromLocal);
-            if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
+            if (!cancelled) setPatients(filtered);
           } else {
             console.log("[patients] no local data found — starting empty");
             if (!cancelled) setPatients([]);
@@ -661,8 +700,9 @@ export function usePatients() {
         }
       } catch {
         const fromLocal = loadPatientsFromLocalStorage();
-        console.log(`[patients] IDB error — falling back to localStorage (${fromLocal.length} patients)`);
-        if (!cancelled) setPatients(fromLocal.map(normalizePatientPreserve));
+        const filtered = filterPatientsByIdentity(fromLocal.map(normalizePatientPreserve), tid, adm);
+        console.log(`[patients] IDB error — localStorage fallback: ${filtered.length} visible for therapist "${tid}"`);
+        if (!cancelled) setPatients(filtered);
       }
     }
 
@@ -677,6 +717,8 @@ export function usePatients() {
       const currentRole        = (localStorage.getItem("mc_role") || "therapist").trim();
       const currentIsAdmin     = currentRole === "admin";
 
+      console.log(`[patients] cloud load — therapistId: "${currentTherapistId}", isAdmin: ${currentIsAdmin}`);
+
       try {
         const cloudPatients = await loadPatientsFromSupabase(currentTherapistId, currentIsAdmin);
         if (!cloudPatients || cloudPatients.length === 0) {
@@ -686,11 +728,17 @@ export function usePatients() {
 
         if (cancelled) return;
 
-        console.log(`[patients] loaded ${cloudPatients.length} from cloud — merging with local`);
+        console.log(`[patients] cloud returned ${cloudPatients.length} patient(s)`);
+        if (import.meta.env.DEV) {
+          console.log("[patients] cloud therapist_ids:", cloudPatients.map((p) => p?.therapistId || "(none)"));
+        }
 
         setPatients((prev) => {
-          const merged = mergePatients(prev, cloudPatients);
-          console.log(`[patients] merged local + cloud → ${merged.length} total`);
+          // Filter the cached local set to the current therapist before merging.
+          // This prevents IDB data from previous sessions bleeding into the merge.
+          const filteredPrev = filterPatientsByIdentity(prev, currentTherapistId, currentIsAdmin);
+          const merged = mergePatients(filteredPrev, cloudPatients);
+          console.log(`[patients] merged (filtered local: ${filteredPrev.length}) + cloud → ${merged.length} visible`);
           persistPatients(merged);
           return merged;
         });
@@ -976,13 +1024,27 @@ export function usePatients() {
     const id = trimId(idNumber);
     if (!id) return;
 
+    const { therapistId, isAdmin } = getCurrentIdentity();
+
+    // Non-admin: block deletion of patients owned by a different therapist.
+    if (!isAdmin) {
+      const target = patients.find((p) => trimId(p.idNumber) === id);
+      if (target) {
+        const owner = (target?.therapistId || "").trim();
+        if (owner && owner !== therapistId) {
+          console.warn(`[patients] delete blocked — patient "${id}" belongs to "${owner}", current user is "${therapistId}"`);
+          return;
+        }
+      }
+    }
+
     updatePatientsWithSave((prev) => prev.filter((p) => trimId(p.idNumber) !== id));
 
     if (trimId(selectedPatientIdNumber) === id) setSelectedPatientIdNumber(null);
     if (editingPatient && trimId(editingPatient.idNumber) === id) setEditingPatient(null);
 
     try {
-      await deletePatientFromSupabase(id);
+      await deletePatientFromSupabase(id, therapistId, isAdmin);
     } catch (e) {
       console.error("[Supabase delete] failed:", e);
     }

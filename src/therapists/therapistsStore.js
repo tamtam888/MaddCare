@@ -108,8 +108,11 @@ function uniqueByIdNumber(list) {
   const map = new Map();
   for (const item of safeArray(list)) {
     const t = normalizeTherapistRecord(item);
-    const key = normalizeDigits(t.idNumber) || normalizeDigits(t.id);
-    if (!isValidIdNumber(key)) continue;
+    const digits = normalizeDigits(t.idNumber) || normalizeDigits(t.id);
+    // Prefer 9-digit national_id as the dedup key; fall back to username so
+    // profiles without a standard national_id are still included (not silently dropped).
+    const key = isValidIdNumber(digits) ? digits : normalizeString(t.username);
+    if (!key) continue;
     map.set(key, t);
   }
   return Array.from(map.values());
@@ -222,7 +225,10 @@ async function loadFromSupabase() {
   }
 
   clearLastError();
-  return safeArray(data).map(fromSupabaseRow).filter((t) => isValidIdNumber(t.idNumber));
+  // Include any profile with a non-empty national_id or username.
+  // The strict 9-digit check was silently dropping therapists whose national_id
+  // didn't match the expected format.
+  return safeArray(data).map(fromSupabaseRow).filter((t) => t.idNumber || t.username);
 }
 
 async function upsertToSupabase(t) {
@@ -265,22 +271,27 @@ async function deleteFromSupabase(idNumber) {
 }
 
 export async function getAllTherapists() {
-  const local = await migrateLegacyIfNeeded();
-
   const online = typeof navigator !== "undefined" ? navigator.onLine : true;
-  if (!online) return sortByName(local);
 
-  let cloud = [];
-  try {
-    cloud = await loadFromSupabase();
-  } catch {
-    return sortByName(local);
+  // ── Cloud path (authoritative) ────────────────────────────────────────────
+  // Always prefer Supabase over IndexedDB. If the cloud fetch succeeds,
+  // return its data directly and overwrite IDB so it stays fresh.
+  // Never merge with stale IDB — that would hide new cloud-only users.
+  if (online && isSupabaseConfigured) {
+    try {
+      const cloud = await loadFromSupabase();
+      console.log(`[therapistsStore] cloud returned ${cloud.length} therapist(s)`);
+      await writeIdb(IDB_KEY, cloud);
+      return sortByName(cloud);
+    } catch (e) {
+      console.warn("[therapistsStore] cloud load failed — falling back to IDB:", e?.message || e);
+    }
   }
 
-  const merged = uniqueByIdNumber([...cloud, ...local]);
-  await writeIdb(IDB_KEY, merged);
-
-  return sortByName(merged);
+  // ── IDB fallback (offline / cloud unreachable) ────────────────────────────
+  const local = await migrateLegacyIfNeeded();
+  console.log(`[therapistsStore] IDB fallback: ${local.length} therapist(s)`);
+  return sortByName(local);
 }
 
 export async function upsertTherapist(input) {
@@ -353,27 +364,21 @@ export async function verifyTherapistCredentials(username, password) {
   // ── Supabase path (preferred) ──────────────────────────────────────────────
   if (isSupabaseConfigured) {
     try {
-      // Primary: match by username (case-insensitive via ilike)
-      const { data: byUsername, error: e1 } = await supabase
-        .from(TABLE)
-        .select("national_id, full_name, username, password, role, active, gender, work_days, phone, email, address")
-        .ilike("username", uName)
-        .maybeSingle();
+      // Password comparison happens inside the DB (SECURITY DEFINER RPC).
+      // The password column is never returned to the browser.
+      const { data: rows, error: e1 } = await supabase
+        .rpc("verify_therapist_login", { p_username: uName, p_password: pwd });
 
       console.log('[auth] checking username:', uName);
-      console.log('[auth] Supabase found user:', byUsername ? 'yes' : 'no');
+      console.log('[auth] Supabase found user:', rows?.length ? 'yes' : 'no');
       if (!e1) {
-        // Supabase responded cleanly
-        if (byUsername) {
-          const pwMatch = normalizeString(byUsername.password) === pwd;
-          console.log('[auth] password match:', pwMatch);
-          if (pwMatch) return fromSupabaseRow(byUsername);
-        }
-        // User not found or wrong password -- do not fall back to IDB
+        const match = rows?.[0] ?? null;
+        if (match) return fromSupabaseRow(match);
+        // Credentials wrong or user not found -- do not fall back to IDB
         return null;
       }
       // e1 truthy = Supabase infrastructure error — fall through to IDB
-      console.warn('[auth] Supabase error, falling back to IDB:', e1.message)
+      console.warn('[auth] Supabase error, falling back to IDB:', e1.message);
     } catch {
       // Network error — fall through to local IDB cache
     }
