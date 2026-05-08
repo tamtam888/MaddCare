@@ -139,6 +139,7 @@ export default function LoginPage() {
         </div>
 
         <h1 className="login-title">MedicalCare</h1>
+        <div className="login-platform-tag">AI Rehabilitation Platform</div>
         <div className="login-subtitle">{t('therapistLogin')}</div>
 
         <form className="login-form" onSubmit={handleSubmit}>
