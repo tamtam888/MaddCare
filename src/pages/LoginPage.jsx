@@ -195,10 +195,10 @@ export default function LoginPage() {
         <button type="button" className="login-demo-btn" onClick={handleTryDemo}>
           {t('tryDemo')}
         </button>
+        <footer className="login-footer">
+          © 2026 MedicalCare. All rights reserved. · by TK
+        </footer>
       </div>
-      <footer className="login-footer">
-        © 2026 MedicalCare. All rights reserved. · by TK
-      </footer>
     </div>
   );
 }
