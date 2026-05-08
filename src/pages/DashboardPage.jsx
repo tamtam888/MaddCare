@@ -106,7 +106,7 @@ function DashboardPage({ patients = [] }) {
       <div className="dashboard-main">
         <div className="dashboard-topbar">
           <div className="topbar-left">
-            <span className="topbar-title">MedicalCare — {t('treatmentManagement')}</span>
+            <span className="topbar-title">MedicalCare — {t('aiRehabPlatform')}</span>
           </div>
           <div className="topbar-right">
             {/* Language toggle */}
@@ -137,8 +137,27 @@ function DashboardPage({ patients = [] }) {
         <header className="dashboard-header">
           <div className="dashboard-header-text">
             <p className="dashboard-welcome">{t('welcomeBack')}</p>
+            {patients.length > 0 && (
+              <button
+                type="button"
+                className="dashboard-demo-cta"
+                onClick={() => {
+                  const p = patients[0];
+                  const id = p?.idNumber || p?.id;
+                  if (id) navigate(`/patients/${encodeURIComponent(id)}`);
+                }}
+              >
+                {t('openDemoPatient')}
+              </button>
+            )}
           </div>
         </header>
+
+        <div className="dashboard-value-strip">
+          <div className="value-chip"><span aria-hidden="true">🤖</span><span>{t('aiTreatmentSummaries')}</span></div>
+          <div className="value-chip"><span aria-hidden="true">🎥</span><span>{t('videoProgressTracking')}</span></div>
+          <div className="value-chip"><span aria-hidden="true">📋</span><span>{t('personalizedCarePlans')}</span></div>
+        </div>
 
         <section className="dashboard-cards-row">
           <article className="stat-card">

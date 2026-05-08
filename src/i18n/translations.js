@@ -39,6 +39,11 @@ export const translations = {
     admin: 'Admin',
     therapist: 'Therapist',
     treatmentManagement: 'Treatment Management',
+    aiRehabPlatform: 'AI Rehabilitation Platform',
+    aiTreatmentSummaries: 'AI Treatment Summaries',
+    videoProgressTracking: 'Video Progress Tracking',
+    personalizedCarePlans: 'Personalized Care Plans',
+    openDemoPatient: 'Open Demo Patient',
 
     // Dashboard
     welcomeBack: 'Welcome Back',
@@ -486,6 +491,11 @@ export const translations = {
     admin: 'מנהל',
     therapist: 'מטפל',
     treatmentManagement: 'ניהול טיפולים',
+    aiRehabPlatform: 'פלטפורמת שיקום מבוססת AI',
+    aiTreatmentSummaries: 'סיכומי טיפול בינה מלאכותית',
+    videoProgressTracking: 'מעקב התקדמות בוידאו',
+    personalizedCarePlans: 'תוכניות טיפול אישיות',
+    openDemoPatient: 'פתח מטופל לדוגמה',
 
     // Dashboard
     welcomeBack: 'ברוך הבא',
