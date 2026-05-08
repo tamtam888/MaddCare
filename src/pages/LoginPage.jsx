@@ -196,6 +196,9 @@ export default function LoginPage() {
           {t('tryDemo')}
         </button>
       </div>
+      <footer className="login-footer">
+        © 2026 MedicalCare. All rights reserved. · by TK
+      </footer>
     </div>
   );
 }
