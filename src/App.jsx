@@ -17,6 +17,8 @@ import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 const LOGGED_IN_KEY = "mc_logged_in";
 const THERAPISTS_KEY = "mc_therapists_v1";
 
@@ -225,9 +227,11 @@ function App() {
                 ⚙️
               </button>
 
-              <button type="button" className="primary-button medplum-header-button" onClick={handleConnectMedplum}>
-                {medplumProfile ? "Medplum: Connected" : "Connect to Medplum"}
-              </button>
+              {SHOW_MEDPLUM_UI && (
+                <button type="button" className="primary-button medplum-header-button" onClick={handleConnectMedplum}>
+                  {medplumProfile ? "Medplum: Connected" : "Connect to Medplum"}
+                </button>
+              )}
             </div>
           </header>
         ) : null}

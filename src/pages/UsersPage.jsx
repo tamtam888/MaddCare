@@ -7,6 +7,8 @@ const APP_URL = typeof window !== 'undefined'
   ? window.location.origin
   : 'https://medical-care-mu.vercel.app';
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 function copyInvite(therapist) {
   const username = normalizeString(therapist.username) || normalizeString(therapist.fullName);
   // Password is no longer fetched in the general therapist list — share it
@@ -645,17 +647,19 @@ export default function UsersPage({ handleSyncAllTherapistsToMedplum }) {
         <div className="patients-page-header-actions">
           {isAdmin ? (
             <>
-              <button
-                type="button"
-                className="patients-toolbar-button"
-                onClick={handleClickSyncAll}
-                disabled={syncing || typeof handleSyncAllTherapistsToMedplum !== "function"}
-              >
-                <span className="patients-toolbar-button-icon">
-                  <RefreshCw size={16} />
-                </span>
-                <span>{syncing ? t('syncing') : t('syncAll')}</span>
-              </button>
+              {SHOW_MEDPLUM_UI && (
+                <button
+                  type="button"
+                  className="patients-toolbar-button"
+                  onClick={handleClickSyncAll}
+                  disabled={syncing || typeof handleSyncAllTherapistsToMedplum !== "function"}
+                >
+                  <span className="patients-toolbar-button-icon">
+                    <RefreshCw size={16} />
+                  </span>
+                  <span>{syncing ? t('syncing') : t('syncAll')}</span>
+                </button>
+              )}
 
               <button type="button" className="patients-toolbar-button" onClick={() => importFileRef.current?.click()}>
                 <span className="patients-toolbar-button-icon"><Upload size={16} /></span>

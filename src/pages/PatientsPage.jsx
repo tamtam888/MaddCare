@@ -13,6 +13,8 @@ const MEDIA_APP_BASE_URL =
     ? import.meta.env.VITE_MEDIA_APP_BASE_URL
     : "https://maddvideo.vercel.app";
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 function openIntakeForPatient(patient, therapistId, allPatients = [], lang) {
   const patientId = patient?.idNumber || patient?.id || patient?.medplumId;
   if (!patientId) return;
@@ -297,12 +299,14 @@ function PatientsPage(props) {
             <span>{t('exportJson')}</span>
           </button>
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll} disabled={isDemo}>
-            <span className="patients-toolbar-button-icon">
-              <RefreshCw size={16} />
-            </span>
-            <span>{t('syncAll')}</span>
-          </button>
+          {SHOW_MEDPLUM_UI && (
+            <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll} disabled={isDemo}>
+              <span className="patients-toolbar-button-icon">
+                <RefreshCw size={16} />
+              </span>
+              <span>{t('syncAll')}</span>
+            </button>
+          )}
 
           <button type="button" className="patients-add-button" onClick={handleClickAdd} disabled={isDemo}>
             <span className="patients-toolbar-button-icon patients-add-button-icon">

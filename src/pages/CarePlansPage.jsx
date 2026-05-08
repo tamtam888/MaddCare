@@ -18,6 +18,8 @@ import balanceTraining from "../seed/exercise-library/balance_training.json";
 
 const SEED_TEMPLATES = [kneeRehabilitation, lowBackPain, shoulderMobility, postOpGeneralActivity, balanceTraining];
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 function toExerciseCount(obj) {
   const ex = Array.isArray(obj?.exercises) ? obj.exercises : [];
   return ex.length;
@@ -539,9 +541,11 @@ export default function CarePlansPage() {
                 {t('newTemplate')}
               </button>
 
-              <button type="button" className="header-chip-btn" onClick={syncSeedNow} disabled={seedSyncing}>
-                {seedSyncing ? t('syncing') : t('syncSeed')}
-              </button>
+              {SHOW_MEDPLUM_UI && (
+                <button type="button" className="header-chip-btn" onClick={syncSeedNow} disabled={seedSyncing}>
+                  {seedSyncing ? t('syncing') : t('syncSeed')}
+                </button>
+              )}
             </div>
 
             {seedSyncMsg ? <div className="careplans-empty">{seedSyncMsg}</div> : null}
@@ -580,7 +584,7 @@ export default function CarePlansPage() {
                         {t('delete')}
                       </button>
 
-                      {tpl.source === "local-custom" ? (
+                      {SHOW_MEDPLUM_UI && tpl.source === "local-custom" ? (
                         <button
                           type="button"
                           className="header-chip-btn"

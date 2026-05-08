@@ -28,6 +28,8 @@ import { useLanguage } from "../i18n/LanguageContext";
 const CLINIC_START_TIME = "07:00:00";
 const CLINIC_END_TIME = "22:00:00";
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 function normalizeId(value) {
   return String(value ?? "").trim();
 }
@@ -990,7 +992,7 @@ export default function CalendarTreatmentsPage({ medplumProfile, patients = [] }
             ) : null}
           </div>
 
-          {isAdmin ? (
+          {SHOW_MEDPLUM_UI && isAdmin ? (
             <button
               type="button"
               className="mc-icon-button"

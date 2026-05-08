@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./PatientDocuments.css";
 import { useLanguage } from "../i18n/LanguageContext";
+
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
 import {
   addDocument,
   deleteDocument,
@@ -178,6 +180,7 @@ export default function PatientDocuments({ patientKey }) {
   };
 
   if (!patientKey) {
+    if (!SHOW_MEDPLUM_UI) return null;
     return (
       <div className="doc-surface">
         <p className="doc-empty">

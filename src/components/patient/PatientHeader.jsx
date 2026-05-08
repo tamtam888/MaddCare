@@ -8,6 +8,8 @@ import {
 } from "../../utils/patientUtils";
 import { useLanguage } from "../../i18n/LanguageContext";
 
+const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
 export default function PatientHeader({
   patient,
   medplumPatientId,
@@ -123,16 +125,18 @@ export default function PatientHeader({
             />
           </label>
 
-          <button
-            type="button"
-            className="patients-toolbar-button"
-            onClick={onSyncPatient}
-          >
-            <span className="patients-toolbar-button-icon">
-              <RefreshCw size={16} />
-            </span>
-            <span>{t('syncPatient')}</span>
-          </button>
+          {SHOW_MEDPLUM_UI && (
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={onSyncPatient}
+            >
+              <span className="patients-toolbar-button-icon">
+                <RefreshCw size={16} />
+              </span>
+              <span>{t('syncPatient')}</span>
+            </button>
+          )}
         </div>
 
         <div className="pd-actions-row pd-actions-row-bottom">
