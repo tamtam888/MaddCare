@@ -274,7 +274,6 @@ export default function PatientDetailsPage({
   const selectedCount = selectedHistoryEntries.length;
   const historySubtitle = `${selectedCount} selected • ${historyCount} entries`;
   const reportsUploadedCount = Array.isArray(editablePatient.reports) ? editablePatient.reports.length : 0;
-  const reportsSubtitle = `${selectedCount} selected • ${reportsUploadedCount} uploaded`;
 
   const detailsSubtitleParts = [];
   if (String(editablePatient.phone || "").trim()) detailsSubtitleParts.push("phone");
@@ -431,7 +430,7 @@ export default function PatientDetailsPage({
           <PatientDocuments patientKey={medplumPatientId} />
         </CollapsibleBlock>
 
-        <CollapsibleBlock title={t('reportsTitle')} subtitle={reportsSubtitle} defaultOpen={false}>
+        <CollapsibleBlock title={t('reportsTitle')} subtitle={t('reportsHint')} defaultOpen={false}>
           <AttachReports
             patient={editablePatient}
             patientId={editablePatient.idNumber}
