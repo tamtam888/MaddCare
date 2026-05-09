@@ -385,12 +385,12 @@
   justify-content: flex-end;
 }
 
-.pd-actions-row-bottom {
-  width: 100%;
+.pd-actions-row-close {
+  justify-content: flex-start;
 }
 
-.pd-close-btn {
-  margin-left: auto;
+.pd-actions-row-close .pd-close-btn {
+  margin-inline-start: auto;
 }
 
 /* Stage 7.5 Media drawer */

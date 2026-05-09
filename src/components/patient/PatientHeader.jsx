@@ -100,7 +100,7 @@ export default function PatientHeader({
           </button>
         </div>
 
-        <div className="pd-actions-row">
+        <div className="pd-actions-row pd-actions-row-close">
           <button
             type="button"
             className="patients-toolbar-button"
@@ -137,9 +137,7 @@ export default function PatientHeader({
               <span>{t('syncPatient')}</span>
             </button>
           )}
-        </div>
 
-        <div className="pd-actions-row pd-actions-row-bottom">
           <button
             type="button"
             className="patients-toolbar-button pd-close-btn"
@@ -148,7 +146,7 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <X size={16} />
             </span>
-            <span>{t('close')}</span>
+            <span style={{ fontWeight: 700 }}>{t('close')}</span>
           </button>
         </div>
       </div>
