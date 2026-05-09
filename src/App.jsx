@@ -242,7 +242,7 @@ function App() {
 
             <Route path="/login" element={loggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
 
-            <Route path="/dashboard" element={<RequireAuth element={<DashboardPage patients={patients} />} />} />
+            <Route path="/dashboard" element={<RequireAuth element={<DashboardPage patients={patients} onSelectPatient={patientsState.handleSelectPatient} />} />} />
 
             <Route
               path="/users"

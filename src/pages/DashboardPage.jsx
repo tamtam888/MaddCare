@@ -34,7 +34,7 @@ const isActiveStatus = (value) => {
   );
 };
 
-function DashboardPage({ patients = [] }) {
+function DashboardPage({ patients = [], onSelectPatient }) {
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
   const { t, lang, setLang, languages } = useLanguage();
@@ -142,9 +142,14 @@ function DashboardPage({ patients = [] }) {
                 type="button"
                 className="dashboard-demo-cta"
                 onClick={() => {
-                  const p = patients[0];
-                  const id = p?.idNumber || p?.id;
-                  if (id) navigate(`/patients/${encodeURIComponent(id)}`);
+                  const demo =
+                    patients.find((p) => String(p?.idNumber || p?.id || "") === "102030401") ||
+                    patients[0];
+                  const id = demo?.idNumber || demo?.id;
+                  if (id) {
+                    if (typeof onSelectPatient === "function") onSelectPatient(demo);
+                    navigate(`/patients/${encodeURIComponent(id)}`);
+                  }
                 }}
               >
                 {t('openDemoPatient')}
