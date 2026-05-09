@@ -181,9 +181,10 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            onClick={() => openVideo(selectedPatient, "intake", therapistId, patients, lang)}
+            disabled={isDemo || !hasPatient && !isDemo}
+            onClick={() => !isDemo && openVideo(selectedPatient, "intake", therapistId, patients, lang)}
           >
-            {hasPatient ? "Start Intake Video" : "Open Video Module"}
+            {isDemo ? "Demo preview" : hasPatient ? "Start Intake Video" : "Open Video Module"}
           </button>
         </div>
 
@@ -196,10 +197,10 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "progress", therapistId, patients, lang)}
+            disabled={isDemo || !hasPatient}
+            onClick={() => !isDemo && openVideo(selectedPatient, "progress", therapistId, patients, lang)}
           >
-            Compare Videos
+            {isDemo ? "Demo preview" : "Compare Videos"}
           </button>
         </div>
 
@@ -212,19 +213,21 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            disabled={!hasPatient}
-            onClick={() => openVideo(selectedPatient, "exercise", therapistId, patients, lang)}
+            disabled={isDemo || !hasPatient}
+            onClick={() => !isDemo && openVideo(selectedPatient, "exercise", therapistId, patients, lang)}
           >
-            Review Exercises
+            {isDemo ? "Demo preview" : "Review Exercises"}
           </button>
         </div>
       </div>
 
-      {!hasPatient && (
-        <p className="media-workflow-hint">
-          Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
-        </p>
-      )}
+      {isDemo
+        ? <p className="media-workflow-hint">Video recording and live comparison are available in the full pilot workflow.</p>
+        : !hasPatient && (
+            <p className="media-workflow-hint">
+              Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
+            </p>
+          )}
     </div>
   );
 }
