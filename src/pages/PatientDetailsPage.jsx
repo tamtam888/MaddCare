@@ -139,6 +139,7 @@ export default function PatientDetailsPage({
   };
 
   const handleStartTreatment = () => {
+    if (isDemo) return; // demo: no live treatment recording
     const pid = String(editablePatient?.idNumber || "").trim();
     if (!pid) return;
     navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);
@@ -417,6 +418,7 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={isDemo}
               onClick={() => openVideoWorkflow("intake")}
             >
               <span>{t('intakeVideo')}</span>
@@ -424,6 +426,7 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={isDemo}
               onClick={() => openVideoWorkflow("progress")}
             >
               <span>{t('progressComparison')}</span>
@@ -431,6 +434,7 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={isDemo}
               onClick={() => openVideoWorkflow("exercise")}
             >
               <span>{t('exerciseReview')}</span>

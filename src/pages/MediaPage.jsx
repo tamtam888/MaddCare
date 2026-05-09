@@ -222,7 +222,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
       </div>
 
       {isDemo
-        ? <p className="media-workflow-hint">Video recording and live comparison are available in the full pilot workflow.</p>
+        ? <p className="media-workflow-hint">Demo preview mode: Video recording, AI transcription, and live comparison are available in the full pilot workflow.</p>
         : !hasPatient && (
             <p className="media-workflow-hint">
               Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
