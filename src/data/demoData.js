@@ -86,7 +86,7 @@ export const DEMO_PATIENTS = [
         date: '2026-04-25T10:00:00.000Z',
         summary:
           'Chief complaint: lower back pain with radiation to left leg, onset 6 weeks prior. Functional limitations: unable to sit >30 min, forward bending painful. Goal: return to full work capacity and resume daily walking. Desk worker, no prior physiotherapy.',
-        text: 'Intake Assessment\n\nChief Complaint:\nLower back pain with intermittent radiation to the left leg. Onset approximately 6 weeks ago (mid-March 2026).\n\nPain Onset:\nGradual onset following prolonged desk work and a long commute. No acute injury or trauma. Worsens with prolonged sitting and forward bending.\n\nFunctional Limitations:\n- Unable to sit for more than 30 minutes without pain\n- Forward bending (e.g., tying shoes) is painful and limited\n- Sleep disrupted 3\u20134 nights per week due to discomfort\n- Reduced ability to concentrate at work\n\nPatient Goals:\n- Return to full work capacity without pain\n- Resume morning walks (currently avoided)\n- Avoid surgical intervention if possible\n- Understand exercises to manage symptoms independently\n\nRelevant Background:\nPatient works a sedentary desk job, approximately 8 hours per day. No significant comorbidities. No prior physiotherapy. MRI ordered by GP \u2014 results pending at time of intake.',
+        text: 'Intake Assessment\n\nChief Complaint:\nLower back pain with intermittent radiation to the left leg. Onset approximately 6 weeks ago (mid-March 2026).\n\nPain Onset:\nGradual onset following prolonged desk work and a long commute. No acute injury or trauma. Worsens with prolonged sitting and forward bending.\n\nFunctional Limitations:\n- Unable to sit for more than 30 minutes without pain\n- Forward bending (e.g., tying shoes) is painful and limited\n- Sleep disrupted 3\u20134 nights per week due to discomfort\n- Reduced ability to concentrate at work\n\nPatient Goals:\n- Return to full work capacity without pain\n- Resume morning walks (currently avoided)\n- Avoid surgical intervention if possible\n- Understand exercises to manage symptoms independently\n\nRelevant Background:\nPatient works a sedentary desk job, approximately 8 hours per day. No significant comorbidities. No prior physiotherapy. MRI completed March 2026 \u2014 results forwarded with GP referral and reviewed at initial physiotherapy assessment.',
       },
       {
         id: 'hist-yael-001',
@@ -141,7 +141,7 @@ export const DEMO_PATIENTS = [
           title: 'Reduce pain to VAS ≤ 2',
           status: 'In progress',
           targetDate: '2026-06-01',
-          notes: 'Currently VAS 4/10, improving weekly.',
+          notes: 'VAS 2/10 achieved (Week 2). Maintenance phase \u2014 monitoring functional recovery.',
         },
         {
           id: 'goal-yael-002',
