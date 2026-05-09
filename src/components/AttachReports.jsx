@@ -5,10 +5,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { useDemoMode } from "../hooks/useDemoMode";
 import "./AttachReports.css";
 
-const DEMO_REPORT_TEXT = `Generated from: 3 selected treatment sessions
-Sessions: Initial Assessment · Follow-up: Week 1 · Week 2 Progress
-
-Clinical Summary — Lumbar Disc Herniation (L4-L5)
+const DEMO_REPORT_TEXT = `Clinical Summary — Lumbar Disc Herniation (L4-L5)
 
 Patient Overview:
 Female patient presenting with L4-L5 disc herniation confirmed by MRI. Initial VAS pain score 6/10 with radiculopathy to left leg. Over a 10-day treatment course spanning 3 sessions, pain has reduced to VAS 2/10 with significant functional improvement.
@@ -507,6 +504,38 @@ function AttachReports({
 
     clearAll();
   };
+
+  if (isDemo) {
+    return (
+      <div className="reports-surface">
+        <div className="reports-demo-source">
+          <div className="reports-demo-source-label">
+            Generated from: 3 selected treatment session summaries
+          </div>
+          <div className="reports-demo-sessions">
+            <span className="reports-demo-session-pill">Initial Assessment</span>
+            <span className="reports-demo-session-pill">Follow-up: Week 1</span>
+            <span className="reports-demo-session-pill">Week 2 Progress</span>
+          </div>
+        </div>
+
+        <div className="reports-divider" />
+
+        <div className="reports-ai-label">✨ AI Generated Report</div>
+
+        <textarea
+          className="reports-textarea reports-textarea-report"
+          value={reportText}
+          onChange={() => {}}
+          readOnly
+        />
+
+        <p className="reports-demo-hint">
+          Read-only demo preview — full AI report generation, export, and saving are available in the pilot workflow.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="reports-surface">
