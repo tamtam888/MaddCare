@@ -20,6 +20,7 @@ import { useAppointments } from "../appointments/useAppointments";
 import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
 import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "https://maddvideo.vercel.app";
@@ -270,7 +271,14 @@ export default function PatientDetailsPage({
     );
   }
 
-  const historyCount = Array.isArray(editablePatient.history) ? editablePatient.history.length : 0;
+  const isDemo = useDemoMode();
+  const intakeEntry = isDemo
+    ? (editablePatient.history || []).find((e) => e.id === 'hist-yael-intake-001')
+    : null;
+  const historyForList = isDemo && intakeEntry
+    ? (editablePatient.history || []).filter((e) => e.id !== 'hist-yael-intake-001')
+    : (editablePatient.history || []);
+  const historyCount = historyForList.length;
   const selectedCount = selectedHistoryEntries.length;
   const historySubtitle = `${selectedCount} selected • ${historyCount} entries`;
   const reportsUploadedCount = Array.isArray(editablePatient.reports) ? editablePatient.reports.length : 0;
@@ -408,10 +416,24 @@ export default function PatientDetailsPage({
           </div>
         </CollapsibleBlock>
 
+        {intakeEntry && (
+          <CollapsibleBlock title={t('intakeAssessment')} subtitle={intakeEntry.date ? new Date(intakeEntry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''} defaultOpen={false}>
+            <div className="history-item" style={{ listStyle: 'none' }}>
+              <div className="history-title-line">{intakeEntry.title}</div>
+              {intakeEntry.summary && (
+                <p className="history-summary">{intakeEntry.summary}</p>
+              )}
+              {intakeEntry.text && (
+                <pre className="history-text-block" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted, #666)' }}>{intakeEntry.text}</pre>
+              )}
+            </div>
+          </CollapsibleBlock>
+        )}
+
         <CollapsibleBlock title={t('historyTitle')} subtitle={historySubtitle} defaultOpen={false}>
           <PatientHistory
             patient={editablePatient}
-            history={editablePatient.history || []}
+            history={historyForList}
             onChangeHistory={updateHistory}
             selectedIds={selectedHistoryIds}
             onToggleSelected={toggleHistorySelected}

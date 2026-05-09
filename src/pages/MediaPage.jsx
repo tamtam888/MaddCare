@@ -1,5 +1,6 @@
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 const MEDIA_APP_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_MEDIA_APP_BASE_URL
@@ -45,7 +46,11 @@ function openVideo(patient, mode, therapistId, allPatients, lang) {
 export default function MediaPage({ selectedPatient, patients = [] }) {
   const { therapistId } = useAuthContext();
   const { t, lang } = useLanguage();
+  const isDemo = useDemoMode();
   const hasPatient = Boolean(selectedPatient);
+  const intakeEntry = isDemo && selectedPatient
+    ? (selectedPatient.history || []).find((e) => e.id === 'hist-yael-intake-001')
+    : null;
   const patientLabel = hasPatient
     ? [selectedPatient.firstName, selectedPatient.lastName]
         .filter(Boolean)
@@ -61,6 +66,20 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           ? `Patient: ${patientLabel} — choose a workflow below to open the video module.`
           : "Open a patient record first to launch a targeted video workflow, or open the video module directly."}
       </p>
+
+      {intakeEntry && (
+        <div className="pd-card" style={{ marginBottom: '1rem' }}>
+          <div style={{ padding: '1rem 1.25rem 0.75rem' }}>
+            <div className="history-title-line" style={{ marginBottom: '0.4rem' }}>{intakeEntry.title}</div>
+            {intakeEntry.summary && (
+              <p className="history-summary" style={{ margin: '0 0 0.5rem' }}>{intakeEntry.summary}</p>
+            )}
+            {intakeEntry.text && (
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '0.85rem', color: 'var(--color-text-muted, #666)', margin: '0' }}>{intakeEntry.text}</pre>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="media-workflow-grid">
         <div className="media-workflow-card">
