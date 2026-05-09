@@ -285,19 +285,23 @@ function PatientsPage(props) {
             onChange={handleFileChange}
           />
 
-          <button type="button" className="patients-toolbar-button" onClick={handleClickImport} disabled={isDemo}>
+          {!isDemo && (
+          <button type="button" className="patients-toolbar-button" onClick={handleClickImport}>
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
             </span>
             <span>{t('import')}</span>
           </button>
+          )}
 
+          {!isDemo && (
           <button type="button" className="patients-toolbar-button" onClick={callExportPatients}>
             <span className="patients-toolbar-button-icon">
               <Download size={16} />
             </span>
             <span>{t('exportJson')}</span>
           </button>
+          )}
 
           {SHOW_MEDPLUM_UI && (
             <button type="button" className="patients-toolbar-button" onClick={handleClickSyncAll} disabled={isDemo}>
