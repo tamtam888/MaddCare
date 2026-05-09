@@ -322,6 +322,7 @@ export default function PatientDetailsPage({
                 inputType="tel"
                 onChange={(val) => updateField("phone", val)}
                 className="details-value"
+                readOnly={isDemo}
               />
             </div>
 
@@ -332,6 +333,7 @@ export default function PatientDetailsPage({
                 placeholder={t('phAddEmail')}
                 onChange={(val) => updateField("email", val)}
                 className="details-value"
+                readOnly={isDemo}
               />
             </div>
 
@@ -342,6 +344,7 @@ export default function PatientDetailsPage({
                 placeholder={t('phStreetCity')}
                 onChange={(val) => updateField("address", val)}
                 className="details-value"
+                readOnly={isDemo}
               />
             </div>
           </div>
@@ -352,6 +355,7 @@ export default function PatientDetailsPage({
               className="inline-input status-select"
               value={["Active", "Stable", "Disabled", "Not Active"].includes(editablePatient.clinicalStatus) ? editablePatient.clinicalStatus : "Not Active"}
               onChange={(e) => updateField("clinicalStatus", e.target.value)}
+              disabled={isDemo}
             >
               <option value="Active">{t('active')}</option>
               <option value="Not Active">{t('notActive')}</option>

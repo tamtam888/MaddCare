@@ -6,6 +6,7 @@ export default function InlineEditable({
   inputType = "text",
   className = "",
   onChange,
+  readOnly = false,
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
@@ -24,7 +25,7 @@ export default function InlineEditable({
     return (
       <span
         className={`editable-field ${className}`}
-        onClick={() => setEditing(true)}
+        onClick={() => { if (!readOnly) setEditing(true); }}
       >
         {String(value ?? "").trim().length ? value : placeholder}
       </span>

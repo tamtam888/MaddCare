@@ -103,6 +103,7 @@ export default function PatientHeader({
         </div>
 
         <div className="pd-actions-row pd-actions-row-close">
+          {!isDemo && (
           <button
             type="button"
             className="patients-toolbar-button"
@@ -113,7 +114,9 @@ export default function PatientHeader({
             </span>
             <span>{t('exportJson')}</span>
           </button>
+          )}
 
+          {!isDemo && (
           <label className="patients-toolbar-button">
             <span className="patients-toolbar-button-icon">
               <Upload size={16} />
@@ -126,6 +129,7 @@ export default function PatientHeader({
               onChange={handleImportChange}
             />
           </label>
+          )}
 
           {SHOW_MEDPLUM_UI && (
             <button

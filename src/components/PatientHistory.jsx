@@ -317,9 +317,11 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
             />
           </div>
 
-          <button type="button" className="history-add-button" onClick={handleAdd} disabled={isDemo}>
+          {!isDemo && (
+          <button type="button" className="history-add-button" onClick={handleAdd}>
             {t('historyAddEntry')}
           </button>
+          )}
         </div>
       </div>
 
@@ -376,7 +378,7 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                 </div>
 
                 <div className="history-item-actions">
-                  {!isEditing ? (
+                  {!isEditing && !isDemo ? (
                     <>
                       <button
                         type="button"
@@ -384,7 +386,6 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                         aria-label={t('editEntry')}
                         title={t('edit')}
                         onClick={() => handleEdit(entry)}
-                        disabled={isDemo}
                       >
                         <IconPencil className="history-icon" />
                       </button>
@@ -395,21 +396,20 @@ export default function PatientHistory({ patient, history, onChangeHistory, sele
                         aria-label={t('deleteEntry')}
                         title={t('delete')}
                         onClick={() => handleDelete(entry?.id)}
-                        disabled={isDemo}
                       >
                         <IconTrash className="history-icon" />
                       </button>
                     </>
-                  ) : (
+                  ) : isEditing ? (
                     <>
-                      <button type="button" className="history-pill-btn primary" onClick={handleSaveEdit} disabled={isDemo}>
+                      <button type="button" className="history-pill-btn primary" onClick={handleSaveEdit}>
                         {t('save')}
                       </button>
                       <button type="button" className="history-pill-btn" onClick={handleCancelEdit}>
                         {t('cancel')}
                       </button>
                     </>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
