@@ -187,6 +187,107 @@ html[dir="rtl"] .media-workflow-grid {
   color: #9ca3af;
 }
 
+/* Demo progress comparison card */
+.demo-progress-card {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem 0.9rem;
+  text-align: left;
+}
+
+html[dir="rtl"] .demo-progress-card {
+  text-align: right;
+}
+
+.demo-progress-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+}
+
+.demo-progress-card-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.demo-progress-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin-bottom: 0.15rem;
+}
+
+.demo-progress-card-subtitle {
+  font-size: 0.825rem;
+  color: #0369a1;
+}
+
+.demo-progress-columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.demo-progress-col {
+  flex: 1;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+
+.demo-progress-col-before {
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.demo-progress-col-after {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.demo-progress-col-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.demo-progress-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.demo-progress-metric {
+  font-weight: 600;
+  margin-inline-end: 0.25rem;
+}
+
+.demo-progress-arrow {
+  font-size: 1.4rem;
+  color: #9ca3af;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.demo-progress-summary {
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0369a1;
+  text-align: center;
+}
+
 /* Footer */
 .app-footer {
   position: static;

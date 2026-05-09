@@ -81,7 +81,47 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
         </div>
       )}
 
-      <div className="media-workflow-grid">
+      {isDemo && hasPatient && (
+        <div className="demo-progress-card" style={{ marginBottom: '1.25rem' }}>
+          <div className="demo-progress-card-header">
+            <span className="demo-progress-card-icon">📊</span>
+            <div>
+              <div className="demo-progress-card-title">Video Progress Comparison</div>
+              <div className="demo-progress-card-subtitle">Compare rehabilitation progress between intake and Week 2.</div>
+            </div>
+          </div>
+
+          <div className="demo-progress-columns">
+            <div className="demo-progress-col demo-progress-col-before">
+              <div className="demo-progress-col-label">Intake &mdash; 25 Apr</div>
+              <ul className="demo-progress-list">
+                <li><span className="demo-progress-metric">Pain:</span> VAS 6/10</li>
+                <li><span className="demo-progress-metric">Lumbar ROM:</span> limited</li>
+                <li><span className="demo-progress-metric">Sitting tolerance:</span> under 30 min</li>
+                <li><span className="demo-progress-metric">Walking:</span> avoided</li>
+              </ul>
+            </div>
+
+            <div className="demo-progress-arrow" aria-hidden="true">→</div>
+
+            <div className="demo-progress-col demo-progress-col-after">
+              <div className="demo-progress-col-label">Week 2 &mdash; 6 May</div>
+              <ul className="demo-progress-list">
+                <li><span className="demo-progress-metric">Pain:</span> VAS 2/10</li>
+                <li><span className="demo-progress-metric">Lumbar ROM:</span> 75% normal</li>
+                <li><span className="demo-progress-metric">Sitting tolerance:</span> improving</li>
+                <li><span className="demo-progress-metric">Walking:</span> resuming</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="demo-progress-summary">
+            10-day course &middot; 3 sessions &middot; Significant functional improvement
+          </div>
+        </div>
+      )}
+
+            <div className="media-workflow-grid">
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">🎥</div>
           <h3 className="media-workflow-card-title">{t('intakeAssessment')}</h3>
