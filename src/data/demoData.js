@@ -106,6 +106,24 @@ export const DEMO_PATIENTS = [
           'Patient called to confirm Tuesday appointment. No new symptoms. Continuing home exercises.',
         text: 'Phone Check-in\n\nPatient called to confirm Tuesday appointment. No new symptoms. Continuing home exercises as prescribed.',
       },
+      {
+        id: 'hist-yael-004',
+        type: 'Session',
+        title: 'Week 2 Progress',
+        date: '2026-05-06T09:00:00.000Z',
+        summary:
+          'Pain reduced to VAS 2/10. Lumbar flexion at 75% normal range. Progressed to Phase 3 stabilization: bird-dog and side plank series. Good body mechanics in functional tasks. Home exercise compliance confirmed.',
+        text: 'Week 2 Progress\n\nPain reduced to VAS 2/10 (from 4/10 at Week 1). Lumbar flexion at 75% normal range — steady improvement.\n\nProgressed to Phase 3 stabilization program: introduced bird-dog (alternating arm/leg) and side plank holds (20 sec). Patient demonstrates good body mechanics during functional task assessment (lifting, bending).\n\nHome exercise compliance confirmed — performing McKenzie press-ups and dead bug twice daily. Ergonomic review of workstation scheduled for next session.',
+      },
+      {
+        id: 'hist-yael-report-001',
+        type: 'report',
+        title: 'AI Rehabilitation Progress Report',
+        date: '2026-05-07T10:00:00.000Z',
+        summary:
+          'Generated from: Initial Assessment · Follow-up: Week 1 · Week 2 Progress\n\nClinical Summary — Lumbar Disc Herniation (L4-L5)\n\nPatient Overview:\nFemale patient presenting with L4-L5 disc herniation confirmed by MRI. Initial VAS pain score 6/10 with radiculopathy to left leg. Over a 10-day treatment course spanning 3 sessions, pain has reduced to VAS 2/10 with significant functional improvement.\n\nProgress Across Sessions:\n• Session 1 (Initial Assessment): Posture analysis, McKenzie protocol commenced. VAS 6/10.\n• Session 2 (Week 1 Follow-up): Phase 2 stabilization introduced. VAS 4/10. Radicular symptoms improving.\n• Session 3 (Week 2 Progress): Phase 3 stabilization: bird-dog and side plank. VAS 2/10. Full functional task compliance.\n\nRecommendations:\n- Continue Phase 3 home exercise program\n- Ergonomic workstation review (next session)\n- Reassess in 2 weeks; target full discharge by Week 6\n\nCompliance: High throughout treatment course.',
+        text: 'Generated from: Initial Assessment · Follow-up: Week 1 · Week 2 Progress\n\nClinical Summary — Lumbar Disc Herniation (L4-L5)\n\nPatient Overview:\nFemale patient presenting with L4-L5 disc herniation confirmed by MRI. Initial VAS pain score 6/10 with radiculopathy to left leg. Over a 10-day treatment course spanning 3 sessions, pain has reduced to VAS 2/10 with significant functional improvement.\n\nProgress Across Sessions:\n• Session 1 (Initial Assessment): Posture analysis, McKenzie protocol commenced. VAS 6/10.\n• Session 2 (Week 1 Follow-up): Phase 2 stabilization introduced. VAS 4/10. Radicular symptoms improving.\n• Session 3 (Week 2 Progress): Phase 3 stabilization: bird-dog and side plank. VAS 2/10. Full functional task compliance.\n\nRecommendations:\n- Continue Phase 3 home exercise program\n- Ergonomic workstation review (next session)\n- Reassess in 2 weeks; target full discharge by Week 6\n\nCompliance: High throughout treatment course.',
+      },
     ],
     carePlan: {
       goals: [

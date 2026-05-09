@@ -5,26 +5,31 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { useDemoMode } from "../hooks/useDemoMode";
 import "./AttachReports.css";
 
-const DEMO_REPORT_TEXT = `Clinical Summary Report
+const DEMO_REPORT_TEXT = `Generated from: 3 selected treatment sessions
+Sessions: Initial Assessment · Follow-up: Week 1 · Week 2 Progress
+
+Clinical Summary — Lumbar Disc Herniation (L4-L5)
 
 Patient Overview:
-The patient presents with chronic lower back pain with intermittent radiating symptoms to the right leg. Symptoms have been ongoing for approximately 6 weeks, with gradual improvement noted.
+Female patient presenting with L4-L5 disc herniation confirmed by MRI. Initial VAS pain score 6/10 with radiculopathy to left leg. Over a 10-day treatment course spanning 3 sessions, pain has reduced to VAS 2/10 with significant functional improvement.
+
+Progress Across Sessions:
+• Session 1 (Initial Assessment): Posture analysis performed. McKenzie press-up protocol and lumbar stabilization commenced. VAS 6/10.
+• Session 2 (Follow-up: Week 1): Pain reduced to VAS 4/10. Radicular symptoms improving. Progressed to Phase 2 stabilization — prone press-up series added. Home exercise compliance confirmed.
+• Session 3 (Week 2 Progress): Pain at VAS 2/10. Lumbar flexion at 75% normal range. Phase 3 stabilization introduced: bird-dog and side plank. Good body mechanics in functional tasks.
 
 Clinical Findings:
-- Reduced lumbar range of motion
-- Mild muscle guarding in the lower back
-- No neurological deficits observed
-
-Treatment Summary:
-The patient has undergone a combination of manual therapy, mobility exercises, and strengthening routines targeting the core and lumbar region.
-
-Progress:
-The patient reports decreased pain intensity and improved functional mobility. Compliance with the home exercise program is high.
+- Lumbar range of motion steadily improving across all sessions
+- Radiculopathy to left leg resolving
+- Core stabilization progressing through 3 phases in 10 days
 
 Recommendations:
-- Continue current exercise program
-- Gradually increase activity intensity
-- Follow-up assessment in 2 weeks`;
+- Continue Phase 3 home exercise program (bird-dog, side plank, McKenzie)
+- Ergonomic workstation review at next session
+- Reassess in 2 weeks; target full discharge by Week 6
+- Return if radicular symptoms recur
+
+Compliance: High throughout treatment course.`;
 
 function AttachReports({
   patient,
