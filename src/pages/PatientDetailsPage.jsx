@@ -139,7 +139,6 @@ export default function PatientDetailsPage({
   };
 
   const handleStartTreatment = () => {
-    if (isDemo) return; // demo: no live treatment recording
     const pid = String(editablePatient?.idNumber || "").trim();
     if (!pid) return;
     navigate(`/treatment?patientId=${encodeURIComponent(pid)}`);

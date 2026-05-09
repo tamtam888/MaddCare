@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import RecordAudio from "../components/RecordAudio";
+import { useDemoMode } from "../hooks/useDemoMode";
 import "./TreatmentPage.css";
 
 function getPatientKey(p) {
@@ -34,6 +35,7 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
   const [params, setParams] = useSearchParams();
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
+  const isDemo = useDemoMode();
 
   const patientId = String(params.get("patientId") || "").trim();
 
@@ -132,6 +134,59 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
 
   // ── Patient selected — show recording panel ───────────────────────────────
   const name = getPatientName(selectedPatient);
+
+  // ── Demo mode — read-only treatment preview ───────────────────────────────
+  if (isDemo) {
+    return (
+      <div className="treatment-page">
+        <div className="treatment-header-row">
+          <div className="treatment-header-text">
+            <h1 className="treatment-title">{t('treatmentSession')}</h1>
+            <p className="treatment-subtitle">
+              {name}{patientId ? ` · ID ${patientId}` : ""}
+            </p>
+          </div>
+          <div className="treatment-header-actions">
+            <button
+              type="button"
+              className="patients-toolbar-button"
+              onClick={() => navigate(`/patients/${encodeURIComponent(patientId)}`)}
+            >
+              {t('backToPatient')}
+            </button>
+          </div>
+        </div>
+
+        <div className="demo-treatment-preview">
+          <div className="demo-treatment-note-block">
+            <div className="demo-treatment-block-label">Raw Therapist Note</div>
+            <p className="demo-treatment-block-text">
+              Patient reports reduced lower back pain. Practiced lumbar stabilization
+              and walking tolerance. Sitting still limited but improving.
+            </p>
+          </div>
+
+          <div className="demo-treatment-arrow">↓ AI Improvement</div>
+
+          <div className="demo-treatment-ai-block">
+            <div className="demo-treatment-block-label">AI Clinical Summary</div>
+            <p className="demo-treatment-block-text">
+              The patient reports reduced lower back pain compared with the previous
+              session. Lumbar stabilization exercises were performed with improved
+              control, and walking tolerance is gradually improving. Sitting tolerance
+              remains limited but shows functional progress. Continue Phase 3
+              stabilization and reassess in two weeks.
+            </p>
+          </div>
+
+          <p className="demo-treatment-hint">
+            Read-only demo preview — live recording, transcription, and AI
+            improvement are available in the full pilot workflow.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="treatment-page">

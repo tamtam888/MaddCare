@@ -84,10 +84,9 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
-            disabled={isDemo}
             onClick={onStartTreatment}
           >
-            <span>{t('startTreatment')}</span>
+            <span>{isDemo ? t('viewAiTreatmentDemo') : t('startTreatment')}</span>
           </button>
 
           <button

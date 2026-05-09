@@ -222,3 +222,62 @@
     align-items: flex-start;
   }
 }
+
+/* ── Demo Treatment Preview ─────────────────────────────────────────────── */
+.demo-treatment-preview {
+  margin-top: 1.8rem;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.demo-treatment-note-block,
+.demo-treatment-ai-block {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.07);
+  padding: 1.1rem 1.25rem;
+}
+
+.demo-treatment-ai-block {
+  border-color: #c4b5fd;
+  background: #faf5ff;
+}
+
+.demo-treatment-block-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7c3aed;
+  margin-bottom: 0.5rem;
+}
+
+.demo-treatment-note-block .demo-treatment-block-label {
+  color: #6b7280;
+}
+
+.demo-treatment-block-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #111827;
+}
+
+.demo-treatment-arrow {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #7c3aed;
+  letter-spacing: 0.03em;
+}
+
+.demo-treatment-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  text-align: center;
+}
