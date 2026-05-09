@@ -355,6 +355,20 @@ export default function PatientDetailsPage({
           </div>
         </CollapsibleBlock>
 
+        {intakeEntry && (
+          <CollapsibleBlock title={t('intakeAssessment')} subtitle={intakeEntry.date ? new Date(intakeEntry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''} defaultOpen={true}>
+            <div className="history-item" style={{ listStyle: 'none' }}>
+              <div className="history-title-line">{intakeEntry.title}</div>
+              {intakeEntry.summary && (
+                <p className="history-summary">{intakeEntry.summary}</p>
+              )}
+              {intakeEntry.text && (
+                <pre className="history-text-block" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted, #666)' }}>{intakeEntry.text}</pre>
+              )}
+            </div>
+          </CollapsibleBlock>
+        )}
+
         <CollapsibleBlock title={t('appointments')} subtitle={t('upcomingAndPast')} defaultOpen={false}>
           <div className="patients-page-header-actions">
             <button
@@ -415,20 +429,6 @@ export default function PatientDetailsPage({
             </button>
           </div>
         </CollapsibleBlock>
-
-        {intakeEntry && (
-          <CollapsibleBlock title={t('intakeAssessment')} subtitle={intakeEntry.date ? new Date(intakeEntry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''} defaultOpen={false}>
-            <div className="history-item" style={{ listStyle: 'none' }}>
-              <div className="history-title-line">{intakeEntry.title}</div>
-              {intakeEntry.summary && (
-                <p className="history-summary">{intakeEntry.summary}</p>
-              )}
-              {intakeEntry.text && (
-                <pre className="history-text-block" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: '0.5rem 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted, #666)' }}>{intakeEntry.text}</pre>
-              )}
-            </div>
-          </CollapsibleBlock>
-        )}
 
         <CollapsibleBlock title={t('historyTitle')} subtitle={historySubtitle} defaultOpen={false}>
           <PatientHistory
