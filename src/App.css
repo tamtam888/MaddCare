@@ -440,3 +440,197 @@ html[dir="rtl"] .distribution-item {
     padding: 10px 14px 14px;
   }
 }
+
+/* ── Demo Video Progress Timeline (MediaPage, demo mode) ───────────────── */
+.demo-video-timeline {
+  background: #f9fafb;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1.25rem 1rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+html[dir="rtl"] .demo-video-timeline {
+  text-align: right;
+}
+
+.demo-video-timeline-header {
+  margin-bottom: 1rem;
+}
+
+.demo-video-timeline-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.3rem;
+}
+
+.demo-video-timeline-subtitle {
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Session cards row */
+.demo-video-cards {
+  display: flex;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.demo-video-card {
+  flex: 1;
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.demo-video-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+
+.demo-video-card-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-baseline {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-session {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-week2 {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.demo-video-card-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.demo-video-card-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.demo-video-card-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.demo-video-card-purpose {
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.demo-video-card-purpose-label {
+  font-weight: 600;
+}
+
+.demo-video-card-findings {
+  font-size: 0.78rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+/* Before / After comparison panel */
+.demo-video-compare {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.demo-video-compare-col {
+  flex: 1;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.demo-video-compare-before {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.demo-video-compare-after {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.demo-video-compare-col-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+  margin-bottom: 0.2rem;
+}
+
+.demo-video-compare-row {
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.demo-video-compare-metric {
+  font-weight: 600;
+  margin-inline-end: 0.25rem;
+}
+
+.demo-video-compare-arrow {
+  font-size: 1.3rem;
+  color: #9ca3af;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+html[dir="rtl"] .demo-video-compare-arrow {
+  transform: scaleX(-1);
+}
+
+/* AI insight */
+.demo-video-ai-insight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+}
+
+.demo-video-ai-insight-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.demo-video-ai-insight-text {
+  font-size: 0.82rem;
+  color: #374151;
+  line-height: 1.45;
+}
