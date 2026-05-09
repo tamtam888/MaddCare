@@ -210,7 +210,10 @@ export default function PatientDetailsPage({
   );
 
   const handleStartIntake = () => {
-    if (isDemo) return; // demo: intake content is shown read-only on this page
+    if (isDemo) {
+      document.getElementById('demo-intake-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds, lang);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
@@ -359,6 +362,7 @@ export default function PatientDetailsPage({
         </CollapsibleBlock>
 
         {intakeEntry && (
+          <div id="demo-intake-section">
           <CollapsibleBlock title={t('intakeAssessment')} subtitle={intakeEntry.date ? new Date(intakeEntry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''} defaultOpen={true}>
             <div className="history-item" style={{ listStyle: 'none' }}>
               <div className="history-title-line">{intakeEntry.title}</div>
@@ -370,6 +374,7 @@ export default function PatientDetailsPage({
               )}
             </div>
           </CollapsibleBlock>
+          </div>
         )}
 
         <CollapsibleBlock title={t('appointments')} subtitle={t('upcomingAndPast')} defaultOpen={false}>

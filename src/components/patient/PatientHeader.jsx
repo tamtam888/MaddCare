@@ -7,6 +7,7 @@ import {
   getStatusPillClass,
 } from "../../utils/patientUtils";
 import { useLanguage } from "../../i18n/LanguageContext";
+import { useDemoMode } from "../../hooks/useDemoMode";
 
 const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
 
@@ -22,6 +23,7 @@ export default function PatientHeader({
   onClose,
 }) {
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
   const headerClass = `patient-header-wrapper ${getHeaderStatusClass(patient)}`;
   const statusPill = getStatusPillClass(patient);
   const dobFormatted = formatDobForHeader(patient);
@@ -76,7 +78,7 @@ export default function PatientHeader({
             <span className="patients-toolbar-button-icon">
               <FileText size={16} />
             </span>
-            <span>{t('startIntake')}</span>
+            <span>{isDemo ? t('viewIntake') : t('startIntake')}</span>
           </button>
 
           <button
