@@ -47,14 +47,19 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
   const { therapistId } = useAuthContext();
   const { t, lang } = useLanguage();
   const isDemo = useDemoMode();
-  const hasPatient = Boolean(selectedPatient);
-  const intakeEntry = isDemo && selectedPatient
-    ? (selectedPatient.history || []).find((e) => e.id === 'hist-yael-intake-001')
+  const effectivePatient =
+    selectedPatient ||
+    (isDemo
+      ? patients.find((p) => String(p?.idNumber || p?.id || '') === '102030401')
+      : null);
+  const hasPatient = Boolean(effectivePatient);
+  const intakeEntry = isDemo && effectivePatient
+    ? (effectivePatient.history || []).find((e) => e.id === 'hist-yael-intake-001')
     : null;
   const patientLabel = hasPatient
-    ? [selectedPatient.firstName, selectedPatient.lastName]
+    ? [effectivePatient.firstName, effectivePatient.lastName]
         .filter(Boolean)
-        .join(" ") || selectedPatient.idNumber
+        .join(' ') || effectivePatient.idNumber
     : null;
 
   return (
