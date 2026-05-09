@@ -79,6 +79,7 @@ export default function PatientDetailsPage({
   const { idNumber: idNumberParam = "" } = useParams();
   const { therapistId, isAdmin } = useAuthContext();
   const { t, lang } = useLanguage();
+  const isDemo = useDemoMode();
 
   const patientFromStore = useMemo(() => {
     const key = String(idNumberParam || "").trim();
@@ -209,12 +210,14 @@ export default function PatientDetailsPage({
   );
 
   const handleStartIntake = () => {
+    if (isDemo) return; // demo: intake content is shown read-only on this page
     const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds, lang);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleOpenMedia = () => {
+    if (isDemo) { navigate("/media"); return; } // demo: stay in MedicalCare
     if (!localPatientId) return;
     const url = buildVideoWorkflowUrl({
       patientId: localPatientId,
@@ -233,6 +236,7 @@ export default function PatientDetailsPage({
 
   const openVideoWorkflow = useCallback(
     (mode) => {
+      if (isDemo) { navigate("/media"); return; } // demo: stay in MedicalCare
       const url = buildVideoWorkflowUrl({
         patientId: localPatientId,
         patientName: patientFullName,
@@ -243,7 +247,7 @@ export default function PatientDetailsPage({
       });
       window.open(url, "_blank", "noopener,noreferrer");
     },
-    [localPatientId, patientFullName, therapistId, activePatientIds, lang]
+    [isDemo, navigate, localPatientId, patientFullName, therapistId, activePatientIds, lang]
   );
 
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -271,7 +275,6 @@ export default function PatientDetailsPage({
     );
   }
 
-  const isDemo = useDemoMode();
   const intakeEntry = isDemo
     ? (editablePatient.history || []).find((e) => e.id === 'hist-yael-intake-001')
     : null;
