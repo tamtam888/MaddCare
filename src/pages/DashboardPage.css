@@ -309,3 +309,86 @@
   opacity: 0.88;
   transform: translateY(-1px);
 }
+
+/* ── Notification bell dropdown ──────────────────────────── */
+.bell-wrapper {
+  position: relative;
+}
+
+.topbar-icon-button {
+  position: relative;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  pointer-events: none;
+}
+
+.bell-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(15,23,42,0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.bell-dropdown-title {
+  padding: 0.65rem 1rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.bell-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0;
+}
+
+.bell-notif {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: #374151;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.bell-notif:last-child { border-bottom: none; }
+
+.bell-notif-warn  { background: #fffbeb; }
+.bell-notif-success { background: #f0fdf4; }
+
+.bell-notif-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Multi-therapist tagline ─────────────────────────────── */
+.dashboard-multi-therapist {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}

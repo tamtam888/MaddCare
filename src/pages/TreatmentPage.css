@@ -281,3 +281,45 @@
   line-height: 1.5;
   text-align: center;
 }
+
+/* ── Demo workflow capability strip ─────────────────────── */
+.demo-treatment-workflow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin-top: 1.4rem;
+  margin-bottom: 0.4rem;
+  max-width: 680px;
+}
+
+.demo-workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.demo-workflow-step.demo-workflow-step-highlight {
+  background: linear-gradient(135deg, #ede9fe, #faf5ff);
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.demo-workflow-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.demo-workflow-sep {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 600;
+  flex-shrink: 0;
+}

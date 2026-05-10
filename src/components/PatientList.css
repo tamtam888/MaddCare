@@ -269,3 +269,18 @@
     gap: 0.35rem;
   }
 }
+
+/* ── Demo preview badge ─────────────────────────────── */
+.patient-demo-badge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.1rem 0.45rem;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

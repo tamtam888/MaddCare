@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardPage.css";
 import { useAuthContext } from "../hooks/useAuthContext";
@@ -38,6 +38,8 @@ function DashboardPage({ patients = [], onSelectPatient }) {
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
   const { t, lang, setLang, languages } = useLanguage();
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef(null);
 
   const totalPatients = patients.length;
 
@@ -125,9 +127,40 @@ function DashboardPage({ patients = [], onSelectPatient }) {
               ))}
             </div>
 
-            <button type="button" className="topbar-icon-button" aria-label="Notifications">
-              <BellIcon />
-            </button>
+            <div className="bell-wrapper" ref={bellRef}>
+              <button
+                type="button"
+                className={`topbar-icon-button${bellOpen ? ' bell-active' : ''}`}
+                aria-label="Notifications"
+                onClick={() => setBellOpen((v) => !v)}
+              >
+                <BellIcon />
+                <span className="bell-badge" aria-hidden="true">4</span>
+              </button>
+              {bellOpen && (
+                <div className="bell-dropdown">
+                  <div className="bell-dropdown-title">Notifications</div>
+                  <ul className="bell-dropdown-list">
+                    <li className="bell-notif bell-notif-info">
+                      <span className="bell-notif-icon" aria-hidden="true">📅</span>
+                      <span className="bell-notif-text">3 treatments scheduled today</span>
+                    </li>
+                    <li className="bell-notif bell-notif-warn">
+                      <span className="bell-notif-icon" aria-hidden="true">⚠️</span>
+                      <span className="bell-notif-text">Session cancelled: David Levi, 14:00</span>
+                    </li>
+                    <li className="bell-notif bell-notif-info">
+                      <span className="bell-notif-icon" aria-hidden="true">🔁</span>
+                      <span className="bell-notif-text">Schedule updated: Maya Shapiro — May 12</span>
+                    </li>
+                    <li className="bell-notif bell-notif-success">
+                      <span className="bell-notif-icon" aria-hidden="true">✅</span>
+                      <span className="bell-notif-text">New appointment added — Yael Cohen</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
             <button type="button" className="topbar-icon-button" aria-label="Settings">
               <SettingsIcon />
             </button>
@@ -137,6 +170,7 @@ function DashboardPage({ patients = [], onSelectPatient }) {
         <header className="dashboard-header">
           <div className="dashboard-header-text">
             <p className="dashboard-welcome">{t('welcomeBack')}</p>
+            <p className="dashboard-multi-therapist">Supports single &amp; multi-therapist clinics</p>
             {patients.length > 0 && (
               <button
                 type="button"

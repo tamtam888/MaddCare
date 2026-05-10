@@ -157,6 +157,28 @@ export default function TreatmentPage({ patients = [], onSaveTranscription }) {
           </div>
         </div>
 
+        <div className="demo-treatment-workflow">
+          <div className="demo-workflow-step">
+            <span className="demo-workflow-icon" aria-hidden="true">🎙️</span>
+            <span className="demo-workflow-label">Record Session</span>
+          </div>
+          <span className="demo-workflow-sep" aria-hidden="true">→</span>
+          <div className="demo-workflow-step">
+            <span className="demo-workflow-icon" aria-hidden="true">📝</span>
+            <span className="demo-workflow-label">AI Transcription</span>
+          </div>
+          <span className="demo-workflow-sep" aria-hidden="true">→</span>
+          <div className="demo-workflow-step">
+            <span className="demo-workflow-icon" aria-hidden="true">📋</span>
+            <span className="demo-workflow-label">Visit Summary</span>
+          </div>
+          <span className="demo-workflow-sep" aria-hidden="true">→</span>
+          <div className="demo-workflow-step demo-workflow-step-highlight">
+            <span className="demo-workflow-icon" aria-hidden="true">✨</span>
+            <span className="demo-workflow-label">Improve with AI</span>
+          </div>
+        </div>
+
         <div className="demo-treatment-preview">
           <div className="demo-treatment-note-block">
             <div className="demo-treatment-block-label">Raw Therapist Note</div>

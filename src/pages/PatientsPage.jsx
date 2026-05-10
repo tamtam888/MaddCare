@@ -355,6 +355,7 @@ function PatientsPage(props) {
         onEditPatient={handleEditPatient}
         onDeletePatient={callDeletePatient}
         onViewPatient={callSelectPatient}
+        demoPrimaryId={isDemo ? "102030401" : undefined}
       />
 
       <PatientForm

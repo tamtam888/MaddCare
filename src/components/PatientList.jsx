@@ -52,7 +52,7 @@ function getGenderNameClass(g) {
   return "patient-name-other";
 }
 
-function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPatient }) {
+function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPatient, demoPrimaryId }) {
   const canView = typeof onViewPatient === "function";
 
   function handleRowKeyDown(e, patient) {
@@ -98,6 +98,9 @@ function PatientList({ patients = [], onEditPatient, onDeletePatient, onViewPati
                 <div className="patient-name-block">
                   <div className={`patient-name ${getGenderNameClass(p.gender)}`}>{(p.firstName || "") + " " + (p.lastName || "")}</div>
                   <div className="patient-id">ID: {idValue}</div>
+                  {demoPrimaryId && idValue !== demoPrimaryId && (
+                    <span className="patient-demo-badge">Demo Preview</span>
+                  )}
                 </div>
               </div>
 
