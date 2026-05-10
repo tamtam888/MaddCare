@@ -161,7 +161,7 @@ function DashboardPage({ patients = [], onSelectPatient }) {
                 </div>
               )}
             </div>
-            <button type="button" className="topbar-icon-button" aria-label="Settings">
+            <button type="button" className="topbar-icon-button" aria-label="Settings" onClick={() => navigate('/settings')}>
               <SettingsIcon />
             </button>
           </div>
