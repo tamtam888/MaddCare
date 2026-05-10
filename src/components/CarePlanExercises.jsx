@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import "./CarePlanExercises.css";
 import { formatDateDMY, fromISODateInput, toISODateInput } from "../utils/dateFormat";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 function toNumberOrUndefined(v) {
   const s = String(v ?? "").trim();
@@ -28,6 +29,7 @@ const emptyDraft = {
 
 export default function CarePlanExercises({ value = [], onChange }) {
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(emptyDraft);
@@ -122,9 +124,11 @@ export default function CarePlanExercises({ value = [], onChange }) {
     <div className="careplan-exercises">
       <div className="careplan-exercises-header">
         <div className="careplan-exercises-title">{t('exercises')}</div>
+        {!isDemo && (
         <button type="button" className="header-chip-btn" onClick={openAdd}>
           {"+ " + t('addExercise')}
         </button>
+        )}
       </div>
 
       {sorted.length === 0 ? (

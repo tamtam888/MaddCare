@@ -134,7 +134,10 @@ export const DEMO_PATIENTS = [
         text: 'Generated from: Initial Assessment · Follow-up: Week 1 · Week 2 Progress\n\nClinical Summary — Lumbar Disc Herniation (L4-L5)\n\nPatient Overview:\nFemale patient presenting with L4-L5 disc herniation confirmed by MRI. Initial VAS pain score 6/10 with radiculopathy to left leg. Over a 10-day treatment course spanning 3 sessions, pain has reduced to VAS 2/10 with significant functional improvement.\n\nProgress Across Sessions:\n• Session 1 (Initial Assessment): Posture analysis, McKenzie protocol commenced. VAS 6/10.\n• Session 2 (Week 1 Follow-up): Phase 2 stabilization introduced. VAS 4/10. Radicular symptoms improving.\n• Session 3 (Week 2 Progress): Phase 3 stabilization: bird-dog and side plank. VAS 2/10. Full functional task compliance.\n\nRecommendations:\n- Continue Phase 3 home exercise program\n- Ergonomic workstation review (next session)\n- Reassess in 2 weeks; target full discharge by Week 6\n\nCompliance: High throughout treatment course.',
       },
     ],
-    carePlan: {
+    carePlanDraft: {
+      id: 'cp-yael-001',
+      title: 'Lumbar Rehabilitation — Phase 3',
+      updatedAt: '2026-05-06T09:00:00.000Z',
       goals: [
         {
           id: 'goal-yael-001',
@@ -233,7 +236,7 @@ export const DEMO_PATIENTS = [
         text: 'Post-op Week 5 — Progression\n\nROM improved to 0-100° (exceeded 4-week target). Weaned off walker, now using single crutch.\n\nMini-squats and step-ups (low step) introduced. Patient pleased with progress. Next target: unaided ambulation by week 8.',
       },
     ],
-    carePlan: {
+    carePlanDraft: {
       goals: [
         {
           id: 'goal-moshe-001',
@@ -307,7 +310,7 @@ export const DEMO_PATIENTS = [
         text: 'Week 2 Progress\n\nPainful arc reduced to 80-110° — improvement noted. Patient tolerating external rotation strengthening with yellow Theraband.\n\nScapular retraction drills progressing well. Added W exercise for lower trapezius activation.',
       },
     ],
-    carePlan: {
+    carePlanDraft: {
       goals: [
         {
           id: 'goal-noa-001',
@@ -374,7 +377,7 @@ export const DEMO_PATIENTS = [
         text: 'Week 1 Follow-up\n\nSwelling reduced significantly. Full weight bearing achieved without pain.\n\nCommenced proprioception training on wobble board. Peroneal strengthening with resistance band introduced. Target: return to sport in 4-6 weeks.',
       },
     ],
-    carePlan: {
+    carePlanDraft: {
       goals: [
         {
           id: 'goal-david-001',
@@ -432,7 +435,7 @@ export const DEMO_PATIENTS = [
         text: 'Discharge Assessment\n\nPatient completed 8-week hip strengthening program. Pain managed (VAS 2/10 on most days).\n\nHip extension strength improved from 3/5 to 4/5. Abductor strength 3+/5. Gait pattern improved — reduced Trendelenburg sign.\n\nDischarged with home exercise program. Return if symptoms worsen.',
       },
     ],
-    carePlan: {
+    carePlanDraft: {
       goals: [
         {
           id: 'goal-ruth-001',

@@ -246,9 +246,10 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
   return (
     <div className="careplan-section">
       <div className="careplan-actions">
-        {draft ? (
+        {!isDemo && (
+        draft ? (
           <>
-            <button type="button" className="header-chip-btn" onClick={handleSaveCarePlan} disabled={isDemo}>
+            <button type="button" className="header-chip-btn" onClick={handleSaveCarePlan}>
               {t('save')}
             </button>
 
@@ -292,17 +293,17 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                 accept="application/json"
                 className="careplan-import-input"
                 onChange={onImportFile}
-                disabled={isDemo}
+               
               />
             </label>
 
-            <button type="button" className="header-chip-btn careplan-danger" onClick={clearDraft} disabled={isDemo}>
+            <button type="button" className="header-chip-btn careplan-danger" onClick={clearDraft}>
               {t('deleteDraft')}
             </button>
           </>
         ) : (
           <>
-            <button type="button" className="header-chip-btn" onClick={createDraft} disabled={isDemo}>
+            <button type="button" className="header-chip-btn" onClick={createDraft}>
               {t('createCarePlan')}
             </button>
 
@@ -314,11 +315,11 @@ export default function CarePlanSection({ patient, onUpdatePatient, onSaveCarePl
                 accept="application/json"
                 className="careplan-import-input"
                 onChange={onImportFile}
-                disabled={isDemo}
+               
               />
             </label>
           </>
-        )}
+        ))}
       </div>
 
       {draft ? (

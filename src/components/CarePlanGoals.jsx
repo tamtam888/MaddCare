@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import "./CarePlanGoals.css";
 import { formatDateDMY, parseFlexibleDate } from "../utils/dateFormat";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useDemoMode } from "../hooks/useDemoMode";
 
 function createId(prefix) {
   const id = globalThis.crypto?.randomUUID?.();
@@ -17,6 +18,7 @@ const emptyDraft = {
 
 export default function CarePlanGoals({ value = [], onChange }) {
   const { t } = useLanguage();
+  const isDemo = useDemoMode();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(emptyDraft);
@@ -112,9 +114,11 @@ export default function CarePlanGoals({ value = [], onChange }) {
     <div className="careplan-goals">
       <div className="careplan-goals-header">
         <div className="careplan-goals-title">{t('therapyGoals')}</div>
+        {!isDemo && (
         <button type="button" className="header-chip-btn" onClick={openAdd}>
           {"+ " + t('addGoal')}
         </button>
+        )}
       </div>
 
       {sorted.length === 0 ? (
