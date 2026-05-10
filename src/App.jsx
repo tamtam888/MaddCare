@@ -203,8 +203,9 @@ function App() {
     [patientsState]
   );
 
-  // Hide Medplum UI when VITE_SHOW_MEDPLUM_UI is explicitly set to "false".
-  const showMedplumUI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+  // Show Medplum UI only when VITE_SHOW_MEDPLUM_UI is explicitly set to "true".
+  // Defaults to hidden so pilot/preview deployments are clean without requiring Vercel env config.
+  const showMedplumUI = import.meta.env.VITE_SHOW_MEDPLUM_UI === "true";
 
   if (!authReady) {
     return <div className="app-loading">Loading MedicalCare...</div>;
@@ -378,12 +379,4 @@ function App() {
             <span className="app-footer-text">© 2026 MedicalCare. All rights reserved.</span>
             <span className="app-footer-sep">•</span>
             <span className="app-footer-text">by TK</span>
-          </footer>
-        ) : null}
-      </div>
-    </div>
-    </LanguageProvider>
-  );
-}
-
-export default App;
+          </foote
