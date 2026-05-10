@@ -18,6 +18,7 @@ import { useAppointmentDrawer } from "../appointments/useAppointmentDrawer";
 import { useAppointments } from "../appointments/useAppointments";
 
 import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
+import { getLatestIntakeForPatient } from "../lib/intakeService";
 import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 import { useAuthContext } from "../hooks/useAuthContext";
 
@@ -35,7 +36,7 @@ function buildMediaUrl({ medplumPatientId, patientId, lang }) {
   return `${MEDIA_APP_BASE_URL}/patients${qs ? `?${qs}` : ""}`;
 }
 
-function buildIntakeUrl(patientId, patientName, therapistId, activeIds = [], lang) {
+function buildIntakeUrl(patientId, patientName, therapistId, activeIds = [], lang, discipline = '') {
   if (!patientId) return null;
   const id = String(patientId).trim();
   const params = new URLSearchParams();
@@ -45,6 +46,7 @@ function buildIntakeUrl(patientId, patientName, therapistId, activeIds = [], lan
   if (lang) params.set("lang", lang);
   if (therapistId) params.set("tid", String(therapistId).trim());
   if (activeIds.length > 0) params.set("activePatients", activeIds.join(','));
+  if (discipline) params.set("discipline", discipline);
   return `${MEDIA_APP_BASE_URL}/patients/${encodeURIComponent(id)}/intake/new?${params.toString()}`;
 }
 
@@ -89,6 +91,7 @@ export default function PatientDetailsPage({
   const [selectedHistoryIds, setSelectedHistoryIds] = useState(() => new Set());
   const [therapists, setTherapists] = useState([]);
   const [therapistsSyncError, setTherapistsSyncError] = useState(null);
+  const [latestIntake, setLatestIntake] = useState(null);
 
   useEffect(() => {
     getAllTherapists().then((list) => {
@@ -104,6 +107,13 @@ export default function PatientDetailsPage({
   useEffect(() => {
     setSelectedHistoryIds(new Set());
   }, [editablePatient?.idNumber]);
+
+  useEffect(() => {
+    if (!localPatientId || !therapistId) return;
+    getLatestIntakeForPatient(localPatientId, therapistId)
+      .then(setLatestIntake)
+      .catch(() => {});
+  }, [localPatientId, therapistId]);
 
   const toggleHistorySelected = (entryId) => {
     const id = String(entryId || "");
@@ -208,7 +218,8 @@ export default function PatientDetailsPage({
   );
 
   const handleStartIntake = () => {
-    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds, lang);
+    const discipline = editablePatient?.primaryCareDiscipline || '';
+    const intakeUrl = buildIntakeUrl(localPatientId, patientFullName, therapistId, activePatientIds, lang, discipline);
     if (!intakeUrl) return;
     window.open(intakeUrl, "_blank", "noopener,noreferrer");
   };
@@ -359,6 +370,21 @@ export default function PatientDetailsPage({
               <option value="hydrotherapy">{t('disciplineHydrotherapy')}</option>
               <option value="combined">{t('disciplineCombined')}</option>
             </select>
+          </div>
+
+          <div className="status-row">
+            <span className="details-label">{t('intakeSummaryTitle')}</span>
+            {latestIntake ? (
+              <span className="intake-summary-meta">
+                {latestIntake.session_date}
+                {" · "}
+                <span className={`intake-status-badge intake-status-${latestIntake.status}`}>
+                  {latestIntake.status === 'complete' ? t('intakeStatusComplete') : t('intakeStatusDraft')}
+                </span>
+              </span>
+            ) : (
+              <span className="details-value-muted">{t('noIntakeRecorded')}</span>
+            )}
           </div>
         </CollapsibleBlock>
 
