@@ -108,13 +108,6 @@ export default function PatientDetailsPage({
     setSelectedHistoryIds(new Set());
   }, [editablePatient?.idNumber]);
 
-  useEffect(() => {
-    if (!localPatientId || !therapistId) return;
-    getLatestIntakeForPatient(localPatientId, therapistId)
-      .then(setLatestIntake)
-      .catch(() => {});
-  }, [localPatientId, therapistId]);
-
   const toggleHistorySelected = (entryId) => {
     const id = String(entryId || "");
     if (!id) return;
@@ -199,6 +192,13 @@ export default function PatientDetailsPage({
     () => String(editablePatient?.idNumber || editablePatient?.id || "").trim(),
     [editablePatient]
   );
+
+  useEffect(() => {
+    if (!localPatientId || !therapistId) return;
+    getLatestIntakeForPatient(localPatientId, therapistId)
+      .then(setLatestIntake)
+      .catch(() => {});
+  }, [localPatientId, therapistId]);
 
   // All patient IDs visible to the current therapist -- sent to MaddVideo
   // so it can filter out patients deleted in MedicalCare.
