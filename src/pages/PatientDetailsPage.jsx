@@ -346,6 +346,20 @@ export default function PatientDetailsPage({
               <option value="Disabled">{t('disabled')}</option>
             </select>
           </div>
+
+          <div className="status-row">
+            <span className="details-label">{t('labelCareDiscipline')}</span>
+            <select
+              className="inline-input status-select"
+              value={editablePatient.primaryCareDiscipline || ""}
+              onChange={(e) => updateField("primaryCareDiscipline", e.target.value)}
+            >
+              <option value="">{t('disciplineNotSet')}</option>
+              <option value="physiotherapy">{t('disciplinePhysiotherapy')}</option>
+              <option value="hydrotherapy">{t('disciplineHydrotherapy')}</option>
+              <option value="combined">{t('disciplineCombined')}</option>
+            </select>
+          </div>
         </CollapsibleBlock>
 
         <CollapsibleBlock title={t('appointments')} subtitle={t('upcomingAndPast')} defaultOpen={false}>

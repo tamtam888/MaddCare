@@ -100,6 +100,10 @@ export function normalizePatient(raw = {}) {
         .filter(Boolean)
     : [];
 
+  // Preserve future-proof care discipline fields.
+  // primaryCareDiscipline: 'physiotherapy' | 'hydrotherapy' | 'combined' | ''
+  const primaryCareDiscipline = p.primaryCareDiscipline || "";
+
   return {
     ...p,
     idNumber,
@@ -115,6 +119,7 @@ export function normalizePatient(raw = {}) {
     city,
     zipCode,
     conditions,
+    primaryCareDiscipline,
     history: ensureArray(p.history),
     reports: ensureArray(p.reports),
   };

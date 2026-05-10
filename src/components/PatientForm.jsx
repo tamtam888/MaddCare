@@ -3,6 +3,8 @@ import "./PatientForm.css";
 import { formatDateDMY } from "../utils/dateFormat";
 import { useLanguage } from "../i18n/LanguageContext";
 
+const CARE_DISCIPLINES = ["physiotherapy", "hydrotherapy", "combined"];
+
 const defaultValues = {
   idNumber: "",
   firstName: "",
@@ -17,6 +19,7 @@ const defaultValues = {
   conditions: "",
   phone: "",
   email: "",
+  primaryCareDiscipline: "",
 };
 
 function pad2(n) {
@@ -104,6 +107,10 @@ function normalizeInitialValues(initialValues) {
     ? initialValues.conditions.join(", ")
     : (initialValues.conditions || "");
 
+  const primaryCareDiscipline = CARE_DISCIPLINES.includes(initialValues?.primaryCareDiscipline)
+    ? initialValues.primaryCareDiscipline
+    : "";
+
   return {
     ...defaultValues,
     ...initialValues,
@@ -115,6 +122,7 @@ function normalizeInitialValues(initialValues) {
     zipCode,
     status,
     conditions,
+    primaryCareDiscipline,
   };
 }
 
@@ -225,6 +233,10 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
       clinicalStatus: nextValues.status,
 
       dob: nextValues.dob || "",
+
+      primaryCareDiscipline: CARE_DISCIPLINES.includes(nextValues.primaryCareDiscipline)
+        ? nextValues.primaryCareDiscipline
+        : "",
 
       conditions: nextValues.conditions
         ? nextValues.conditions
@@ -354,6 +366,20 @@ function PatientForm({ isOpen, onClose, onSubmit, initialValues }) {
                 <option value="Not Active">{t('statusNotActive')}</option>
               </select>
             </div>
+          </div>
+
+          <div className="form-field">
+            <label>{t('labelCareDiscipline')}</label>
+            <select
+              name="primaryCareDiscipline"
+              value={values.primaryCareDiscipline}
+              onChange={handleChange}
+            >
+              <option value="">{t('disciplineNotSet')}</option>
+              <option value="physiotherapy">{t('disciplinePhysiotherapy')}</option>
+              <option value="hydrotherapy">{t('disciplineHydrotherapy')}</option>
+              <option value="combined">{t('disciplineCombined')}</option>
+            </select>
           </div>
 
           <div className="form-full-width form-field">
