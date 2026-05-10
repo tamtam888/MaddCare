@@ -150,6 +150,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
                   ) : null}
                 </div>
 
+                {!isDemo && (
                 <div className="careplan-goal-actions">
                   <button
                     type="button"
@@ -166,6 +167,7 @@ export default function CarePlanGoals({ value = [], onChange }) {
                     {t('delete')}
                   </button>
                 </div>
+                )}
               </div>
             );
           })}

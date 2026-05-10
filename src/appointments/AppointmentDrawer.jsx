@@ -456,7 +456,7 @@ export default function AppointmentDrawer({
             <textarea className="mc-textarea" rows={4} {...register("notes")} onBlur={handleNotesBlur} />
           </div>
 
-          {showLinked && resolution.patient && (
+          {!isDemo && showLinked && resolution.patient && (
             <div className="mc-video-section">
               <span className="mc-video-label">{t('videoWorkflow')}</span>
               <div className="mc-video-buttons">

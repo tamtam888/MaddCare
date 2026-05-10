@@ -162,6 +162,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
                   {ex.instructions ? <div className="careplan-exercise-instructions">{ex.instructions}</div> : null}
                 </div>
 
+                {!isDemo && (
                 <div className="careplan-exercise-actions">
                   <button type="button" className="careplan-action-btn" onClick={() => openEdit(ex)}>
                     {t('edit')}
@@ -174,6 +175,7 @@ export default function CarePlanExercises({ value = [], onChange }) {
                     {t('delete')}
                   </button>
                 </div>
+                )}
               </div>
             );
           })}
