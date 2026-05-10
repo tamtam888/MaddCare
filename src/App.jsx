@@ -203,6 +203,9 @@ function App() {
     [patientsState]
   );
 
+  // Hide Medplum UI when VITE_SHOW_MEDPLUM_UI is explicitly set to "false".
+  const showMedplumUI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+
   if (!authReady) {
     return <div className="app-loading">Loading MedicalCare...</div>;
   }
@@ -236,9 +239,11 @@ function App() {
                 ⚙️
               </button>
 
-              <button type="button" className="primary-button medplum-header-button" onClick={handleConnectMedplum}>
-                {medplumProfile ? "Medplum: Connected" : "Connect to Medplum"}
-              </button>
+              {showMedplumUI && (
+                <button type="button" className="primary-button medplum-header-button" onClick={handleConnectMedplum}>
+                  {medplumProfile ? "Medplum: Connected" : "Connect to Medplum"}
+                </button>
+              )}
             </div>
           </header>
         ) : null}

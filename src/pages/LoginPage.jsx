@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { bootstrapAdminIfNeeded, verifyTherapistCredentials } from "../therapists/therapistsStore";
+import { verifyTherapistCredentials } from "../therapists/therapistsStore";
 import { useLanguage } from "../i18n/LanguageContext";
 import "./LoginPage.css";
 
@@ -10,9 +10,6 @@ const LOGGED_IN_KEY = "mc_logged_in";
 const ROLE_KEY = "mc_role";
 const THERAPIST_ID_KEY = "mc_therapistId";
 const DISPLAY_NAME_KEY = "mc_therapistName";
-
-const ADMIN_USERNAME = "admin";
-const ADMIN_ID = "15951595";
 
 function normalize(value) {
   return String(value ?? "").trim();
@@ -25,10 +22,6 @@ function digitsOnly(value) {
 export default function LoginPage() {
   const navigate = useNavigate();
   const { t, lang, setLang } = useLanguage();
-
-  useEffect(() => {
-    bootstrapAdminIfNeeded();
-  }, []);
 
   const [fullName, setFullName] = useState("");
   const [idNumber, setIdNumber] = useState("");
@@ -55,22 +48,8 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const isAdmin = username.toLowerCase() === ADMIN_USERNAME && password === ADMIN_ID;
-
-      if (isAdmin) {
-        try {
-          localStorage.setItem(LOGGED_IN_KEY, "1");
-          localStorage.setItem(ROLE_KEY, "admin");
-          localStorage.setItem(THERAPIST_ID_KEY, "admin");
-          localStorage.setItem(DISPLAY_NAME_KEY, "Admin");
-        } catch {}
-
-        window.location.replace("/dashboard");
-        return;
-      }
-
-      // Targeted credential check — fetches only the matching therapist record,
-      // never loads all therapists' passwords into the client.
+      // All logins — including admin — go through the Supabase RPC.
+      // The role (therapist / admin) is determined from the returned DB record.
       const match = await verifyTherapistCredentials(username, password);
 
       if (!match) {
@@ -83,9 +62,11 @@ export default function LoginPage() {
         return;
       }
 
+      const resolvedRole = normalize(match.role).toLowerCase() === "admin" ? "admin" : "therapist";
+
       try {
         localStorage.setItem(LOGGED_IN_KEY, "1");
-        localStorage.setItem(ROLE_KEY, "therapist");
+        localStorage.setItem(ROLE_KEY, resolvedRole);
         localStorage.setItem(THERAPIST_ID_KEY, digitsOnly(match.idNumber || match.id));
         localStorage.setItem(DISPLAY_NAME_KEY, normalize(match.fullName));
       } catch {}
