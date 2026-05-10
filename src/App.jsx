@@ -204,7 +204,7 @@ function App() {
   );
 
   // Show Medplum UI only when VITE_SHOW_MEDPLUM_UI is explicitly set to "true".
-  // Defaults to hidden so pilot/preview deployments are clean without requiring Vercel env config.
+  // Defaults to hidden — pilot/preview deployments are clean without Vercel env config.
   const showMedplumUI = import.meta.env.VITE_SHOW_MEDPLUM_UI === "true";
 
   if (!authReady) {
@@ -379,4 +379,12 @@ function App() {
             <span className="app-footer-text">© 2026 MedicalCare. All rights reserved.</span>
             <span className="app-footer-sep">•</span>
             <span className="app-footer-text">by TK</span>
-          </foote
+          </footer>
+        ) : null}
+      </div>
+    </div>
+    </LanguageProvider>
+  );
+}
+
+export default App;
