@@ -360,6 +360,125 @@
   gap: 0.3rem;
 }
 
+/* Intake summary row */
+
+.intake-summary-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.intake-status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.intake-status-complete {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.intake-status-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.intake-view-btn {
+  background: none;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 6px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.15s, color 0.15s;
+}
+
+.intake-view-btn:hover:not(:disabled) {
+  background: var(--surface-hover, #f3f4f6);
+  color: var(--text-primary, #111827);
+}
+
+.intake-view-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Intake detail panel */
+
+.intake-detail-panel {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface-secondary, #f9fafb);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.intake-detail-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.3rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.intake-detail-label {
+  color: var(--text-secondary, #6b7280);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.intake-detail-value {
+  color: var(--text-primary, #111827);
+}
+
+.intake-detail-section {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  padding-top: 0.65rem;
+}
+
+.intake-detail-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, #9ca3af);
+  margin-bottom: 0.5rem;
+}
+
+.intake-detail-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.intake-answer-row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+}
+
+.intake-answer-key {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.intake-answer-value {
+  color: var(--text-primary, #111827);
+  word-break: break-word;
+}
+
 /* Empty */
 
 .empty-state {

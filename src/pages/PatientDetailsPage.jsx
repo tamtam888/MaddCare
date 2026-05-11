@@ -18,7 +18,7 @@ import { useAppointmentDrawer } from "../appointments/useAppointmentDrawer";
 import { useAppointments } from "../appointments/useAppointments";
 
 import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
-import { getLatestIntakeForPatient } from "../lib/intakeService";
+import { getLatestIntakeForPatient, getIntakeById } from "../lib/intakeService";
 import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { formatDateDMY } from '../utils/dateFormat';
@@ -93,6 +93,9 @@ export default function PatientDetailsPage({
   const [therapists, setTherapists] = useState([]);
   const [therapistsSyncError, setTherapistsSyncError] = useState(null);
   const [latestIntake, setLatestIntake] = useState(null);
+  const [intakeDetail, setIntakeDetail] = useState(null);
+  const [showIntakeDetail, setShowIntakeDetail] = useState(false);
+  const [intakeDetailLoading, setIntakeDetailLoading] = useState(false);
 
   useEffect(() => {
     getAllTherapists().then((list) => {
@@ -107,6 +110,8 @@ export default function PatientDetailsPage({
 
   useEffect(() => {
     setSelectedHistoryIds(new Set());
+    setIntakeDetail(null);
+    setShowIntakeDetail(false);
   }, [editablePatient?.idNumber]);
 
   const toggleHistorySelected = (entryId) => {
@@ -200,6 +205,26 @@ export default function PatientDetailsPage({
       .then(setLatestIntake)
       .catch(() => {});
   }, [localPatientId, therapistId]);
+
+  const handleViewIntake = useCallback(() => {
+    if (showIntakeDetail) {
+      setShowIntakeDetail(false);
+      return;
+    }
+    if (intakeDetail) {
+      setShowIntakeDetail(true);
+      return;
+    }
+    if (!latestIntake?.id) return;
+    setIntakeDetailLoading(true);
+    getIntakeById(latestIntake.id, localPatientId, therapistId, isAdmin)
+      .then((data) => {
+        setIntakeDetail(data);
+        setShowIntakeDetail(true);
+      })
+      .catch(() => {})
+      .finally(() => setIntakeDetailLoading(false));
+  }, [showIntakeDetail, intakeDetail, latestIntake, localPatientId, therapistId, isAdmin]);
 
   // All patient IDs visible to the current therapist -- sent to MaddVideo
   // so it can filter out patients deleted in MedicalCare.
@@ -382,11 +407,87 @@ export default function PatientDetailsPage({
                 <span className={`intake-status-badge intake-status-${latestIntake.status}`}>
                   {latestIntake.status === 'complete' ? t('intakeStatusComplete') : t('intakeStatusDraft')}
                 </span>
+                <button
+                  type="button"
+                  className="intake-view-btn"
+                  onClick={handleViewIntake}
+                  disabled={intakeDetailLoading}
+                >
+                  {intakeDetailLoading ? '…' : showIntakeDetail ? t('hideIntake') : t('viewIntake')}
+                </button>
               </span>
             ) : (
               <span className="details-value-muted">{t('noIntakeRecorded')}</span>
             )}
           </div>
+
+          {showIntakeDetail && intakeDetail && (
+            <div className="intake-detail-panel">
+              <div className="intake-detail-grid">
+                <span className="intake-detail-label">{t('intakeSummaryTitle')}</span>
+                <span className="intake-detail-value">{formatDateDMY(intakeDetail.session_date)}</span>
+
+                <span className="intake-detail-label">{t('intakeDiscipline')}</span>
+                <span className="intake-detail-value">
+                  {intakeDetail.discipline === 'physiotherapy' ? t('disciplinePhysiotherapy')
+                    : intakeDetail.discipline === 'hydrotherapy' ? t('disciplineHydrotherapy')
+                    : intakeDetail.discipline === 'combined' ? t('disciplineCombined')
+                    : intakeDetail.discipline || t('disciplineNotSet')}
+                </span>
+
+                {intakeDetail.therapist_id && (
+                  <>
+                    <span className="intake-detail-label">{t('intakeTherapist')}</span>
+                    <span className="intake-detail-value">{intakeDetail.therapist_id}</span>
+                  </>
+                )}
+              </div>
+
+              {intakeDetail.intake_data?.answers && Object.keys(intakeDetail.intake_data.answers).length > 0 && (
+                <div className="intake-detail-section">
+                  <div className="intake-detail-section-title">{t('intakeAnswers')}</div>
+                  <div className="intake-detail-answers">
+                    {Object.entries(intakeDetail.intake_data.answers).map(([key, value]) => {
+                      if (value === null || value === undefined || value === '') return null;
+                      const displayValue = typeof value === 'boolean'
+                        ? (value ? '✓' : '✗')
+                        : Array.isArray(value)
+                        ? value.join(', ')
+                        : String(value);
+                      return (
+                        <div key={key} className="intake-answer-row">
+                          <span className="intake-answer-key">{key.replace(/_/g, ' ')}</span>
+                          <span className="intake-answer-value">{displayValue}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {intakeDetail.intake_data?.baseline && Object.keys(intakeDetail.intake_data.baseline).length > 0 && (
+                <div className="intake-detail-section">
+                  <div className="intake-detail-section-title">{t('intakeBaseline')}</div>
+                  <div className="intake-detail-answers">
+                    {Object.entries(intakeDetail.intake_data.baseline).map(([key, value]) => {
+                      if (value === null || value === undefined || value === '') return null;
+                      const displayValue = typeof value === 'boolean'
+                        ? (value ? '✓' : '✗')
+                        : Array.isArray(value)
+                        ? value.join(', ')
+                        : String(value);
+                      return (
+                        <div key={key} className="intake-answer-row">
+                          <span className="intake-answer-key">{key.replace(/_/g, ' ')}</span>
+                          <span className="intake-answer-value">{displayValue}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CollapsibleBlock>
 
         <CollapsibleBlock title={t('appointments')} subtitle={t('upcomingAndPast')} defaultOpen={false}>

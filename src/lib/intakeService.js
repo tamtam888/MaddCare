@@ -1,7 +1,8 @@
 /**
  * intakeService — read-only access to mc_intakes in MedicalCare Supabase project.
  *
- * Used by PatientDetailsPage to display the latest intake summary per patient.
+ * Used by PatientDetailsPage to display the latest intake summary per patient
+ * and to fetch full intake detail (including intake_data) for the View Intake panel.
  * Therapist queries filter by BOTH patient_id AND therapist_id.
  * Admin queries filter by patient_id only — they see all intakes across therapists.
  * Errors are non-throwing — callers receive null or [] and handle gracefully.
@@ -39,6 +40,44 @@ export async function getLatestIntakeForPatient(patientId, therapistId, isAdmin 
     const { data, error } = await query.maybeSingle();
     if (error) {
       console.warn('[intakeService] getLatestIntakeForPatient failed:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn('[intakeService] unexpected error:', err?.message ?? err);
+    return null;
+  }
+}
+
+/**
+ * Fetch one full intake by id, including intake_data (answers + baseline).
+ * Therapist role: query is scoped to therapist_id to enforce isolation.
+ * Admin role: no therapist_id filter.
+ * Returns null if not found, Supabase is unconfigured, or an error occurs.
+ *
+ * @param {string} intakeId    - UUID of the intake row
+ * @param {string} patientId   - patient national ID (safety double-check)
+ * @param {string} therapistId - therapist national ID
+ * @param {boolean} isAdmin
+ * @returns {Promise<object|null>}
+ */
+export async function getIntakeById(intakeId, patientId, therapistId, isAdmin = false) {
+  if (!isSupabaseConfigured || !intakeId || !patientId) return null;
+  if (!isAdmin && !therapistId) return null;
+  try {
+    let query = supabase
+      .from(TABLE)
+      .select('id, session_date, discipline, status, therapist_id, intake_data, created_at, updated_at')
+      .eq('id', String(intakeId))
+      .eq('patient_id', String(patientId));
+
+    if (!isAdmin) {
+      query = query.eq('therapist_id', String(therapistId));
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error) {
+      console.warn('[intakeService] getIntakeById failed:', error.message);
       return null;
     }
     return data;
