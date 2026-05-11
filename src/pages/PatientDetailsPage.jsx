@@ -21,6 +21,7 @@ import { buildFullName, pickMedplumPatientId } from "../utils/patientUtils";
 import { getLatestIntakeForPatient } from "../lib/intakeService";
 import { getAllTherapists, getLastTherapistsSyncError } from "../therapists/therapistsStore";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { formatDateDMY } from '../utils/dateFormat';
 
 const MEDIA_APP_BASE_URL =
   import.meta.env.VITE_MEDIA_APP_BASE_URL || "https://maddvideo.vercel.app";
@@ -195,7 +196,7 @@ export default function PatientDetailsPage({
 
   useEffect(() => {
     if (!localPatientId || !therapistId) return;
-    getLatestIntakeForPatient(localPatientId, therapistId)
+    getLatestIntakeForPatient(localPatientId, therapistId, isAdmin)
       .then(setLatestIntake)
       .catch(() => {});
   }, [localPatientId, therapistId]);
@@ -376,7 +377,7 @@ export default function PatientDetailsPage({
             <span className="details-label">{t('intakeSummaryTitle')}</span>
             {latestIntake ? (
               <span className="intake-summary-meta">
-                {latestIntake.session_date}
+                {formatDateDMY(latestIntake.session_date)}
                 {" · "}
                 <span className={`intake-status-badge intake-status-${latestIntake.status}`}>
                   {latestIntake.status === 'complete' ? t('intakeStatusComplete') : t('intakeStatusDraft')}
