@@ -721,17 +721,15 @@ export function usePatients() {
 
       try {
         const cloudPatients = await loadPatientsFromSupabase(currentTherapistId, currentIsAdmin);
-        if (!cloudPatients || cloudPatients.length === 0) {
-          console.log("[patients] cloud returned 0 patients — keeping local data");
-          return;
-        }
-
         if (cancelled) return;
 
         console.log(`[patients] cloud returned ${cloudPatients.length} patient(s)`);
         if (import.meta.env.DEV) {
           console.log("[patients] cloud therapist_ids:", cloudPatients.map((p) => p?.therapistId || "(none)"));
         }
+
+        // Build a fast-lookup set of IDs already in cloud.
+        const cloudIdSet = new Set(cloudPatients.map((p) => trimId(p.idNumber)).filter(Boolean));
 
         setPatients((prev) => {
           // Filter the cached local set to the current therapist before merging.
@@ -740,6 +738,23 @@ export function usePatients() {
           const merged = mergePatients(filteredPrev, cloudPatients);
           console.log(`[patients] merged (filtered local: ${filteredPrev.length}) + cloud → ${merged.length} visible`);
           persistPatients(merged);
+
+          // Startup sync — push IDB-only patients to cloud so admin and other
+          // devices can see them.  Catches patients created offline or when a
+          // previous cloud upsert failed silently (e.g. RLS was blocking).
+          // Only pushes the current user's visible (filtered) patients that are
+          // absent from the cloud result, so therapist isolation is preserved.
+          if (onlineRef.current) {
+            const unsynced = filteredPrev.filter((p) => {
+              const id = trimId(p.idNumber);
+              return id && !cloudIdSet.has(id);
+            });
+            if (unsynced.length > 0) {
+              console.log(`[patients] startup sync: ${unsynced.length} IDB-only patient(s) → cloud`);
+              unsynced.forEach((p) => enqueueCloudUpsert(p));
+            }
+          }
+
           return merged;
         });
       } catch (e) {
