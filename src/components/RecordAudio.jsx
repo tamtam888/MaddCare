@@ -481,6 +481,8 @@ export default function RecordAudio({ selectedPatient, onSaveTranscription }) {
         </div>
       </div>
 
+      <p className="privacy-inline-notice">{t('aiPrivacyNotice')}</p>
+
       {audioURL && (
         <div className="audio-preview">
           <audio controls preload="metadata" src={audioURL} />

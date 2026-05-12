@@ -98,6 +98,8 @@ export default function PatientHeader({
           </button>
         </div>
 
+        <p className="privacy-inline-notice intake-privacy-notice">{t('intakePrivacyNotice')}</p>
+
         <div className="pd-actions-row">
           <button
             type="button"

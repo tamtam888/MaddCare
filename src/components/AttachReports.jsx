@@ -501,6 +501,7 @@ function AttachReports({
       <div className="reports-divider" />
 
       <div className="reports-kicker">{t('reportGenerateAi')}</div>
+      <p className="privacy-inline-notice">{t('aiPrivacyNotice')}</p>
 
       <button
         type="button"

@@ -79,7 +79,32 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Privacy & AI Data Use */}
+        <div className="settings-card settings-card-privacy">
+          <div className="settings-card-header">
+            <h2 className="settings-card-title">{t('privacyAiTitle')}</h2>
+            <p className="settings-card-subtitle">{t('privacyAiSubtitle')}</p>
+          </div>
+          <div className="settings-card-body">
+            <ul className="privacy-list">
+              <li>{t('privacyPoint1')}</li>
+              <li>{t('privacyPoint2')}</li>
+              <li>{t('privacyPoint3')}</li>
+              <li>{t('privacyPoint4')}</li>
+              <li>{t('privacyPoint5')}</li>
+              <li>{t('privacyPoint6')}</li>
+              <li>{t('privacyPoint7')}</li>
+              <li>{t('privacyPoint8')}</li>
+              <li>{t('privacyPoint9')}</li>
+              <li>{t('privacyPoint10')}</li>
+              <li>{t('privacyPoint11')}</li>
+              <li>{t('privacyPoint12')}</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
+
