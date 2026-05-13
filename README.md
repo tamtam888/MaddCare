@@ -1,107 +1,220 @@
 # MedicalCare
 
-Clinical management platform for therapists with AI-assisted workflows.
+A React/Vite clinic management platform for therapists, including patient management, intake workflows, treatment documentation, AI-assisted clinical summaries, care plans, media/video tracking, and appointment scheduling.
 
-## Overview
+Built with product thinking in mind: structured data flow, separation of concerns, and real clinical workflows rather than isolated UI features.
 
-MedicalCare is a product-oriented healthcare platform designed to support therapists in managing patients, treatments, and clinical workflows in a structured and scalable way.
-
-The system is especially suited for physiotherapy and orthopedic treatment environments, where structured tracking, movement analysis, and documentation are essential.
-
-It combines therapist tools, AI-assisted writing, reporting workflows, care planning, patient management, intake processes, and media capabilities into one unified system built for real-world clinical use.
-
-## Core Capabilities
-
-### Therapist Dashboard
-- Central workspace for managing patients and treatment progress
-- Overview of active cases and ongoing workflows
-- Designed for real clinical environments
-
-### Patient Management
-- Structured patient profiles and treatment history
-- Organized clinical data across sessions
-- Supports long-term treatment tracking
-
-### Intake Workflow
-- Intake is part of the patient treatment process
-- Supports initial clinical assessment before ongoing treatment
-- Forms the entry point for treatment planning and media-based follow-up
-- Connected to the broader therapist workflow rather than treated as an isolated feature
-
-### Treatment Documentation
-- Session summaries and structured treatment notes
-- AI-assisted refinement of therapist-written text
-- Improves clarity, consistency, and professional medical writing
-- Supports more professional clinical documentation
-
-### Reports and Summaries
-- AI-generated treatment summaries based on structured session data
-- Final reports generated from treatment history and documented progress
-- Reports are created using de-identified data without personal patient details
-- Designed to support privacy-preserving workflows for sensitive medical information
-
-### Care Plans, Templates, and Exercises
-- Structured care plans per patient
-- Reusable templates for treatment workflows
-- Exercise support as part of the clinical process
-- Helps reduce repetitive work and maintain treatment consistency
-
-### Media and Video Workflow
-- Dedicated media workflow integrated into the broader clinical system
-- Video-based session tracking for physiotherapy and orthopedic treatment environments
-- Supports movement observation, angle review, visual comparison, and progress tracking over time
-- Works as part of the patient journey from intake through treatment and follow-up
-- The media workflow can function as a standalone module, while remaining connected to the main platform
-
-### Data Handling and Privacy
-- Privacy-conscious handling of sensitive medical data
-- De-identified data usage in AI-generated outputs
-- Designed to prevent exposure of personal patient information
-- Built with awareness of real clinical confidentiality requirements
-
-## Why This Project Matters
-
-MedicalCare demonstrates:
-
-- Product thinking beyond UI
-- Building complex systems for real-world clinical use
-- Designing workflows for therapists and treatment environments
-- Integrating AI into practical documentation and reporting processes
-- Responsible handling of sensitive healthcare data
-- Creating scalable and structured product architecture
-
-## Tech Stack
-
-- React
-- Vite
-- Medplum
-- FHIR
-- IndexedDB
-- MediaRecorder API
-- AI-assisted workflows
-
-## Product Focus
-
-This project was built as a real product-oriented system, not just a UI demo.
-
-The goal was to support therapists by combining:
-- structured documentation
-- AI-assisted writing
-- care plans and exercises
-- intake workflows
-- media-based tracking with video and images
-- privacy-aware reporting
-
-into one cohesive platform.
+---
 
 ## Live Demo
 
-https://medical-care-mu.vercel.app
+**[demo-medical-care.vercel.app](https://demo-medical-care.vercel.app)**
+
+> Demo credentials are pre-filled on the login screen.
+
+---
+
+## What to Review
+
+| Path | What it covers |
+|------|----------------|
+| `src/App.jsx` | Main application routing and layout structure |
+| `src/pages/` | Route-level screens and clinical workflows |
+| `src/components/` | Reusable UI components |
+| `src/hooks/usePatients.js` | Patient data flow and shared state handling |
+| `src/services/` | Data access, storage, templates, and workflow services |
+| `src/utils/` | FHIR helpers, formatting utilities, and shared helpers |
+| `src/appointments/` | Appointment and calendar-related workflow logic |
+| `src/i18n/` | Hebrew/English translations and RTL support |
+
+---
+
+## Project Structure
+
+```text
+src/
+  appointments/      Appointment and calendar-related UI logic
+  components/        Reusable UI components
+  hooks/             Custom React hooks and shared state/data logic
+  i18n/              Hebrew/English translations and RTL support
+  lib/               Shared configuration and integration helpers
+  notifications/     Notification-related logic
+  pages/             Route-level screens and clinical workflows
+  services/          Data access, storage, templates, and workflow services
+  therapists/        Therapist-related data and logic
+  utils/             FHIR helpers, formatting utilities, and shared helpers
+```
+
+The project is organized by responsibility rather than by file type only.
+
+---
+
+## Core Capabilities
+
+**Patient management** - Structured patient profiles, treatment history, clinical status tracking, and long-term session records.
+
+**Intake workflow** - Clinical intake forms connected to the treatment pipeline. Intake data feeds into treatment planning and media-based follow-up rather than existing as an isolated form.
+
+**Treatment documentation** - Per-session notes with AI-assisted text refinement. Therapists write the clinical content; the AI helps with clarity and consistency.
+
+**AI-assisted reporting** - Treatment summaries generated from session history. Uses de-identified data; personal patient details are excluded from AI inputs.
+
+**Care plans and exercises** - Reusable templates, per-patient care plans, and exercise tracking as part of the structured clinical workflow.
+
+**Media and video tracking** - A dedicated video workflow for physiotherapy-style progress tracking: movement observation, angle review, and visual comparison across sessions. Connected to the patient timeline and intake flow.
+
+**Appointments and calendar** - Appointment management with therapist assignment, FullCalendar-based scheduling, and patient-linked visit history.
+
+**Hebrew/English and RTL** - Bilingual support across the UI. RTL layout handling for Hebrew, with a shared translation context and key-based access throughout components.
+
+**Privacy-aware design** - AI inputs are de-identified. Inline privacy notices are surfaced contextually at AI touchpoints and intake consent. Personal patient details are excluded from AI inputs.
+
+---
+
+## Frontend Architecture
+
+The app is a single-page React/Vite application with client-side routing via React Router v7.
+
+**State management** - The app does not rely on an external global state library. Patient data and auth state flow down from `App.jsx` via props, with `usePatients` owning the patient list, persistence, and mutation logic. This makes the data flow explicit and traceable across route-level pages.
+
+**Component model** - Route-level pages (`src/pages/`) own workflow logic and compose from `src/components/`. Components are presentational where possible, with data and handlers passed in. Shared UI primitives such as `CollapsibleBlock`, `InlineEditable`, and `PatientHeader` are reused across pages.
+
+**Custom hooks** - `usePatients`, `useAppointments`, `useAppointmentDrawer`, and related hooks encapsulate data access, persistence coordination, and local UI state for their domain. Logic that spans multiple views lives in hooks rather than being duplicated across page components.
+
+**Services layer** - `src/services/` handles data access, Supabase queries, IndexedDB reads/writes, template loading, and workflow-related operations separately from component logic.
+
+**Routing** - Protected routes, role-based access for admin and therapist flows, and layout composition are handled in `App.jsx`. Sidebar navigation is driven by auth context.
+
+**Integrations** - Supabase is used for patient and appointment persistence. Medplum/FHIR helpers support healthcare-oriented data structure. IndexedDB via `idb-keyval` supports local state and offline-tolerant workflows. AI functionality is handled through a separate backend service.
+
+---
+
+## Data Flow and Separation of Concerns
+
+```text
+App.jsx
+  usePatients hook
+    owns patient list, persistence, update, delete, sync
+  PatientsPage
+    list view, search, filtering
+  PatientDetailsPage
+    full patient record, intake, history, care plan, reports
+      AttachReports
+        report generation, AI summary with de-identified input
+      CarePlanSection
+        goals and exercises
+      PatientHistory
+        session history with selection state
+
+useAppointments hook
+  appointment CRUD and Supabase sync
+  CalendarTreatmentsPage
+    FullCalendar view
+  PatientDetailsPage
+    per-patient upcoming and past visits through AppointmentDrawer
+
+intakeService
+  Supabase intake queries with RLS-aware access
+  PatientDetailsPage
+    View Intake panel fetches full intake_data on demand
+
+LanguageContext
+  active language and t() accessor
+  all pages and components consume translated strings
+```
+
+The project is structured to keep clinical workflows readable and predictable:
+
+- UI screens do not contain all data logic directly
+- Patient state is separated from reusable UI components
+- Service files handle storage and workflow-related operations
+- Utility files handle transformation and helper logic
+- Route-level pages coordinate flows rather than duplicating logic everywhere
+- Most patient-related mutations are routed through shared hooks and services rather than duplicated across UI components
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | React 19, Vite (rolldown-vite) |
+| Routing | React Router v7 |
+| Data persistence | Supabase, IndexedDB (idb-keyval) |
+| Healthcare data | Medplum, FHIR resource helpers |
+| Calendar | FullCalendar v6 |
+| Forms | React Hook Form, Zod |
+| Testing | Vitest, React Testing Library, Playwright-ready structure |
+| Styling | Plain CSS organized by page/component, no CSS framework |
+| Icons | Lucide React |
+| AI | Custom backend service, not included in this repository |
+| PDF generation | pdf-lib |
+| i18n | Custom context-based solution |
+
+---
+
+## Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `main-clean` | Public portfolio branch - stable, reviewed |
+| `pilot-therapists-v1` | Active pilot branch for therapist testing |
+| `portfolio-demo` | Demo-focused version for portfolio presentation |
+
+The public portfolio branch is `main-clean`; pilot-specific work is maintained separately on `pilot-therapists-v1`.
+
+---
+
+## Run Locally
+
+```bash
+# Install dependencies
+npm install
+
+# Set environment variables
+cp .env.example .env
+
+# Start dev server
+npm run dev
+```
+
+Requires a Supabase project for full data functionality. The live demo is pre-configured.
+
+---
+
+## Quality Checks
+
+```bash
+npm run build          # production build
+npm run lint           # ESLint
+npm run test:run       # Vitest unit tests, single run
+npm run test           # Vitest watch mode
+npm run test:coverage  # coverage report
+```
+
+End-to-end tests use Playwright through `playwright.config.js`.
+
+The project includes lint, build, and test tooling. Test coverage and lint status may evolve as the project is actively developed.
+
+---
+
+## Product Focus
+
+The goal of this project was to build a coherent clinical tool, not a collection of unconnected features.
+
+A few decisions that reflect that:
+
+- **Intake connects to treatment.** Intake data is visible inside the patient record and feeds into treatment planning and media workflows; it is not a standalone form.
+- **AI is scoped.** AI assistance is limited to documentation refinement and summary generation. Patient identity is excluded from AI inputs by design.
+- **State is traceable.** Patient state and mutations are centralized through shared hooks and services where possible.
+- **Bilingual from the start.** Hebrew and RTL support were built into the UI architecture rather than treated as a last-step translation layer.
+- **Privacy is surfaced.** Privacy notices appear inline at the specific points where data may leave the app, such as AI summary and intake consent.
+
+---
 
 ## Notes
 
-- The system is still evolving, with additional features in progress
-- Intake is part of the patient workflow and clinical process
-- The media and video functionality is integrated into the broader platform workflow
-- The media module can also be maintained as a standalone component while remaining connected to MedicalCare
-- This project reflects a broader clinical product vision rather than a single isolated feature
+- This is a pilot-oriented product. It is not production healthcare software and does not claim HIPAA compliance.
+- The AI backend is a separate service not included in this repository.
+- The media/video module integration can be reviewed through the demo link; the companion video module is maintained separately.
+- The demo is configured for portfolio review and may expose a curated subset of the full pilot workflow.
