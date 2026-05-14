@@ -1,16 +1,17 @@
 # MedicalCare
 
-A React/Vite clinic management platform for therapists, including patient management, intake workflows, treatment documentation, AI-assisted clinical summaries, care plans, media/video tracking, and appointment scheduling.
+A React/Vite clinic management platform for therapists - patient management, intake workflows, treatment documentation, AI-assisted clinical summaries, care plans, media/video tracking, and appointment scheduling.
 
 Built with product thinking in mind: structured data flow, separation of concerns, and real clinical workflows rather than isolated UI features.
 
 ---
 
-## Live Demo
+## Links
 
-**[demo-medical-care.vercel.app](https://demo-medical-care.vercel.app)**
+- Live Demo: https://demo-medical-care.vercel.app
+- Portfolio: https://tamtam888.github.io/MyPortfolio/
 
-> Demo credentials are pre-filled on the login screen.
+> Demo access is available through the login screen.
 
 ---
 
@@ -44,8 +45,6 @@ src/
   therapists/        Therapist-related data and logic
   utils/             FHIR helpers, formatting utilities, and shared helpers
 ```
-
-The project is organized by responsibility rather than by file type only.
 
 ---
 
@@ -157,7 +156,7 @@ The project is structured to keep clinical workflows readable and predictable:
 
 | Branch | Purpose |
 |--------|---------|
-| `main-clean` | Public portfolio branch - stable, reviewed |
+| `main-clean` | Public portfolio branch for external review |
 | `pilot-therapists-v1` | Active pilot branch for therapist testing |
 | `portfolio-demo` | Demo-focused version for portfolio presentation |
 
@@ -171,8 +170,8 @@ The public portfolio branch is `main-clean`; pilot-specific work is maintained s
 # Install dependencies
 npm install
 
-# Set environment variables
-cp .env.example .env
+# Create a local environment file
+# Add the required Supabase and integration variables manually
 
 # Start dev server
 npm run dev
