@@ -9,7 +9,6 @@ Built with product thinking in mind: structured data flow, separation of concern
 ## Links
 
 - Live Demo: https://demo-medical-care.vercel.app
-- Portfolio: https://tamtam888.github.io/MyPortfolio/
 
 > Demo access is available through the login screen.
 
