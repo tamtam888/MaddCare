@@ -2,6 +2,8 @@
 
 A React/Vite clinic management platform for therapists - patient management, intake workflows, treatment documentation, AI-assisted clinical summaries, care plans, media/video tracking, and appointment scheduling.
 
+**Project Status:** Beta delivered to real pilot users, including physiotherapists and hydrotherapists, for feedback on patient management, treatment workflows, scheduling, AI-assisted documentation, and video-based progress tracking.
+
 Built with product thinking in mind: structured data flow, separation of concerns, and real clinical workflows rather than isolated UI features.
 
 ---
@@ -207,12 +209,13 @@ A few decisions that reflect that:
 - **State is traceable.** Patient state and mutations are centralized through shared hooks and services where possible.
 - **Bilingual from the start.** Hebrew and RTL support were built into the UI architecture rather than treated as a last-step translation layer.
 - **Privacy is surfaced.** Privacy notices appear inline at the specific points where data may leave the app, such as AI summary and intake consent.
+- **Beta validation.** MedicalCare was delivered to real pilot users for workflow validation and feedback.
 
 ---
 
 ## Notes
 
-- This is a pilot-oriented product. It is not production healthcare software and does not claim HIPAA compliance.
+- This is a beta pilot product delivered to real pilot users for workflow feedback. It is not production healthcare software and does not claim HIPAA compliance.
 - The AI backend is a separate service not included in this repository.
 - The media/video module integration can be reviewed through the demo link; the companion video module is maintained separately.
 - The demo is configured for portfolio review and may expose a curated subset of the full pilot workflow.
