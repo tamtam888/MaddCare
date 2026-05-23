@@ -9,6 +9,7 @@ import PatientDetailsPage from "./pages/PatientDetailsPage";
 import CarePlansPage from "./pages/CarePlansPage";
 import CalendarTreatmentsPage from "./pages/CalendarTreatmentsPage";
 import LoginPage from "./pages/LoginPage";
+import PrivacyGate from "./components/PrivacyGate";
 import UsersPage from "./pages/UsersPage";
 import TreatmentPage from "./pages/TreatmentPage";
 import MediaPage from "./pages/MediaPage";
@@ -21,6 +22,15 @@ import "./App.css";
 
 const LOGGED_IN_KEY = "mc_logged_in";
 const THERAPISTS_KEY = "mc_therapists_v1";
+const PRIVACY_KEY = "mc_privacy_confidentiality_accepted_v1";
+
+function isPrivacyAccepted() {
+  try {
+    return localStorage.getItem(PRIVACY_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function isLoggedIn() {
   try {
@@ -98,6 +108,7 @@ function SimplePage({ title, text }) {
 function App() {
   const location = useLocation();
   const loggedIn = isLoggedIn();
+  const [privacyAccepted, setPrivacyAccepted] = useState(() => isPrivacyAccepted());
 
   const patientsState = usePatients();
   const { patients } = patientsState;
@@ -253,7 +264,16 @@ function App() {
           <Routes>
             <Route path="/" element={<RedirectRoot />} />
 
-            <Route path="/login" element={loggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+            <Route
+              path="/login"
+              element={
+                loggedIn
+                  ? <Navigate to="/dashboard" replace />
+                  : privacyAccepted
+                    ? <LoginPage />
+                    : <PrivacyGate onAccept={() => setPrivacyAccepted(true)} />
+              }
+            />
 
             <Route path="/dashboard" element={<RequireAuth element={<DashboardPage patients={patients} />} />} />
 
