@@ -42,6 +42,8 @@ function openVideo(patient, mode, therapistId, allPatients, lang) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+const CONSENT_REQUIRED_MSG = "Photo/video consent is required before opening video tools.";
+
 export default function MediaPage({ selectedPatient, patients = [] }) {
   const { therapistId } = useAuthContext();
   const { t, lang } = useLanguage();
@@ -51,6 +53,10 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
         .filter(Boolean)
         .join(" ") || selectedPatient.idNumber
     : null;
+
+  // Consent is only required when a specific patient is selected.
+  // Without a patient, buttons open the general video module (no patient data involved).
+  const consentRequired = hasPatient && !selectedPatient?.videoConsentGiven;
 
   return (
     <div className="page-placeholder">
@@ -62,6 +68,12 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           : "Open a patient record first to launch a targeted video workflow, or open the video module directly."}
       </p>
 
+      {consentRequired && (
+        <p className="privacy-inline-notice privacy-notice--mb">
+          {CONSENT_REQUIRED_MSG}
+        </p>
+      )}
+
       <div className="media-workflow-grid">
         <div className="media-workflow-card">
           <div className="media-workflow-card-icon">🎥</div>
@@ -72,6 +84,8 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
+            disabled={consentRequired}
+            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
             onClick={() => openVideo(selectedPatient, "intake", therapistId, patients, lang)}
           >
             {hasPatient ? "Start Intake Video" : "Open Video Module"}
@@ -87,7 +101,8 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            disabled={!hasPatient}
+            disabled={!hasPatient || consentRequired}
+            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
             onClick={() => openVideo(selectedPatient, "progress", therapistId, patients, lang)}
           >
             Compare Videos
@@ -103,7 +118,8 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            disabled={!hasPatient}
+            disabled={!hasPatient || consentRequired}
+            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
             onClick={() => openVideo(selectedPatient, "exercise", therapistId, patients, lang)}
           >
             Review Exercises
