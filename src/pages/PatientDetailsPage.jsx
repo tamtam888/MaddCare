@@ -553,7 +553,7 @@ export default function PatientDetailsPage({
           {videoConsentGiven ? (
             <div className="patients-page-header-actions consent-status-row">
               <span className="privacy-inline-notice privacy-inline-notice--neutral">
-                📹 {t('videoConsentGivenLabel')} · {videoConsentDateFormatted}
+                📹 {t('videoConsentGivenLabel')} · {videoConsentDateFormatted ?? t('dateNotRecorded')}
               </span>
               <button
                 type="button"

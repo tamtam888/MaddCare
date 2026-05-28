@@ -486,6 +486,7 @@ export const translations = {
     videoConsentGivenLabel: 'Video consent given',
     markConsentGiven: 'Mark consent as given',
     revokeConsent: 'Revoke consent',
+    dateNotRecorded: 'Date not recorded',
   },
 
   he: {
@@ -973,6 +974,7 @@ export const translations = {
     videoConsentGivenLabel: 'ניתנה הסכמה לוידאו',
     markConsentGiven: 'סמן הסכמה כניתנה',
     revokeConsent: 'בטל הסכמה',
+    dateNotRecorded: 'תאריך לא תועד',
   },
 };
 

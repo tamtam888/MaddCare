@@ -68,7 +68,7 @@ export default function PatientHeader({
 
             <span className={`meta-chip${!videoConsentGiven ? " meta-chip--consent-pending" : ""}`}>
               📹 {videoConsentGiven
-                ? `${t('videoConsentChipGiven')} ${videoConsentDateFormatted}`
+                ? `${t('videoConsentChipGiven')} ${videoConsentDateFormatted ?? t('dateNotRecorded')}`
                 : t('videoConsentChipRequired')}
             </span>
           </div>
