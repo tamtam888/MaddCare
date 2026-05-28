@@ -25,6 +25,11 @@ export default function PatientHeader({
   const dobFormatted = formatDobForHeader(patient);
   const mediaEnabled = Boolean(medplumPatientId);
 
+  const videoConsentGiven = Boolean(patient?.videoConsentGiven);
+  const videoConsentDateFormatted = patient?.videoConsentDate
+    ? new Date(patient.videoConsentDate).toLocaleDateString("en-GB")
+    : null;
+
   const handleImportChange = (e) => {
     const file = e?.target?.files?.[0] || null;
     if (e?.target) e.target.value = "";
@@ -60,6 +65,12 @@ export default function PatientHeader({
             <span className={statusPill}>
               {patient?.clinicalStatus || "Not Active"}
             </span>
+
+            <span className={`meta-chip${!videoConsentGiven ? " meta-chip--consent-pending" : ""}`}>
+              📹 {videoConsentGiven
+                ? `${t('videoConsentChipGiven')} ${videoConsentDateFormatted ?? t('dateNotRecorded')}`
+                : t('videoConsentChipRequired')}
+            </span>
           </div>
         </div>
       </div>
@@ -69,6 +80,8 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
+            disabled={!videoConsentGiven}
+            title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
             onClick={onStartIntake}
           >
             <span className="patients-toolbar-button-icon">
@@ -88,15 +101,22 @@ export default function PatientHeader({
           <button
             type="button"
             className="patients-toolbar-button"
-            disabled={!mediaEnabled}
+            disabled={!mediaEnabled || !videoConsentGiven}
+            title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
             onClick={() => {
-              if (!mediaEnabled) return;
+              if (!mediaEnabled || !videoConsentGiven) return;
               onOpenMedia?.();
             }}
           >
             <span>{t('openInMedia')}</span>
           </button>
         </div>
+
+        {!videoConsentGiven && (
+          <p className="privacy-inline-notice">
+            {t('videoConsentRequired')}
+          </p>
+        )}
 
         <p className="privacy-inline-notice intake-privacy-notice">{t('intakePrivacyNotice')}</p>
 

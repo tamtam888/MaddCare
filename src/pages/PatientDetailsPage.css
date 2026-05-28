@@ -650,3 +650,32 @@ html[dir="rtl"] .pd-header-btn {
 .intake-privacy-notice {
   padding: 0 0.5rem;
 }
+
+/* Video consent classes */
+.meta-chip--consent-pending {
+  color: #b45309;
+}
+
+.privacy-inline-notice--neutral {
+  color: inherit;
+}
+
+.privacy-notice--mb {
+  margin-bottom: 1rem;
+}
+
+.consent-status-row {
+  margin-bottom: 0.5rem;
+}
+
+.consent-pending-block {
+  margin-bottom: 0.75rem;
+}
+
+.therapist-list {
+  margin-top: 0.5rem;
+}
+
+.therapist-list-item {
+  gap: 0.5rem;
+}

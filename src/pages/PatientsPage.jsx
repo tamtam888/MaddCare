@@ -235,8 +235,10 @@ function PatientsPage(props) {
     }
     setShowForm(false);
     setEditingPatient(null);
-    // Auto-open intake form only for newly added patients
-    if (isNew) {
+    // Auto-open intake form only for newly added patients who already have video consent.
+    // New patients will not have consent recorded yet, so the launch is suppressed
+    // until consent is marked from the patient details view.
+    if (isNew && prepared?.videoConsentGiven === true) {
       openIntakeForPatient(prepared, therapistId, patients, lang);
     }
   }

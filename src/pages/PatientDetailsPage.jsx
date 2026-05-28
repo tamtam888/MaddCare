@@ -282,6 +282,28 @@ export default function PatientDetailsPage({
     [localPatientId, patientFullName, therapistId, activePatientIds, lang]
   );
 
+  // ── Video consent ─────────────────────────────────────────────────────────────
+  const videoConsentGiven = Boolean(editablePatient?.videoConsentGiven);
+  const videoConsentDateFormatted = editablePatient?.videoConsentDate
+    ? new Date(editablePatient.videoConsentDate).toLocaleDateString("en-GB")
+    : null;
+
+  const handleMarkVideoConsent = () => {
+    updatePatient({
+      ...editablePatient,
+      videoConsentGiven: true,
+      videoConsentDate: new Date().toISOString(),
+    });
+  };
+
+  const handleRevokeVideoConsent = () => {
+    updatePatient({
+      ...editablePatient,
+      videoConsentGiven: false,
+      videoConsentDate: null,
+    });
+  };
+
   const { addAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const apptDrawer = useAppointmentDrawer(editablePatient?.idNumber, {
     addAppointment,
@@ -526,10 +548,45 @@ export default function PatientDetailsPage({
         </CollapsibleBlock>
 
         <CollapsibleBlock title={t('videoSessions')} subtitle={t('videoSessionsSubtitle')} defaultOpen={false}>
+
+          {/* Consent status */}
+          {videoConsentGiven ? (
+            <div className="patients-page-header-actions consent-status-row">
+              <span className="privacy-inline-notice privacy-inline-notice--neutral">
+                📹 {t('videoConsentGivenLabel')} · {videoConsentDateFormatted ?? t('dateNotRecorded')}
+              </span>
+              <button
+                type="button"
+                className="patients-toolbar-button"
+                onClick={handleRevokeVideoConsent}
+              >
+                {t('revokeConsent')}
+              </button>
+            </div>
+          ) : (
+            <div className="consent-pending-block">
+              <p className="privacy-inline-notice">
+                {t('videoConsentRequired')}
+              </p>
+              <div className="patients-page-header-actions">
+                <button
+                  type="button"
+                  className="patients-toolbar-button"
+                  onClick={handleMarkVideoConsent}
+                >
+                  {t('markConsentGiven')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Video workflow buttons */}
           <div className="patients-page-header-actions">
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={!videoConsentGiven}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("intake")}
             >
               <span>{t('intakeVideo')}</span>
@@ -537,6 +594,8 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={!videoConsentGiven}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("progress")}
             >
               <span>{t('progressComparison')}</span>
@@ -544,6 +603,8 @@ export default function PatientDetailsPage({
             <button
               type="button"
               className="patients-toolbar-button"
+              disabled={!videoConsentGiven}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("exercise")}
             >
               <span>{t('exerciseReview')}</span>
@@ -635,13 +696,13 @@ export default function PatientDetailsPage({
                 ))}
             </select>
           </div>
-          <div style={{ marginTop: "0.5rem" }}>
+          <div className="therapist-list">
             {Array.isArray(editablePatient.allowedTherapists) &&
             editablePatient.allowedTherapists.length > 0 ? (
               editablePatient.allowedTherapists.map((tid) => {
                 const t = therapists.find((x) => x.idNumber === tid);
                 return (
-                  <div key={tid} className="details-row-inline" style={{ gap: "0.5rem" }}>
+                  <div key={tid} className="details-row-inline therapist-list-item">
                     <span className="details-value">
                       {t ? `${t.fullName} (${t.username})` : tid}
                     </span>
