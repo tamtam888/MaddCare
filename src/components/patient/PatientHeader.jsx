@@ -8,8 +8,6 @@ import {
 } from "../../utils/patientUtils";
 import { useLanguage } from "../../i18n/LanguageContext";
 
-const CONSENT_REQUIRED_TITLE = "Photo/video consent is required before opening video tools.";
-
 export default function PatientHeader({
   patient,
   medplumPatientId,
@@ -70,8 +68,8 @@ export default function PatientHeader({
 
             <span className={`meta-chip${!videoConsentGiven ? " meta-chip--consent-pending" : ""}`}>
               📹 {videoConsentGiven
-                ? `Video consent: ${videoConsentDateFormatted}`
-                : "Video consent: required"}
+                ? `${t('videoConsentChipGiven')} ${videoConsentDateFormatted}`
+                : t('videoConsentChipRequired')}
             </span>
           </div>
         </div>
@@ -83,7 +81,7 @@ export default function PatientHeader({
             type="button"
             className="patients-toolbar-button"
             disabled={!videoConsentGiven}
-            title={!videoConsentGiven ? CONSENT_REQUIRED_TITLE : undefined}
+            title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
             onClick={onStartIntake}
           >
             <span className="patients-toolbar-button-icon">
@@ -104,7 +102,7 @@ export default function PatientHeader({
             type="button"
             className="patients-toolbar-button"
             disabled={!mediaEnabled || !videoConsentGiven}
-            title={!videoConsentGiven ? CONSENT_REQUIRED_TITLE : undefined}
+            title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
             onClick={() => {
               if (!mediaEnabled || !videoConsentGiven) return;
               onOpenMedia?.();
@@ -113,6 +111,12 @@ export default function PatientHeader({
             <span>{t('openInMedia')}</span>
           </button>
         </div>
+
+        {!videoConsentGiven && (
+          <p className="privacy-inline-notice">
+            {t('videoConsentRequired')}
+          </p>
+        )}
 
         <p className="privacy-inline-notice intake-privacy-notice">{t('intakePrivacyNotice')}</p>
 

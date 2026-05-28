@@ -42,8 +42,6 @@ function openVideo(patient, mode, therapistId, allPatients, lang) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-const CONSENT_REQUIRED_MSG = "Photo/video consent is required before opening video tools.";
-
 export default function MediaPage({ selectedPatient, patients = [] }) {
   const { therapistId } = useAuthContext();
   const { t, lang } = useLanguage();
@@ -70,7 +68,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
 
       {consentRequired && (
         <p className="privacy-inline-notice privacy-notice--mb">
-          {CONSENT_REQUIRED_MSG}
+          {t('videoConsentRequired')}
         </p>
       )}
 
@@ -85,7 +83,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
             type="button"
             className="primary-button"
             disabled={consentRequired}
-            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
+            title={consentRequired ? t('videoConsentRequired') : undefined}
             onClick={() => openVideo(selectedPatient, "intake", therapistId, patients, lang)}
           >
             {hasPatient ? "Start Intake Video" : "Open Video Module"}
@@ -102,7 +100,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient || consentRequired}
-            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
+            title={consentRequired ? t('videoConsentRequired') : undefined}
             onClick={() => openVideo(selectedPatient, "progress", therapistId, patients, lang)}
           >
             Compare Videos
@@ -119,7 +117,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
             type="button"
             className="primary-button"
             disabled={!hasPatient || consentRequired}
-            title={consentRequired ? CONSENT_REQUIRED_MSG : undefined}
+            title={consentRequired ? t('videoConsentRequired') : undefined}
             onClick={() => openVideo(selectedPatient, "exercise", therapistId, patients, lang)}
           >
             Review Exercises

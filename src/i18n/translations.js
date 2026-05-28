@@ -479,6 +479,13 @@ export const translations = {
     switchDictLang: 'Switch dictation language',
     transcriptionEditable: 'Transcription (editable)',
     phTranscription: 'Type or edit the session transcription here.',
+    // Video consent
+    videoConsentRequired: 'Photo/video consent is required before opening video tools.',
+    videoConsentChipRequired: 'Video consent: required',
+    videoConsentChipGiven: 'Video consent:',
+    videoConsentGivenLabel: 'Video consent given',
+    markConsentGiven: 'Mark consent as given',
+    revokeConsent: 'Revoke consent',
   },
 
   he: {
@@ -959,6 +966,13 @@ export const translations = {
     switchDictLang: 'החלף שפת הכתבה',
     transcriptionEditable: 'תמלול ניתן לעריכה',
     phTranscription: 'הקלד או ערוך כאן את תמלול המפגש.',
+    // Video consent
+    videoConsentRequired: 'נדרשת הסכמה לצילום/וידאו לפני פתיחת כלי הוידאו.',
+    videoConsentChipRequired: 'הסכמה לוידאו: נדרשת',
+    videoConsentChipGiven: 'הסכמה לוידאו:',
+    videoConsentGivenLabel: 'ניתנה הסכמה לוידאו',
+    markConsentGiven: 'סמן הסכמה כניתנה',
+    revokeConsent: 'בטל הסכמה',
   },
 };
 

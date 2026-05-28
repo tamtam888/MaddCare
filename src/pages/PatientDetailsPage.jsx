@@ -553,20 +553,20 @@ export default function PatientDetailsPage({
           {videoConsentGiven ? (
             <div className="patients-page-header-actions consent-status-row">
               <span className="privacy-inline-notice privacy-inline-notice--neutral">
-                📹 Video consent given · {videoConsentDateFormatted}
+                📹 {t('videoConsentGivenLabel')} · {videoConsentDateFormatted}
               </span>
               <button
                 type="button"
                 className="patients-toolbar-button"
                 onClick={handleRevokeVideoConsent}
               >
-                Revoke consent
+                {t('revokeConsent')}
               </button>
             </div>
           ) : (
             <div className="consent-pending-block">
               <p className="privacy-inline-notice">
-                Photo/video consent is required before opening video tools.
+                {t('videoConsentRequired')}
               </p>
               <div className="patients-page-header-actions">
                 <button
@@ -574,7 +574,7 @@ export default function PatientDetailsPage({
                   className="patients-toolbar-button"
                   onClick={handleMarkVideoConsent}
                 >
-                  Mark consent as given
+                  {t('markConsentGiven')}
                 </button>
               </div>
             </div>
@@ -586,7 +586,7 @@ export default function PatientDetailsPage({
               type="button"
               className="patients-toolbar-button"
               disabled={!videoConsentGiven}
-              title={!videoConsentGiven ? "Photo/video consent is required before opening video tools." : undefined}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("intake")}
             >
               <span>{t('intakeVideo')}</span>
@@ -595,7 +595,7 @@ export default function PatientDetailsPage({
               type="button"
               className="patients-toolbar-button"
               disabled={!videoConsentGiven}
-              title={!videoConsentGiven ? "Photo/video consent is required before opening video tools." : undefined}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("progress")}
             >
               <span>{t('progressComparison')}</span>
@@ -604,7 +604,7 @@ export default function PatientDetailsPage({
               type="button"
               className="patients-toolbar-button"
               disabled={!videoConsentGiven}
-              title={!videoConsentGiven ? "Photo/video consent is required before opening video tools." : undefined}
+              title={!videoConsentGiven ? t('videoConsentRequired') : undefined}
               onClick={() => openVideoWorkflow("exercise")}
             >
               <span>{t('exerciseReview')}</span>
