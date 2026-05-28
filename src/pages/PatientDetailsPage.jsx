@@ -68,6 +68,7 @@ function buildVideoWorkflowUrl({ patientId, patientName, mode, therapistId, acti
 export default function PatientDetailsPage({
   patients = [],
   onUpdatePatient,
+  cloudSyncStatusFor,
   handleSelectPatient,
   handleSaveTranscription,
   handleDeleteReport,
@@ -287,6 +288,7 @@ export default function PatientDetailsPage({
   const videoConsentDateFormatted = editablePatient?.videoConsentDate
     ? new Date(editablePatient.videoConsentDate).toLocaleDateString("en-GB")
     : null;
+  const patientSyncStatus = cloudSyncStatusFor?.(editablePatient?.idNumber) ?? 'idle';
 
   const handleMarkVideoConsent = () => {
     updatePatient({
@@ -356,6 +358,14 @@ export default function PatientDetailsPage({
         onImportPatients={handleImportPatients}
         onClose={() => navigate("/patients")}
       />
+
+      {patientSyncStatus !== 'idle' && (
+        <p className={`pd-sync-status pd-sync-status--${patientSyncStatus}`}>
+          {patientSyncStatus === 'pending' && t('syncPending')}
+          {patientSyncStatus === 'ok' && t('syncSaved')}
+          {patientSyncStatus === 'error' && t('syncFailed')}
+        </p>
+      )}
 
       <div className="patient-sections-stack">
         <CollapsibleBlock title={t('patientDetailsSection')} subtitle={detailsSubtitle} defaultOpen={false}>

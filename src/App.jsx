@@ -321,6 +321,7 @@ function App() {
                       handleSaveTranscription={patientsState.handleSaveTranscription}
                       handleEditPatient={patientsState.handleEditPatient}
                       onUpdatePatient={patientsState.handleUpdatePatientInline}
+                      cloudSyncStatusFor={patientsState.cloudSyncStatusFor}
                       handleExportPatients={patientsState.handleExportPatients}
                       handleImportPatients={patientsState.handleImportPatients}
                       handleSaveReportEntry={patientsState.handleSaveReportEntry}
