@@ -592,6 +592,7 @@ export function usePatients() {
   const [patients, setPatients] = useState([]);
   const [editingPatient, setEditingPatient] = useState(null);
   const [selectedPatientIdNumber, setSelectedPatientIdNumber] = useState(null);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState({});
 
   const persistChainRef = useRef(Promise.resolve());
 
@@ -603,6 +604,7 @@ export function usePatients() {
     const idNumber = trimId(patient?.idNumber);
     if (!idNumber) return;
     cloudQueueRef.current.set(idNumber, normalizePatientPreserve({ ...patient, idNumber }));
+    setCloudSyncStatus(prev => ({ ...prev, [idNumber]: 'pending' }));
 
     cloudDebounceRef.current(async () => {
       if (!onlineRef.current) return;
@@ -624,8 +626,18 @@ export function usePatients() {
       if (error) {
         for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
         console.error("[patients] sync to cloud failed:", error);
+        setCloudSyncStatus(prev => {
+          const next = { ...prev };
+          for (const p of batch) next[trimId(p.idNumber)] = 'error';
+          return next;
+        });
       } else {
         console.log(`[patients] synced ${batch.length} patient(s) to cloud`);
+        setCloudSyncStatus(prev => {
+          const next = { ...prev };
+          for (const p of batch) next[trimId(p.idNumber)] = 'ok';
+          return next;
+        });
       }
     });
   };
@@ -651,8 +663,18 @@ export function usePatients() {
         if (error) {
           for (const p of batch) cloudQueueRef.current.set(trimId(p.idNumber), p);
           console.error("[patients] sync to cloud failed (reconnect flush):", error);
+          setCloudSyncStatus(prev => {
+            const next = { ...prev };
+            for (const p of batch) next[trimId(p.idNumber)] = 'error';
+            return next;
+          });
         } else {
           console.log(`[patients] synced ${batch.length} patient(s) to cloud (reconnect flush)`);
+          setCloudSyncStatus(prev => {
+            const next = { ...prev };
+            for (const p of batch) next[trimId(p.idNumber)] = 'ok';
+            return next;
+          });
         }
       });
     };
@@ -1546,6 +1568,9 @@ export function usePatients() {
     alert(`Full sync finished. Success: ${successCount}.`);
   };
 
+  const cloudSyncStatusFor = (idNumber) =>
+    cloudSyncStatus[String(idNumber || "").trim()] ?? 'idle';
+
   return {
     patients,
     selectedPatient,
@@ -1575,5 +1600,7 @@ export function usePatients() {
 
     handleSyncPatientToMedplum,
     handleSyncAllToMedplum,
+
+    cloudSyncStatusFor,
   };
 }

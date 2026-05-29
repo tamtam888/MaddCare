@@ -487,6 +487,10 @@ export const translations = {
     markConsentGiven: 'Mark consent as given',
     revokeConsent: 'Revoke consent',
     dateNotRecorded: 'Date not recorded',
+    // Sync status
+    syncPending: 'Syncing…',
+    syncSaved: 'Saved',
+    syncFailed: 'Sync failed - changes saved locally',
   },
 
   he: {
@@ -975,6 +979,10 @@ export const translations = {
     markConsentGiven: 'סמן הסכמה כניתנה',
     revokeConsent: 'בטל הסכמה',
     dateNotRecorded: 'תאריך לא תועד',
+    // Sync status
+    syncPending: 'מסנכרן...',
+    syncSaved: 'נשמר',
+    syncFailed: 'סנכרון נכשל - השינויים נשמרו מקומית',
   },
 };
 

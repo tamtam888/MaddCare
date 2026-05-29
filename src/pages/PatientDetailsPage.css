@@ -679,3 +679,23 @@ html[dir="rtl"] .pd-header-btn {
 .therapist-list-item {
   gap: 0.5rem;
 }
+
+/* Sync status indicator */
+
+.pd-sync-status {
+  font-size: 0.8rem;
+  margin: 0 0 0.6rem;
+  padding: 0 0.25rem;
+}
+
+.pd-sync-status--pending {
+  color: #6b7280;
+}
+
+.pd-sync-status--ok {
+  color: #059669;
+}
+
+.pd-sync-status--error {
+  color: #b91c1c;
+}
