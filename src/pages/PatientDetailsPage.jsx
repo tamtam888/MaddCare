@@ -360,7 +360,10 @@ export default function PatientDetailsPage({
       />
 
       {patientSyncStatus !== 'idle' && (
-        <p className={`pd-sync-status pd-sync-status--${patientSyncStatus}`}>
+        <p
+          role={patientSyncStatus === 'error' ? 'alert' : 'status'}
+          className={`pd-sync-status pd-sync-status--${patientSyncStatus}`}
+        >
           {patientSyncStatus === 'pending' && t('syncPending')}
           {patientSyncStatus === 'ok' && t('syncSaved')}
           {patientSyncStatus === 'error' && t('syncFailed')}
