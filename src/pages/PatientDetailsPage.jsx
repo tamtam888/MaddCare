@@ -303,6 +303,7 @@ export default function PatientDetailsPage({
   };
 
   const handleRevokeVideoConsent = () => {
+    if (!window.confirm(t('revokeConsentConfirm'))) return;
     updatePatient({
       ...editablePatient,
       videoConsentGiven: false,
