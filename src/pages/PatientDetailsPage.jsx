@@ -349,6 +349,10 @@ export default function PatientDetailsPage({
     ? detailsSubtitleParts.join(" • ")
     : t('editContactDetails');
 
+  const intakeSubtitle = latestIntake
+    ? `${formatDateDMY(latestIntake.session_date)} · ${latestIntake.status === 'complete' ? t('intakeStatusComplete') : t('intakeStatusDraft')}`
+    : t('noIntakeRecorded');
+
   return (
     <div className="patient-details-page">
       <PatientHeader
@@ -437,8 +441,10 @@ export default function PatientDetailsPage({
             </select>
           </div>
 
+        </CollapsibleBlock>
+
+        <CollapsibleBlock title={t('intakeSummaryTitle')} subtitle={intakeSubtitle} defaultOpen={false}>
           <div className="status-row">
-            <span className="details-label">{t('intakeSummaryTitle')}</span>
             {latestIntake ? (
               <span className="intake-summary-meta">
                 {formatDateDMY(latestIntake.session_date)}
