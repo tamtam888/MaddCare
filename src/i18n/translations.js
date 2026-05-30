@@ -488,11 +488,12 @@ export const translations = {
     videoConsentGivenLabel: 'Video consent given',
     markConsentGiven: 'Mark consent as given',
     revokeConsent: 'Revoke consent',
+    revokeConsentConfirm: 'Are you sure you want to revoke video consent for this patient?',
     dateNotRecorded: 'Date not recorded',
     // Sync status
     syncPending: 'Syncing…',
     syncSaved: 'Saved',
-    syncFailed: 'Sync failed - changes saved locally',
+    syncFailed: 'Sync failed - changes saved on this device.',
   },
 
   he: {
@@ -982,11 +983,12 @@ export const translations = {
     videoConsentGivenLabel: 'ניתנה הסכמה לוידאו',
     markConsentGiven: 'סמן הסכמה כניתנה',
     revokeConsent: 'בטל הסכמה',
+    revokeConsentConfirm: 'האם לבטל את הסכמת הוידאו עבור מטופל זה?',
     dateNotRecorded: 'תאריך לא תועד',
     // Sync status
     syncPending: 'מסנכרן...',
     syncSaved: 'נשמר',
-    syncFailed: 'סנכרון נכשל - השינויים נשמרו מקומית',
+    syncFailed: 'סנכרון נכשל - השינויים נשמרו במכשיר זה.',
   },
 };
 
