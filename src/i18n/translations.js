@@ -337,6 +337,8 @@ export const translations = {
     intakeAssessment: 'Intake Assessment',
     mediaProgressComparison: 'Progress Comparison',
     mediaExerciseReview: 'Exercise Review',
+    mediaNoPatientSelected: 'Open a patient record from the Patients section first.',
+    mediaStartIntakeVideo: 'Start Intake Video',
 
     // CarePlanGoals
     therapyGoals: 'Therapy goals',
@@ -826,6 +828,8 @@ export const translations = {
     intakeAssessment: 'הערכת קבלה',
     mediaProgressComparison: 'השוואת התקדמות',
     mediaExerciseReview: 'סקירת תרגילים',
+    mediaNoPatientSelected: 'יש לפתוח תיק מטופל מדף המטופלים תחילה.',
+    mediaStartIntakeVideo: 'התחל וידיאו קבלה',
 
     // CarePlanGoals
     therapyGoals: 'יעדי טיפול',
