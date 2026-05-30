@@ -115,6 +115,10 @@ export default function PatientDetailsPage({
     setShowIntakeDetail(false);
   }, [editablePatient?.idNumber]);
 
+  useEffect(() => {
+    if (idNumberParam) handleSelectPatient?.(idNumberParam);
+  }, [idNumberParam]);
+
   const toggleHistorySelected = (entryId) => {
     const id = String(entryId || "");
     if (!id) return;
