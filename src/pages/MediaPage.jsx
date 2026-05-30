@@ -63,7 +63,7 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
       <p className="page-placeholder-text">
         {hasPatient
           ? `Patient: ${patientLabel} — choose a workflow below to open the video module.`
-          : "Open a patient record first to launch a targeted video workflow, or open the video module directly."}
+          : t('mediaNoPatientSelected')}
       </p>
 
       {consentRequired && (
@@ -82,11 +82,11 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
           <button
             type="button"
             className="primary-button"
-            disabled={consentRequired}
+            disabled={!hasPatient || consentRequired}
             title={consentRequired ? t('videoConsentRequired') : undefined}
             onClick={() => openVideo(selectedPatient, "intake", therapistId, patients, lang)}
           >
-            {hasPatient ? "Start Intake Video" : "Open Video Module"}
+            {t('mediaStartIntakeVideo')}
           </button>
         </div>
 
@@ -125,11 +125,6 @@ export default function MediaPage({ selectedPatient, patients = [] }) {
         </div>
       </div>
 
-      {!hasPatient && (
-        <p className="media-workflow-hint">
-          Progress Comparison and Exercise Review require a patient to be selected first. Open a patient from the Patients section, then return here.
-        </p>
-      )}
     </div>
   );
 }
