@@ -8,15 +8,18 @@
   background: radial-gradient(900px 420px at 20% 15%, rgba(168, 85, 247, 0.16), transparent 60%),
     radial-gradient(900px 420px at 85% 25%, rgba(99, 102, 241, 0.14), transparent 62%),
     #f3f4f6;
+  overflow-x: hidden;
 }
 
 .login-card {
   width: min(520px, 100%);
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 20px;
   padding: 28px 26px 26px;
   box-shadow: 0 22px 46px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
 }
 
 .login-logo-wrap {
@@ -46,10 +49,13 @@
 .login-title {
   margin: 0;
   text-align: center;
-  font-size: 40px;
+  font-size: clamp(2rem, 10vw, 40px);
   font-weight: 900;
   letter-spacing: -0.02em;
+  line-height: 1.05;
   color: #111827;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .login-subtitle {
@@ -246,6 +252,11 @@
   opacity: 0.72;
 }
 
+/* Public demo: hide broken Medplum redirect entry point. */
+.medplum-header-button {
+  display: none !important;
+}
+
 /* ----- Login footer ----- */
 .login-footer {
   margin-top: 1.2rem;
@@ -255,4 +266,55 @@
   color: rgba(107, 114, 128, 0.65);
   text-align: center;
   letter-spacing: 0.02em;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    justify-content: flex-start;
+    padding: 18px 14px;
+  }
+
+  .login-card {
+    width: 100%;
+    padding: 22px 18px 20px;
+    border-radius: 18px;
+  }
+
+  .login-logo-ring {
+    width: 96px;
+    height: 96px;
+  }
+
+  .login-title {
+    font-size: clamp(2rem, 9vw, 34px);
+    letter-spacing: -0.03em;
+  }
+
+  .login-platform-tag {
+    font-size: 10px;
+    letter-spacing: 0.07em;
+  }
+
+  .login-form {
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-page {
+    padding-inline: 10px;
+  }
+
+  .login-card {
+    padding-inline: 14px;
+  }
+
+  .login-title {
+    font-size: clamp(1.85rem, 8.5vw, 31px);
+  }
+
+  .login-logo-ring {
+    width: 88px;
+    height: 88px;
+  }
 }
