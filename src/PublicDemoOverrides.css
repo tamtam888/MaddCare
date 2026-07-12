@@ -1,0 +1,10 @@
+/* Public demo safety overrides.
+   Keep this file focused on demo-only cleanup for the shared Vercel demo. */
+
+.medplum-header-button,
+button.medplum-header-button,
+.app-header .medplum-header-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
