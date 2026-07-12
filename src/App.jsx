@@ -17,7 +17,7 @@ import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
 
-const SHOW_MEDPLUM_UI = import.meta.env.VITE_SHOW_MEDPLUM_UI !== "false";
+const SHOW_MEDPLUM_UI = false;
 
 const LOGGED_IN_KEY = "mc_logged_in";
 const THERAPISTS_KEY = "mc_therapists_v1";
