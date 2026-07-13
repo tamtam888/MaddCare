@@ -17,8 +17,6 @@ import { medplum } from "./medplumClient";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
 
-const SHOW_MEDPLUM_UI = false;
-
 const LOGGED_IN_KEY = "mc_logged_in";
 const THERAPISTS_KEY = "mc_therapists_v1";
 
@@ -145,23 +143,6 @@ function App() {
     };
   }, []);
 
-  const handleConnectMedplum = async () => {
-    try {
-      if (medplum.isAuthenticated()) {
-        const confirmDisconnect = window.confirm("Are you sure you want to disconnect from Medplum?");
-        if (confirmDisconnect) {
-          await medplum.signOut();
-          setMedplumProfile(null);
-        }
-      } else {
-        medplum.signInWithRedirect();
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error("Connect/disconnect failed:", error);
-      alert("Failed to connect to Medplum. Please try again.");
-    }
-  };
-
   const handleSyncAllTherapistsToMedplum = useCallback(async (maybeItems) => {
     if (!medplum.isAuthenticated()) {
       throw new Error("Not connected to Medplum.");
@@ -226,12 +207,6 @@ function App() {
               <button type="button" className="header-icon-button" title="Settings">
                 ⚙️
               </button>
-
-              {SHOW_MEDPLUM_UI && (
-                <button type="button" className="primary-button medplum-header-button" onClick={handleConnectMedplum}>
-                  {medplumProfile ? "Medplum: Connected" : "Connect to Medplum"}
-                </button>
-              )}
             </div>
           </header>
         ) : null}
