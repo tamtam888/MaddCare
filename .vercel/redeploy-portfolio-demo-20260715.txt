@@ -1,0 +1,4 @@
+Trigger Vercel redeploy for portfolio-demo after reconnect.
+Target branch: portfolio-demo
+Purpose: deploy commit containing public demo Medplum button removal.
+Date: 2026-07-15
