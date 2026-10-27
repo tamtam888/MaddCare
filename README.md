@@ -1,4 +1,10 @@
-# MedicalCare
+# MedicalCare — AI-Assisted HealthTech Platform
+
+**Clinical workflows · Patient management · React · Supabase · Medplum/FHIR**
+
+[Live demo](https://demo-medical-care.vercel.app/) · [Portfolio case study](https://tamtam888.github.io/MyPortfolio/medicalcare.html) · [Source repository](https://github.com/tamtam888/MaddCare)
+
+> **Naming:** MedicalCare is the product name; `MaddCare` is the repository name. [Maddvideo](https://github.com/tamtam888/Maddvideo) is a separate video module.
 
 A React/Vite clinic management platform for therapists - patient management, intake workflows, treatment documentation, AI-assisted clinical summaries, care plans, media/video tracking, and appointment scheduling.
 
